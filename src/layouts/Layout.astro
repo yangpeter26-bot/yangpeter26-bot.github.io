@@ -22,343 +22,255 @@ const { title, description } = Astro.props;
       rel="stylesheet"
     />
     <style is:global>
+      /* ===== iOS 27 Liquid Glass Design System ===== */
       :root {
-        --glass: rgba(255, 255, 255, 0.6);
-        --glass-border: rgba(255, 255, 255, 0.8);
-        --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
-        --glass-hover: rgba(255, 255, 255, 0.85);
-        --bg: #f0f2f5;
-        --text: #1a1a2e;
-        --text-dim: #5a5a72;
-        --purple: #7c3aed;
-        --cyan: #0891b2;
-        --pink: #db2777;
-        --radius: 20px;
+        /* iOS System Colors */
+        --blue: #007AFF;
+        --green: #34C759;
+        --pink: #FF375F;
+        --purple: #AF52DE;
+        --orange: #FF9F0A;
+        /* Background */
+        --bg: #F2F2F7;
+        --bg-elevated: rgba(255, 255, 255, 0.72);
+        /* Glass */
+        --glass: rgba(255, 255, 255, 0.64);
+        --glass-heavy: rgba(255, 255, 255, 0.78);
+        --glass-border: rgba(255, 255, 255, 0.56);
+        --glass-border-subtle: rgba(0, 0, 0, 0.06);
+        /* Text */
+        --text: #000000;
+        --text-secondary: #3C3C43;
+        --text-tertiary: #8E8E93;
+        --text-quaternary: #C7C7CC;
+        /* Shadows */
+        --shadow-sm: 0 1px 3px rgba(0,0,0,0.04);
+        --shadow-md: 0 4px 16px rgba(0,0,0,0.06);
+        --shadow-lg: 0 12px 40px rgba(0,0,0,0.08);
+        /* Radius */
+        --radius-sm: 16px;
+        --radius: 22px;
+        --radius-lg: 28px;
+        --radius-full: 9999px;
       }
 
       *,
       *::before,
-      *::after {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
+      *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
       body {
-        font-family: "Inter", "Noto Sans SC", -apple-system, sans-serif;
+        font-family: "Inter", "Noto Sans SC", -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
         background: var(--bg);
         color: var(--text);
         min-height: 100vh;
-        line-height: 1.7;
+        line-height: 1.5;
         overflow-x: hidden;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
       }
 
-      /* --- 液态金属背景 --- */
-      .bg-deco {
-        position: fixed;
-        border-radius: 50%;
-        filter: blur(180px);
-        opacity: 0.4;
-        pointer-events: none;
-        z-index: 0;
-        animation: float 12s ease-in-out infinite;
+      /* --- iOS Ambient Glow Background --- */
+      .bg-ambient {
+        position: fixed; border-radius: 50%; pointer-events: none; z-index: 0;
+        filter: blur(160px); opacity: 0.52;
+        animation: ambientDrift 16s ease-in-out infinite;
       }
-      .bg-deco-1 {
-        width: 600px;
-        height: 600px;
-        background: linear-gradient(135deg, #c4b5fd, #a5f3fc);
-        top: -200px;
-        right: -200px;
+      .bg-ambient-1 {
+        width: 640px; height: 640px;
+        background: radial-gradient(circle at 60% 40%, #E8E0F0, #D0E8F8 50%, transparent 80%);
+        top: -260px; right: -180px;
       }
-      .bg-deco-2 {
-        width: 400px;
-        height: 400px;
-        background: linear-gradient(135deg, #f9a8d4, #c4b5fd);
-        bottom: -150px;
-        left: -100px;
-        animation-delay: -6s;
+      .bg-ambient-2 {
+        width: 420px; height: 420px;
+        background: radial-gradient(circle at 40% 60%, #FDE0E8, #E8E0F0 50%, transparent 80%);
+        bottom: -180px; left: -120px;
+        animation-delay: -8s;
       }
-      @keyframes float {
-        0%,
-        100% {
-          transform: translate(0, 0) scale(1);
-        }
-        50% {
-          transform: translate(40px, -50px) scale(1.08);
-        }
+      @keyframes ambientDrift {
+        0%, 100% { transform: translate(0, 0) scale(1); }
+        33%  { transform: translate(30px, -36px) scale(1.05); }
+        66%  { transform: translate(-20px, 24px) scale(0.97); }
       }
 
-      /* --- 毛玻璃导航 --- */
+      /* === iOS Navigation Bar === */
       .nav {
-        position: sticky;
-        top: 0;
-        z-index: 100;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 14px 32px;
+        position: sticky; top: 0; z-index: 100;
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 12px 28px;
         background: var(--glass);
-        backdrop-filter: blur(24px) saturate(180%);
-        -webkit-backdrop-filter: blur(24px) saturate(180%);
-        border-bottom: 1px solid var(--glass-border);
+        backdrop-filter: blur(40px) saturate(200%);
+        -webkit-backdrop-filter: blur(40px) saturate(200%);
+        border-bottom: 0.5px solid var(--glass-border-subtle);
       }
       .nav-brand {
-        font-size: 20px;
-        font-weight: 700;
-        background: linear-gradient(135deg, var(--purple), var(--cyan));
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-      }
-      .nav-links {
-        display: flex;
-        gap: 28px;
-        list-style: none;
-      }
-      .nav-links a {
-        color: var(--text-dim);
-        text-decoration: none;
-        font-size: 14px;
-        font-weight: 500;
-        transition: color 0.2s;
-      }
-      .nav-links a:hover {
+        font-size: 19px; font-weight: 680;
+        letter-spacing: -0.02em;
         color: var(--text);
+        text-decoration: none;
       }
+      .nav-links { display: flex; gap: 24px; list-style: none; }
+      .nav-links a {
+        color: var(--blue); text-decoration: none;
+        font-size: 15px; font-weight: 500;
+        transition: opacity 0.2s;
+      }
+      .nav-links a:hover { opacity: 0.7; }
 
-      /* --- 容器 --- */
+      /* === Container === */
       .container {
-        position: relative;
-        z-index: 1;
-        max-width: 760px;
-        margin: 0 auto;
-        padding: 0 24px;
+        position: relative; z-index: 1;
+        max-width: 700px; margin: 0 auto; padding: 0 24px;
       }
 
-      /* --- Hero --- */
+      /* === Hero === */
       .hero {
-        margin-top: 60px;
-        margin-bottom: 64px;
-        text-align: center;
+        margin-top: 80px; margin-bottom: 56px; text-align: center;
       }
       .avatar {
-        width: 100px;
-        height: 100px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, var(--purple), var(--cyan), var(--pink));
-        padding: 3px;
-        margin: 0 auto 24px;
-        animation: avatarGlow 4s ease-in-out infinite;
+        width: 108px; height: 108px; border-radius: 50%;
+        background: linear-gradient(160deg, #AF52DE, #007AFF, #34C759);
+        padding: 3.5px; margin: 0 auto 28px;
+        box-shadow: 0 0 0 6px rgba(175,82,222,0.08), 0 8px 32px rgba(0,122,255,0.12);
       }
       .avatar-inner {
-        width: 100%;
-        height: 100%;
-        border-radius: 50%;
-        background: white;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 38px;
-        overflow: hidden;
+        width: 100%; height: 100%; border-radius: 50%;
+        background: #fff; overflow: hidden;
+        display: flex; align-items: center; justify-content: center; font-size: 40px;
       }
-      .avatar-inner img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-      }
-      @keyframes avatarGlow {
-        0%,
-        100% {
-          box-shadow: 0 0 20px rgba(124, 58, 237, 0.15);
-        }
-        50% {
-          box-shadow: 0 0 50px rgba(124, 58, 237, 0.3), 0 0 90px rgba(8, 145, 178, 0.1);
-        }
-      }
+      .avatar-inner img { width: 100%; height: 100%; object-fit: cover; }
       .hero h1 {
-        font-size: 36px;
-        font-weight: 700;
-        margin-bottom: 10px;
-      }
-      .hero .tagline {
-        color: var(--text-dim);
-        font-size: 16px;
-        margin-bottom: 20px;
-      }
-      .hero .bio {
-        color: var(--text-dim);
-        font-size: 14px;
-        max-width: 480px;
-        margin: 0 auto;
-        line-height: 1.9;
-      }
-
-      /* --- 毛玻璃卡片 --- */
-      .card {
-        display: block;
-        text-decoration: none;
-        color: inherit;
-        background: var(--glass);
-        backdrop-filter: blur(16px) saturate(180%);
-        -webkit-backdrop-filter: blur(16px) saturate(180%);
-        border: 1px solid var(--glass-border);
-        border-radius: var(--radius);
-        padding: 28px 32px;
-        margin-bottom: 16px;
-        transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
-        cursor: pointer;
-        box-shadow: var(--glass-shadow);
-      }
-      .card:hover {
-        transform: translateY(-4px);
-        background: var(--glass-hover);
-        border-color: var(--purple);
-        box-shadow: 0 12px 40px rgba(124, 58, 237, 0.1);
-      }
-      .card-meta {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        flex-wrap: wrap;
-        margin-bottom: 10px;
-      }
-      .card-date {
-        font-size: 13px;
-        color: var(--text-dim);
-      }
-      .card-tag {
-        font-size: 11px;
-        padding: 3px 10px;
-        border-radius: 20px;
-        background: rgba(139, 92, 246, 0.1);
-        color: var(--purple);
-        font-weight: 500;
-        letter-spacing: 0.04em;
-      }
-      .card-tag.accent {
-        background: rgba(8, 145, 178, 0.1);
-        color: var(--cyan);
-      }
-      .card-tag.warm {
-        background: rgba(219, 39, 119, 0.1);
-        color: var(--pink);
-      }
-      .card-title {
-        font-size: 20px;
-        font-weight: 600;
+        font-size: 38px; font-weight: 720; letter-spacing: -0.03em;
         margin-bottom: 8px;
       }
+      .hero .tagline {
+        color: var(--text-secondary); font-size: 17px;
+        font-weight: 460; margin-bottom: 16px;
+      }
+      .hero .bio {
+        color: var(--text-tertiary); font-size: 15px;
+        max-width: 440px; margin: 0 auto; line-height: 1.65;
+      }
+
+      /* === iOS Style Cards (Liquid Glass) === */
+      .card {
+        display: block; text-decoration: none; color: inherit;
+        background: var(--glass);
+        backdrop-filter: blur(28px) saturate(200%);
+        -webkit-backdrop-filter: blur(28px) saturate(200%);
+        border: 0.5px solid var(--glass-border);
+        border-radius: var(--radius);
+        padding: 24px 28px;
+        margin-bottom: 14px;
+        transition: all 0.28s cubic-bezier(0.22, 0.99, 0.48, 1.01);
+        box-shadow: var(--shadow-sm);
+      }
+      .card:hover {
+        transform: scale(1.012);
+        background: var(--glass-heavy);
+        border-color: rgba(0,122,255,0.18);
+        box-shadow: var(--shadow-lg);
+      }
+      .card-meta {
+        display: flex; align-items: center; gap: 10px;
+        flex-wrap: wrap; margin-bottom: 8px;
+      }
+      .card-date {
+        font-size: 13px; color: var(--text-tertiary);
+        font-variant-numeric: tabular-nums;
+      }
+      .card-tag {
+        font-size: 11px; padding: 3px 10px; border-radius: var(--radius-full);
+        background: rgba(0,122,255,0.1); color: var(--blue);
+        font-weight: 560; letter-spacing: -0.01em;
+      }
+      .card-tag.accent {
+        background: rgba(175,82,222,0.1); color: var(--purple);
+      }
+      .card-tag.warm {
+        background: rgba(255,55,95,0.1); color: var(--pink);
+      }
+      .card-title {
+        font-size: 20px; font-weight: 640; letter-spacing: -0.02em;
+        margin-bottom: 6px;
+      }
       .card-excerpt {
-        font-size: 14px;
-        color: var(--text-dim);
-        line-height: 1.8;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
+        font-size: 15px; color: var(--text-tertiary); line-height: 1.6;
+        display: -webkit-box; -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical; overflow: hidden;
       }
       .card-footer {
-        display: flex;
-        align-items: center;
-        gap: 24px;
-        margin-top: 16px;
-        font-size: 12px;
-        color: var(--text-dim);
+        display: flex; align-items: center; gap: 20px;
+        margin-top: 12px; font-size: 13px; color: var(--text-quaternary);
+        font-weight: 500;
       }
 
-      /* --- 文章页 --- */
+      /* === Prose / Article Page === */
       .prose {
         background: var(--glass);
-        backdrop-filter: blur(16px) saturate(180%);
-        -webkit-backdrop-filter: blur(16px) saturate(180%);
-        border: 1px solid var(--glass-border);
-        border-radius: var(--radius);
-        padding: 40px 36px;
-        margin-top: 40px;
-        margin-bottom: 80px;
-        box-shadow: var(--glass-shadow);
+        backdrop-filter: blur(28px) saturate(200%);
+        -webkit-backdrop-filter: blur(28px) saturate(200%);
+        border: 0.5px solid var(--glass-border);
+        border-radius: var(--radius-lg);
+        padding: 36px 32px;
+        margin-top: 48px; margin-bottom: 80px;
+        box-shadow: var(--shadow-sm);
       }
       .prose h1 {
-        font-size: 28px;
-        margin-bottom: 12px;
+        font-size: 32px; font-weight: 720; letter-spacing: -0.03em;
+        margin-bottom: 8px;
       }
       .prose .date {
-        color: var(--text-dim);
-        font-size: 13px;
-        margin-bottom: 28px;
+        color: var(--text-tertiary); font-size: 14px;
+        margin-bottom: 24px;
       }
       .prose p {
-        font-size: 16px;
-        line-height: 2;
-        color: var(--text-dim);
-        margin-bottom: 20px;
+        font-size: 17px; line-height: 1.75;
+        color: var(--text-secondary); margin-bottom: 18px;
       }
+      .prose strong { color: var(--text); font-weight: 640; }
       .prose hr {
-        border: none;
-        border-top: 1px solid var(--glass-border);
-        margin: 32px 0;
+        border: none; border-top: 0.5px solid var(--glass-border-subtle);
+        margin: 28px 0;
       }
       .back-link {
-        color: var(--purple);
-        text-decoration: none;
-        font-size: 14px;
-        font-weight: 500;
+        color: var(--blue); text-decoration: none;
+        font-size: 15px; font-weight: 520;
       }
-      .back-link:hover {
-        text-decoration: underline;
-      }
+      .back-link:hover { opacity: 0.7; }
 
-      /* --- 页脚 --- */
+      /* === Footer (iOS Tab Bar style) === */
       .footer {
-        text-align: center;
-        padding: 40px 24px;
-        color: var(--text-dim);
-        font-size: 13px;
+        text-align: center; padding: 32px 24px 48px;
+        color: var(--text-tertiary); font-size: 13px;
       }
       .footer-links {
-        display: flex;
-        justify-content: center;
-        gap: 24px;
-        margin-bottom: 16px;
-        flex-wrap: wrap;
+        display: flex; justify-content: center; gap: 28px;
+        margin-bottom: 14px; flex-wrap: wrap;
       }
       .footer-links a {
-        color: var(--text-dim);
-        text-decoration: none;
-        font-weight: 500;
-        transition: color 0.2s;
+        color: var(--blue); text-decoration: none;
+        font-size: 14px; font-weight: 520;
+        transition: opacity 0.2s;
       }
-      .footer-links a:hover {
-        color: var(--purple);
-      }
+      .footer-links a:hover { opacity: 0.7; }
 
+      /* === Mobile === */
       @media (max-width: 640px) {
-        .nav {
-          padding: 12px 16px;
-        }
-        .nav-links {
-          display: none;
-        }
-        .hero {
-          margin-top: 40px;
-          margin-bottom: 48px;
-        }
-        .hero h1 {
-          font-size: 28px;
-        }
-        .card,
-        .prose {
-          padding: 20px 20px;
-        }
+        .nav { padding: 10px 18px; }
+        .nav-links { display: none; }
+        .hero { margin-top: 52px; margin-bottom: 40px; }
+        .hero h1 { font-size: 30px; }
+        .card { padding: 20px 20px; }
+        .prose { padding: 24px 20px; margin-top: 32px; }
       }
     </style>
   </head>
   <body>
-    <div class="bg-deco bg-deco-1"></div>
-    <div class="bg-deco bg-deco-2"></div>
+    <div class="bg-ambient bg-ambient-1"></div>
+    <div class="bg-ambient bg-ambient-2"></div>
 
     <nav class="nav">
-      <a href="/" style="text-decoration:none;" class="nav-brand">YangPeter</a>
+      <a href="/" class="nav-brand">YangPeter</a>
       <ul class="nav-links">
         <li><a href="/">Home</a></li>
         <li><a href="/posts/about/">About</a></li>
