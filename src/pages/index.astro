@@ -1,0 +1,28 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Home" description="YangPeter's blog — tech & life">
+  <section class="hero">
+    <div class="avatar">
+      <div class="avatar-inner">
+        <img src="/avatar.jpg" alt="YangPeter" />
+      </div>
+    </div>
+    <h1>YangPeter</h1>
+    <p class="tagline">Cybersecurity Engineer &middot; Lifelong Learner</p>
+    <p class="bio">
+      Forever learning, forever curious. Notes on tech, projects, and source code deep-dives.
+    </p>
+  </section>
+
+  <a class="card" href="/posts/about/">
+    <h2 class="card-title">About Me</h2>
+    <p class="card-excerpt">
+      Hi, I'm YangPeter. At this moment, I have nothing to say — and that's okay. Click to read more.
+    </p>
+    <div class="card-footer">
+      <span>Read more &rarr;</span>
+    </div>
+  </a>
+</Layout>
