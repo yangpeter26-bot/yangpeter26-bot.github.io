@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>星尘代码录 — 一个计算机博主的博客</title>
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #080c18;
+            --surface: rgba(255, 255, 255, 0.04);
+            --border: rgba(255, 255, 255, 0.08);
+            --text: #e4e0f0;
+            --text-dim: rgba(255, 255, 255, 0.5);
+            --purple: #8b5cf6;
+            --cyan: #06b6d4;
+            --pink: #ec4899;
+            --radius: 16px;
+            --radius-sm: 10px;
+        }
+
+        body {
+            font-family: "Noto Sans SC", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+            line-height: 1.7;
+        }
+
+        .stars-canvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .aurora {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(140px);
+            opacity: 0.3;
+            pointer-events: none;
+            z-index: 0;
+            animation: auroraFloat 10s ease-in-out infinite;
+        }
+        .aurora-1 {
+            width: 700px; height: 700px;
+            background: radial-gradient(circle, var(--purple) 0%, transparent 70%);
+            top: -300px; right: -200px;
+        }
+        .aurora-2 {
+            width: 500px; height: 500px;
+            background: radial-gradient(circle, var(--cyan) 0%, transparent 70%);
+            bottom: -200px; left: -150px;
+            animation-delay: -5s;
+        }
+        @keyframes auroraFloat {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(30px, -40px) scale(1.1); }
+        }
+
+        /* 导航栏 */
+        .nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 32px;
+            background: rgba(8, 12, 24, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+        }
+        .nav-brand {
+            font-size: 20px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--cyan), var(--purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .nav-links {
+            display: flex;
+            gap: 28px;
+            list-style: none;
+        }
+        .nav-links a {
+            color: var(--text-dim);
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+        .nav-links a:hover { color: var(--text); }
+
+        /* 主容器 */
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 760px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* 个人头部 */
+        .hero {
+            margin-top: 60px;
+            margin-bottom: 64px;
+            text-align: center;
+        }
+        .avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--purple), var(--cyan), var(--pink));
+            padding: 3px;
+            margin: 0 auto 24px;
+            animation: avatarGlow 4s ease-in-out infinite;
+        }
+        .avatar-inner {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: var(--bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 38px;
+        }
+        @keyframes avatarGlow {
+            0%, 100% { box-shadow: 0 0 30px rgba(139, 92, 246, 0.3); }
+            50% { box-shadow: 0 0 60px rgba(139, 92, 246, 0.6), 0 0 100px rgba(6, 182, 212, 0.2); }
+        }
+        .hero h1 {
+            font-size: 36px;
+            font-weight: 700;
+            letter-spacing: 0.03em;
+            margin-bottom: 10px;
+        }
+        .hero .tagline {
+            color: var(--text-dim);
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+        .hero .bio {
+            color: var(--text-dim);
+            font-size: 14px;
+            max-width: 480px;
+            margin: 0 auto;
+            line-height: 1.9;
+        }
+
+        /* 分割线 */
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 48px;
+        }
+        .divider::before, .divider::after {
+            content: "";
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--border), transparent);
+        }
+        .divider span {
+            color: var(--text-dim);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+        }
+
+        /* 文章卡片 */
+        .post-card {
+            display: block;
+            text-decoration: none;
+            color: inherit;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 28px 32px;
+            margin-bottom: 16px;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            cursor: pointer;
+        }
+        .post-card:hover {
+            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.07);
+            border-color: rgba(139, 92, 246, 0.3);
+            box-shadow: 0 0 40px rgba(139, 92, 246, 0.08);
+        }
+        .post-meta {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+        .post-date {
+            font-size: 13px;
+            color: var(--text-dim);
+            font-variant-numeric: tabular-nums;
+        }
+        .post-tag {
+            font-size: 11px;
+            padding: 3px 10px;
+            border-radius: 20px;
+            background: rgba(139, 92, 246, 0.15);
+            color: #a78bfa;
+            letter-spacing: 0.04em;
+        }
+        .post-tag.cyan { background: rgba(6, 182, 212, 0.15); color: #22d3ee; }
+        .post-tag.pink { background: rgba(236, 72, 153, 0.15); color: #f472b6; }
+        .post-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+        .post-excerpt {
+            font-size: 14px;
+            color: var(--text-dim);
+            line-height: 1.8;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .post-footer {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            margin-top: 16px;
+            font-size: 12px;
+            color: var(--text-dim);
+        }
+
+        /* 加载更多 */
+        .load-more {
+            display: block;
+            width: 100%;
+            padding: 14px;
+            margin-top: 8px;
+            margin-bottom: 80px;
+            text-align: center;
+            color: var(--text-dim);
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+        .load-more:hover {
+            border-color: rgba(139, 92, 246, 0.3);
+            color: var(--text);
+            background: rgba(255, 255, 255, 0.07);
+        }
+
+        /* 快捷入口 */
+        .quick-links {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 80px;
+        }
+        .quick-link {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 24px 16px;
+            text-align: center;
+            text-decoration: none;
+            color: var(--text);
+            transition: all 0.3s ease;
+        }
+        .quick-link:hover {
+            border-color: rgba(139, 92, 246, 0.3);
+            background: rgba(255, 255, 255, 0.07);
+        }
+        .quick-link .icon { font-size: 28px; margin-bottom: 10px; }
+        .quick-link .label { font-size: 13px; color: var(--text-dim); }
+
+        /* 页脚 */
+        .footer {
+            text-align: center;
+            padding: 40px 24px;
+            border-top: 1px solid var(--border);
+            color: var(--text-dim);
+            font-size: 13px;
+        }
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+        .footer-links a {
+            color: var(--text-dim);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .footer-links a:hover { color: var(--purple); }
+
+        @media (max-width: 640px) {
+            .nav { padding: 12px 16px; }
+            .nav-links { display: none; }
+            .hero { margin-top: 40px; margin-bottom: 48px; }
+            .hero h1 { font-size: 28px; }
+            .post-card { padding: 20px 20px; }
+            .post-title { font-size: 18px; }
+            .quick-links { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+            .quick-link { padding: 16px 10px; }
+            .quick-link .icon { font-size: 22px; }
+        }
+    </style>
+</head>
+<body>
+    <canvas class="stars-canvas" id="stars"></canvas>
+    <div class="aurora aurora-1"></div>
+    <div class="aurora aurora-2"></div>
+
+    <nav class="nav">
+        <div class="nav-brand">✦ 星尘代码录</div>
+        <ul class="nav-links">
+            <li><a href="#home">首页</a></li>
+            <li><a href="#posts">文章</a></li>
+            <li><a href="#projects">项目</a></li>
+            <li><a href="#about">关于</a></li>
+        </ul>
+    </nav>
+
+    <main class="container">
+        <section class="hero" id="home">
+            <div class="avatar">
+                <div class="avatar-inner">💻</div>
+            </div>
+            <h1>星尘</h1>
+            <p class="tagline">全栈开发者 · 开源贡献者 · 终身学习者</p>
+            <p class="bio">
+                写代码十年，依然对技术保持好奇心。专注后端架构、分布式系统和编程语言底层。喜欢拆解复杂问题，也喜欢把踩过的坑写成博客。这里记录我的技术思考、项目复盘和源码阅读笔记。
+            </p>
+        </section>
+
+        <div class="quick-links">
+            <a class="quick-link" href="#posts">
+                <div class="icon">📝</div>
+                <div class="label">全部文章</div>
+            </a>
+            <a class="quick-link" href="#projects">
+                <div class="icon">🛠️</div>
+                <div class="label">开源项目</div>
+            </a>
+            <a class="quick-link" href="#about">
+                <div class="icon">👨‍💻</div>
+                <div class="label">关于我</div>
+            </a>
+        </div>
+
+        <div class="divider" id="posts"><span>近期文章</span></div>
+
+        <a class="post-card" href="/posts/linux-scheduler-cfs-eevdf.html">
+            <div class="post-meta">
+                <span class="post-date">2026-06-15</span>
+                <span class="post-tag">操作系统</span>
+                <span class="post-tag cyan">Linux</span>
+            </div>
+            <h2 class="post-title">深入浅出 Linux 内核调度器：从 CFS 到 EEVDF</h2>
+            <p class="post-excerpt">Linux 6.6 用 EEVDF 替换了服役多年的 CFS 调度器。这篇文章带你从零理解调度器的核心设计思想，对比两种算法的优劣，并结合源码分析 EEVDF 如何解决 CFS 在高负载下的延迟问题。</p>
+            <div class="post-footer">
+                <span>👁 8.7k 阅读</span>
+                <span>💬 56 评论</span>
+                <span>⏱ 15 分钟</span>
+            </div>
+        </a>
+
+        <a class="post-card" href="/posts/rust-json-parser-500-lines.html">
+            <div class="post-meta">
+                <span class="post-date">2026-06-10</span>
+                <span class="post-tag pink">Rust</span>
+                <span class="post-tag">编译原理</span>
+            </div>
+            <h2 class="post-title">用不到 500 行 Rust 实现一个 JSON Parser</h2>
+            <p class="post-excerpt">手写递归下降解析器是一次极好的学习体验。这篇文章一步步从词法分析到 AST 构建，用最精简的 Rust 代码实现一个完整的 JSON 解析器，附带详细的错误处理和测试用例。</p>
+            <div class="post-footer">
+                <span>👁 6.2k 阅读</span>
+                <span>💬 38 评论</span>
+                <span>⏱ 12 分钟</span>
+            </div>
+        </a>
+
+        <a class="post-card" href="/posts/database-index-bplustree.html">
+            <div class="post-meta">
+                <span class="post-date">2026-06-03</span>
+                <span class="post-tag">数据库</span>
+                <span class="post-tag cyan">后端</span>
+            </div>
+            <h2 class="post-title">图解数据库索引：为什么 B+Tree 这么快？</h2>
+            <p class="post-excerpt">从磁盘 IO 原理出发，用图解的方式讲清楚 B+Tree 的结构、插入分裂、范围查询优化，以及为什么 MySQL InnoDB 选择了它。附带一个 Python 实现帮你彻底理解。</p>
+            <div class="post-footer">
+                <span>👁 12.3k 阅读</span>
+                <span>💬 72 评论</span>
+                <span>⏱ 10 分钟</span>
+            </div>
+        </a>
+
+        <a class="post-card" href="/posts/homelab-nas-from-scratch.html">
+            <div class="post-meta">
+                <span class="post-date">2026-05-28</span>
+                <span class="post-tag pink">硬件</span>
+                <span class="post-tag">运维</span>
+            </div>
+            <h2 class="post-title">从零搭建 Homelab：NAS + Proxmox + Docker 全记录</h2>
+            <p class="post-excerpt">从选购硬件到安装 Proxmox VE，再到 Docker 化所有服务（Jellyfin、Nextcloud、Home Assistant），记录我折腾一周搭建家庭数据中心的完整过程、踩坑记录和最终拓扑图。</p>
+            <div class="post-footer">
+                <span>👁 5.4k 阅读</span>
+                <span>💬 45 评论</span>
+                <span>⏱ 18 分钟</span>
+            </div>
+        </a>
+
+        <a class="post-card" href="/posts/modern-cpp23-guide.html">
+            <div class="post-meta">
+                <span class="post-date">2026-05-20</span>
+                <span class="post-tag">C++</span>
+                <span class="post-tag cyan">编程语言</span>
+            </div>
+            <h2 class="post-title">2026 年还在写 C++：现代 C++23 特性实战指南</h2>
+            <p class="post-excerpt">C++23 带来了 std::expected、deducing this、ranges 增强等重磅特性。这篇文章不是罗列语法，而是从实际项目场景出发，演示这些新特性如何让你写出更安全、更简洁的现代 C++ 代码。</p>
+            <div class="post-footer">
+                <span>👁 9.1k 阅读</span>
+                <span>💬 63 评论</span>
+                <span>⏱ 14 分钟</span>
+            </div>
+        </a>
+
+        <button class="load-more" id="loadMore">查看更多文章 →</button>
+        <!-- 项目展示 -->
+        <div class="divider" id="projects"><span>开源项目</span></div>
+
+        <a class="post-card" href="https://github.com" target="_blank" rel="noopener">
+            <div class="post-meta">
+                <span class="post-tag">Rust</span>
+                <span class="post-tag cyan">CLI</span>
+            </div>
+            <h2 class="post-title">🦀 rcat — 一个带语法高亮的 cat 替代品</h2>
+            <p class="post-excerpt">用 Rust 写的命令行工具，支持 200+ 语言的语法高亮、行号显示、自动分页。在 GitHub 上获得了 2.3k stars。</p>
+            <div class="post-footer">
+                <span>⭐ 2.3k</span>
+                <span>🍴 180</span>
+                <span>📦 crates.io</span>
+            </div>
+        </a>
+
+        <a class="post-card" href="https://github.com" target="_blank" rel="noopener">
+            <div class="post-meta">
+                <span class="post-tag pink">Go</span>
+                <span class="post-tag">中间件</span>
+            </div>
+            <h2 class="post-title">⚡ quickgate — 轻量级 API 网关</h2>
+            <p class="post-excerpt">基于 Go 实现的高性能 API 网关，支持限流、熔断、动态路由和插件系统。在我的 Homelab 中稳定运行了一年多，单机压测 QPS 超过 50k。</p>
+            <div class="post-footer">
+                <span>⭐ 1.1k</span>
+                <span>🍴 95</span>
+                <span>📦 Docker Hub</span>
+            </div>
+        </a>
+
+        <a class="post-card" href="https://github.com" target="_blank" rel="noopener">
+            <div class="post-meta">
+                <span class="post-tag">Python</span>
+                <span class="post-tag cyan">AI</span>
+            </div>
+            <h2 class="post-title">🤖 coderag — 代码库 RAG 问答工具</h2>
+            <p class="post-excerpt">基于 LangChain + ChromaDB 构建的代码库智能问答工具，支持 OpenAI 和本地模型。输入你的代码仓库路径，直接用自然语言提问，它会检索相关代码并给出回答。</p>
+            <div class="post-footer">
+                <span>⭐ 890</span>
+                <span>🍴 62</span>
+                <span>📦 PyPI</span>
+            </div>
+        </a>
+
+        <!-- 关于我 -->
+        <div class="divider" id="about"><span>关于我</span></div>
+
+        <div class="post-card" style="cursor: default; transform: none;">
+            <p style="font-size: 15px; line-height: 2; color: var(--text-dim);">
+                👋 你好，我是 <strong style="color: var(--text);">星尘</strong>，一个写了十年代码的全栈开发者。<br><br>
+                🔧 技术栈：<strong style="color: var(--text);">Go / Rust / Python / TypeScript</strong>，最近在深入学习操作系统和分布式系统。<br>
+                🎯 兴趣方向：后端架构、数据库内核、编程语言设计与实现。<br>
+                📝 写博客的初衷是把学习过程中的理解整理成文——教是最好的学。<br>
+                📬 欢迎交流：<strong style="color: var(--purple);">stardust@codecraft.dev</strong>
+            </p>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-links">
+            <a href="https://github.com" target="_blank" rel="noopener">GitHub</a>
+            <a href="https://twitter.com" target="_blank" rel="noopener">Twitter / X</a>
+            <a href="/rss.xml">RSS 订阅</a>
+            <a href="mailto:stardust@codecraft.dev">邮件联系</a>
+        </div>
+        <p>© 2026 星尘代码录 · 用 ☕ 和深夜键盘建成</p>
+    </footer>
+
+    <script>
+        (function() {
+            const canvas = document.getElementById("stars");
+            const ctx = canvas.getContext("2d");
+            const STARS = [];
+            const TOTAL = 120;
+
+            function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+            resize();
+            window.addEventListener("resize", resize);
+
+            for (let i = 0; i < TOTAL; i++) {
+                STARS.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    r: Math.random() * 1.8 + 0.3,
+                    speed: Math.random() * 0.3 + 0.05,
+                    twinkle: Math.random() * Math.PI * 2,
+                    twinkleSpeed: Math.random() * 0.015 + 0.003
+                });
+            }
+
+            function draw() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                for (let i = 0; i < STARS.length; i++) {
+                    var s = STARS[i];
+                    s.twinkle += s.twinkleSpeed;
+                    var alpha = 0.2 + Math.sin(s.twinkle) * 0.35;
+                    ctx.beginPath();
+                    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+                    ctx.fillStyle = "rgba(200, 210, 255, " + alpha + ")";
+                    ctx.fill();
+                    s.y -= s.speed;
+                    if (s.y < -5) { s.y = canvas.height + 5; s.x = Math.random() * canvas.width; }
+                }
+                requestAnimationFrame(draw);
+            }
+            draw();
+        })();
+
+        document.querySelector("#loadMore").addEventListener("click", function() {
+            this.textContent = "📬 更多文章正在赶来… 订阅 RSS 第一时间获取更新 →";
+            this.style.opacity = "0.6";
+            this.style.pointerEvents = "none";
+        });
+    </script>
+</body>
+</html>
