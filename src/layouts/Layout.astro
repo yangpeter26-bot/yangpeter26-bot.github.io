@@ -4,10 +4,8 @@ export interface Props {
   title: string;
   description?: string;
 }
-
 const { title, description } = Astro.props;
 ---
-
 <!doctype html>
 <html lang="zh-CN">
   <head>
@@ -17,34 +15,21 @@ const { title, description } = Astro.props;
     <title>{title} | YangPeter</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <style is:global>
-      /* ===== iOS Liquid Glass — based on css.glass + Apple HIG ===== */
+      /* ===== Liquid Glass ===== */
       :root {
-        /* iOS System Colors */
         --blue: #007AFF;
         --purple: #AF52DE;
         --green: #34C759;
         --pink: #FF375F;
-        /* Background */
-        --bg: #F2F2F7;
-        /* Glass — Key: very low opacity, light blur, vibrancy */
-        --glass-bg: rgba(255, 255, 255, 0.18);
-        --glass-bg-hover: rgba(255, 255, 255, 0.28);
-        --glass-border: rgba(255, 255, 255, 0.22);
-        --glass-border-subtle: rgba(0, 0, 0, 0.04);
-        --glass-highlight: rgba(255, 255, 255, 0.35);
-        /* Text */
+        --bg: #E8EAED;
+        --glass-tint: rgba(255, 255, 255, 0.08);
+        --glass-border: rgba(255, 255, 255, 0.3);
+        --glass-shadow: 0 4px 24px rgba(0,0,0,0.06);
         --text: #000000;
         --text-secondary: #3C3C43;
         --text-tertiary: #8E8E93;
-        /* Shadow */
-        --shadow: 0 4px 30px rgba(0,0,0,0.08);
-        --shadow-hover: 0 8px 40px rgba(0,0,0,0.10);
-        /* Radius */
         --radius: 20px;
         --radius-lg: 26px;
         --radius-full: 9999px;
@@ -62,38 +47,82 @@ const { title, description } = Astro.props;
         -webkit-font-smoothing: antialiased;
       }
 
-      /* --- iOS Ambient Background --- */
+      /* --- Ambient color blobs --- */
       .bg-ambient {
         position: fixed; border-radius: 50%; pointer-events: none; z-index: 0;
-        filter: blur(180px); opacity: 0.45;
-        animation: drift 18s ease-in-out infinite;
+        filter: blur(80px); opacity: 0.5;
+        animation: drift 20s ease-in-out infinite;
       }
       .bg-ambient-1 {
-        width: 600px; height: 600px;
-        background: radial-gradient(circle, #E0D8F0 0%, #D0E4F8 45%, transparent 75%);
-        top: -280px; right: -160px;
+        width: 500px; height: 500px;
+        background: #90B0D8;
+        top: -120px; right: -80px;
       }
       .bg-ambient-2 {
-        width: 380px; height: 380px;
-        background: radial-gradient(circle, #F8D8E8 0%, #E0D8F0 45%, transparent 75%);
-        bottom: -160px; left: -100px;
-        animation-delay: -9s;
+        width: 400px; height: 400px;
+        background: #A0C0D8;
+        bottom: -100px; left: -60px;
+        animation-delay: -10s;
+      }
+      .bg-ambient-3 {
+        width: 350px; height: 350px;
+        background: #C0B8D0;
+        top: 45%; left: 55%;
+        animation-delay: -16s;
       }
       @keyframes drift {
-        0%, 100% { transform: translate(0, 0) scale(1); }
-        33% { transform: translate(24px, -30px) scale(1.04); }
-        66% { transform: translate(-16px, 20px) scale(0.97); }
+        0%, 100% { transform: translate(0, 0); }
+        33% { transform: translate(20px, -24px); }
+        66% { transform: translate(-14px, 16px); }
       }
 
-      /* === iOS Nav Bar === */
+      /* === Liquid Glass Card === */
+      .liquid-glass {
+        position: relative;
+        overflow: hidden;
+        border-radius: var(--radius);
+        background: var(--glass-tint);
+        backdrop-filter: blur(20px) saturate(140%) brightness(1.05);
+        -webkit-backdrop-filter: blur(20px) saturate(140%) brightness(1.05);
+        border: 0.5px solid var(--glass-border);
+        box-shadow:
+          var(--glass-shadow),
+          inset 1px 1px 0 rgba(255,255,255,0.35),
+          inset -1px -1px 0 rgba(255,255,255,0.06);
+        transition: all 0.30s cubic-bezier(0.22, 1, 0.36, 1);
+      }
+      .liquid-glass:hover {
+        background: rgba(255, 255, 255, 0.14);
+        box-shadow:
+          0 6px 28px rgba(0,0,0,0.08),
+          inset 1px 1px 0 rgba(255,255,255,0.45),
+          inset -1px -1px 0 rgba(255,255,255,0.08);
+      }
+      /* Specular highlight */
+      .liquid-glass::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        background: linear-gradient(
+          150deg,
+          rgba(255,255,255,0.2) 0%,
+          rgba(255,255,255,0.04) 30%,
+          transparent 50%
+        );
+        pointer-events: none;
+      }
+      .liquid-glass > * { position: relative; z-index: 1; }
+
+      /* === Nav Bar === */
       .nav {
         position: sticky; top: 0; z-index: 100;
         display: flex; align-items: center; justify-content: space-between;
         padding: 11px 28px;
-        background: rgba(242, 242, 247, 0.72);
-        backdrop-filter: blur(20px) saturate(180%);
-        -webkit-backdrop-filter: blur(20px) saturate(180%);
-        border-bottom: 0.5px solid rgba(0,0,0,0.08);
+        background: rgba(232, 234, 237, 0.65);
+        backdrop-filter: blur(24px) saturate(140%);
+        -webkit-backdrop-filter: blur(24px) saturate(140%);
+        border-bottom: 0.5px solid rgba(255,255,255,0.2);
       }
       .nav-brand {
         font-size: 18px; font-weight: 640; letter-spacing: -0.02em;
@@ -142,27 +171,13 @@ const { title, description } = Astro.props;
         max-width: 420px; margin: 0 auto; line-height: 1.65;
       }
 
-      /* === Liquid Glass Card === */
+      /* === Card === */
       .card {
         display: block; text-decoration: none; color: inherit;
-        /* The proven css.glass formula */
-        background: var(--glass-bg);
-        backdrop-filter: blur(20px) saturate(180%);
-        -webkit-backdrop-filter: blur(20px) saturate(180%);
-        /* Critical iOS trait: subtle white border */
-        border: 1px solid var(--glass-border);
-        border-radius: var(--radius);
         padding: 22px 26px;
         margin-bottom: 12px;
-        box-shadow: var(--shadow);
-        transition: all 0.30s cubic-bezier(0.22, 1, 0.36, 1);
       }
-      .card:hover {
-        transform: scale(1.008);
-        background: var(--glass-bg-hover);
-        border-color: var(--glass-highlight);
-        box-shadow: var(--shadow-hover);
-      }
+      .card:hover { transform: scale(1.006); }
       .card-meta {
         display: flex; align-items: center; gap: 10px;
         flex-wrap: wrap; margin-bottom: 6px;
@@ -192,14 +207,8 @@ const { title, description } = Astro.props;
 
       /* === Article Page === */
       .prose {
-        background: var(--glass-bg);
-        backdrop-filter: blur(20px) saturate(180%);
-        -webkit-backdrop-filter: blur(20px) saturate(180%);
-        border: 1px solid var(--glass-border);
-        border-radius: var(--radius-lg);
         padding: 34px 30px;
         margin-top: 44px; margin-bottom: 80px;
-        box-shadow: var(--shadow);
       }
       .prose h1 {
         font-size: 30px; font-weight: 700; letter-spacing: -0.03em;
@@ -250,6 +259,7 @@ const { title, description } = Astro.props;
   <body>
     <div class="bg-ambient bg-ambient-1"></div>
     <div class="bg-ambient bg-ambient-2"></div>
+    <div class="bg-ambient bg-ambient-3"></div>
 
     <nav class="nav">
       <a href="/" class="nav-brand">YangPeter</a>
