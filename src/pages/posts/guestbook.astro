@@ -1,0 +1,33 @@
+---
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout title="Guestbook">
+  <div class="prose liquid-glass">
+    <a class="back-link" href="/">&larr; Back Home</a>
+    <h1>Guestbook</h1>
+    <p class="date">Leave a message! Sign in with GitHub.</p>
+    <hr />
+
+    <script src="https://giscus.app/client.js"
+      data-repo="yangpeter26-bot/yangpeter26-bot.github.io"
+      data-repo-id=""
+      data-category="Announcements"
+      data-category-id=""
+      data-mapping="pathname"
+      data-strict="0"
+      data-reactions-enabled="1"
+      data-emit-metadata="0"
+      data-input-position="top"
+      data-theme="light"
+      data-lang="zh-CN"
+      data-loading="lazy"
+      crossorigin="anonymous"
+      async>
+    </script>
+  </div>
+</Layout>
+
+<style>
+  .prose { min-height: 400px; }
+</style>
