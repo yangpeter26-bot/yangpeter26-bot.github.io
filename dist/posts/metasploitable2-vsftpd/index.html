@@ -1,0 +1,156 @@
+<!DOCTYPE html><html lang="zh-CN"> <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="description" content="Metasploitable2 靶机 vsFTPd 2.3.4 后门漏洞复现：信息收集、漏洞分析、Exploit 阅读与手工验证的完整流程记录。"><meta property="og:title" content="Metasploitable2 漏洞复现学习记录——vsFTPd 2.3.4 后门漏洞 | YangPeter"><meta property="og:description" content="Metasploitable2 靶机 vsFTPd 2.3.4 后门漏洞复现：信息收集、漏洞分析、Exploit 阅读与手工验证的完整流程记录。"><meta property="og:image" content="/avatar.jpg"><meta property="og:type" content="website"><title>Metasploitable2 漏洞复现学习记录——vsFTPd 2.3.4 后门漏洞 | YangPeter</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/_astro/archive.CUnbyMps.css">
+<style>.meta[data-astro-cid-gysqo7gh]{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:20px;font-size:14px;color:var(--text-tertiary)}.tag[data-astro-cid-gysqo7gh]{font-size:11px;padding:2px 9px;border-radius:9999px;background:#007aff1a;color:var(--blue);font-weight:540}.toc[data-astro-cid-gysqo7gh]{background:#00000005;border-radius:12px;padding:16px 20px;margin:20px 0 28px}.toc-title[data-astro-cid-gysqo7gh]{font-size:14px;font-weight:620;margin-bottom:8px;color:var(--text)}.toc[data-astro-cid-gysqo7gh] ul[data-astro-cid-gysqo7gh]{list-style:none;padding:0;margin:0}.toc[data-astro-cid-gysqo7gh] li[data-astro-cid-gysqo7gh]{margin:4px 0}.toc[data-astro-cid-gysqo7gh] a[data-astro-cid-gysqo7gh]{font-size:14px;color:var(--blue);text-decoration:none}.toc[data-astro-cid-gysqo7gh] a[data-astro-cid-gysqo7gh]:hover{opacity:.65}.toc-h3[data-astro-cid-gysqo7gh]{padding-left:16px}
+</style></head> <body> <div class="bg-ambient bg-ambient-1"></div> <div class="bg-ambient bg-ambient-2"></div> <div class="bg-ambient bg-ambient-3"></div> <nav class="nav"> <a href="/" class="nav-brand">YangPeter</a> <div class="nav-right"> <ul class="nav-links"> <li><a href="/">Home</a></li> <li><a href="/archive/">Archive</a></li> <li><a href="/posts/about/">About</a></li> <li><a href="/posts/guestbook/">Guestbook</a></li> </ul> <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">🌙</button> <button class="hamburger" id="hamburger" aria-label="Menu">☰</button> </div> </nav> <main class="container">  <article class="prose liquid-glass" data-astro-cid-gysqo7gh> <a class="back-link" href="/" data-astro-cid-gysqo7gh>&larr; Back</a> <h1 data-astro-cid-gysqo7gh>Metasploitable2 漏洞复现学习记录——vsFTPd 2.3.4 后门漏洞</h1> <div class="meta" data-astro-cid-gysqo7gh> <span class="date" data-astro-cid-gysqo7gh>2026-07-06</span> <span class="reading-time" data-astro-cid-gysqo7gh>· 2 min read</span> <span class="tag" data-astro-cid-gysqo7gh>Security</span><span class="tag" data-astro-cid-gysqo7gh>Metasploitable2</span> </div> <hr data-astro-cid-gysqo7gh> <nav class="toc" data-astro-cid-gysqo7gh> <p class="toc-title" data-astro-cid-gysqo7gh>Contents</p> <ul data-astro-cid-gysqo7gh> <li class data-astro-cid-gysqo7gh> <a href="#一实验目的" data-astro-cid-gysqo7gh>一、实验目的</a> </li><li class data-astro-cid-gysqo7gh> <a href="#二实验环境" data-astro-cid-gysqo7gh>二、实验环境</a> </li><li class data-astro-cid-gysqo7gh> <a href="#三实验过程" data-astro-cid-gysqo7gh>三、实验过程</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#一主机信息收集" data-astro-cid-gysqo7gh>（一）主机信息收集</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#二了解漏洞原理" data-astro-cid-gysqo7gh>（二）了解漏洞原理</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#三信息验证" data-astro-cid-gysqo7gh>（三）信息验证</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#四阅读-exploit-源码" data-astro-cid-gysqo7gh>（四）阅读 Exploit 源码</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#五尝试利用" data-astro-cid-gysqo7gh>（五）尝试利用</a> </li><li class data-astro-cid-gysqo7gh> <a href="#四实验中遇到的问题" data-astro-cid-gysqo7gh>四、实验中遇到的问题</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#1metasploit-payload-自动选择问题" data-astro-cid-gysqo7gh>（1）Metasploit Payload 自动选择问题</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#2python-exploit-无法建立-shell" data-astro-cid-gysqo7gh>（2）Python Exploit 无法建立 Shell</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#3环境验证困难" data-astro-cid-gysqo7gh>（3）环境验证困难</a> </li><li class data-astro-cid-gysqo7gh> <a href="#五实验收获" data-astro-cid-gysqo7gh>五、实验收获</a> </li><li class data-astro-cid-gysqo7gh> <a href="#六总结" data-astro-cid-gysqo7gh>六、总结</a> </li> </ul> </nav> <h2 id="一实验目的">一、实验目的</h2>
+<p>本次实验旨在学习经典漏洞靶机 Metasploitable2 的使用方法，掌握漏洞发现、信息收集、漏洞分析及漏洞利用的基本流程，并尝试复现著名的 vsFTPd 2.3.4 后门漏洞，理解其形成原因及利用原理。</p>
+<hr>
+<h2 id="二实验环境">二、实验环境</h2>
+<ul>
+<li>攻击机：Kali Linux</li>
+<li>靶机：Metasploitable2</li>
+<li>网络模式：VMware NAT</li>
+<li>攻击机 IP：192.168.93.146</li>
+<li>靶机 IP：192.168.93.148</li>
+</ul>
+<hr>
+<h2 id="三实验过程">三、实验过程</h2>
+<h3 id="一主机信息收集">（一）主机信息收集</h3>
+<p>首先使用 Nmap 对靶机进行扫描：</p>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#89B4FA;font-style:italic">nmap</span><span style="color:#A6E3A1"> -sV</span><span style="color:#A6E3A1"> -sC</span><span style="color:#FAB387"> 192.168.93.148</span></span></code></pre>
+<p>扫描结果显示目标开放了多个服务，包括 FTP、SSH、Telnet、HTTP、MySQL、PostgreSQL、Samba、Tomcat 等。其中 FTP 服务版本识别为 <strong>vsFTPd 2.3.4</strong>。</p>
+<p>由于该版本曾发生著名的供应链攻击事件，因此决定首先对该漏洞进行学习和复现。</p>
+<hr>
+<h3 id="二了解漏洞原理">（二）了解漏洞原理</h3>
+<p>查阅公开资料后了解到，vsFTPd 2.3.4 并非官方发布的软件本身存在漏洞，而是 2011 年官方网站曾短时间内遭到攻击，攻击者将带有后门代码的源码上传至官方下载服务器。</p>
+<p>该后门程序的工作流程如下：</p>
+<ol>
+<li>攻击者连接 FTP 服务；</li>
+<li>用户名中包含 <code>:)</code>；</li>
+<li>后门程序被触发；</li>
+<li>服务器后台启动 6200 端口；</li>
+<li>攻击者连接 6200 端口即可获得 Root Shell。</li>
+</ol>
+<p>这一事件属于典型的供应链安全事件，也说明软件发布过程同样可能成为攻击目标。</p>
+<hr>
+<h3 id="三信息验证">（三）信息验证</h3>
+<p>为了验证 FTP 服务情况，首先匿名登录 FTP：</p>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#89B4FA;font-style:italic">ftp</span><span style="color:#FAB387"> 192.168.93.148</span></span></code></pre>
+<p>实验结果表明：</p>
+<ul>
+<li>支持匿名登录；</li>
+<li>FTP 服务能够正常工作；</li>
+<li>Banner 显示为 vsFTPd 2.3.4。</li>
+</ul>
+<p>随后使用 SearchSploit 查询公开漏洞：</p>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#89B4FA;font-style:italic">searchsploit</span><span style="color:#A6E3A1"> vsftpd</span><span style="color:#FAB387"> 2.3.4</span></span></code></pre>
+<p>查询结果如下：</p>
+<ul>
+<li>Python 漏洞利用脚本</li>
+<li>Metasploit 模块</li>
+</ul>
+<p>说明该漏洞存在公开 Exploit。</p>
+<hr>
+<h3 id="四阅读-exploit-源码">（四）阅读 Exploit 源码</h3>
+<p>对 Python Exploit 进行了学习，发现其核心逻辑十分简单：</p>
+<ol>
+<li>使用 Telnet 连接 FTP（21端口）；</li>
+<li>发送特殊用户名：</li>
+</ol>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>USER test:)</span></span></code></pre>
+<ol start="3">
+<li>任意输入密码；</li>
+<li>再连接 6200 端口；</li>
+<li>若连接成功即可进入 Root Shell。</li>
+</ol>
+<p>通过阅读源码，对漏洞利用过程有了更加直观的理解，也进一步认识到 Metasploit 本质上只是对这些 Exploit 的封装。</p>
+<hr>
+<h3 id="五尝试利用">（五）尝试利用</h3>
+<p>首先尝试使用 Metasploit：</p>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#89B4FA;font-style:italic">use</span><span style="color:#A6E3A1"> exploit/unix/ftp/vsftpd_234_backdoor</span></span></code></pre>
+<p>运行过程中出现 Payload 配置问题。</p>
+<p>随后分析发现，新版本 Metasploit 自动选择了 Reverse TCP Meterpreter Payload，需要配置 LHOST，而该漏洞实际属于 Bind Shell，因此 Payload 与漏洞利用方式并不匹配。</p>
+<p>之后改用 Python Exploit：</p>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#89B4FA;font-style:italic">python3</span><span style="color:#A6E3A1"> 49757.py</span><span style="color:#FAB387"> 192.168.93.148</span></span></code></pre>
+<p>运行后程序能够连接 FTP，但连接 6200 端口时报错：</p>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>Connection refused</span></span></code></pre>
+<p>说明目标主机并未开启后门监听端口。</p>
+<p>随后又进行了手工验证：</p>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>USER test:)</span></span>
+<span class="line"><span>PASS test</span></span></code></pre>
+<p>FTP 返回：</p>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>500 OOPS: priv_sock_get_result</span></span></code></pre>
+<p>之后再次检测 6200 端口，仍然提示连接被拒绝。</p>
+<hr>
+<h2 id="四实验中遇到的问题">四、实验中遇到的问题</h2>
+<p>本次实验主要遇到了以下几个问题：</p>
+<h3 id="1metasploit-payload-自动选择问题">（1）Metasploit Payload 自动选择问题</h3>
+<p>新版 Metasploit 自动选择了 Reverse TCP Payload，需要配置 LHOST，而当前漏洞属于 Bind Shell，导致模块无法直接运行。</p>
+<p>通过分析，理解了 Exploit 与 Payload 的区别，也了解到不同 Payload 的适用场景。</p>
+<hr>
+<h3 id="2python-exploit-无法建立-shell">（2）Python Exploit 无法建立 Shell</h3>
+<p>Python Exploit 能够成功连接 FTP 服务，但无法连接 6200 端口。</p>
+<p>分析认为：</p>
+<ul>
+<li>后门没有成功启动；</li>
+<li>或当前靶机环境中的 vsFTPd 并非经典后门版本；</li>
+<li>也可能与镜像版本存在差异有关。</li>
+</ul>
+<hr>
+<h3 id="3环境验证困难">（3）环境验证困难</h3>
+<p>由于 Metasploitable2 系统版本较老，部分现代 Linux 命令不可用，同时虚拟机终端复制粘贴也较为不便，导致环境验证效率较低。</p>
+<p>因此，本次实验更多采用了逐步验证的方法，对漏洞利用过程进行了分析。</p>
+<hr>
+<h2 id="五实验收获">五、实验收获</h2>
+<p>虽然本次实验最终未成功获得 Root Shell，但仍然完成了以下学习目标：</p>
+<ol>
+<li>掌握了 Nmap 服务探测的方法；</li>
+<li>学会利用 SearchSploit 查询公开漏洞；</li>
+<li>阅读并理解了 Python Exploit 的实现思路；</li>
+<li>理解了 Metasploit 中 Exploit 与 Payload 的关系；</li>
+<li>学习了 Reverse Shell 与 Bind Shell 的区别；</li>
+<li>初步了解了供应链攻击事件及其安全影响；</li>
+<li>学会根据报错信息逐步分析和排查漏洞复现失败的原因，而不是仅依赖工具完成攻击。</li>
+</ol>
+<hr>
+<h2 id="六总结">六、总结</h2>
+<p>本次实验未能成功复现 vsFTPd 2.3.4 后门漏洞，推测原因可能与所使用的 Metasploitable2 镜像版本、vsFTPd 二进制文件差异或实验环境配置有关。</p>
+<p>虽然实验未达到预期的利用结果，但整个学习过程中完成了从信息收集、漏洞分析、Exploit 阅读、手工验证到问题排查的完整流程，对漏洞复现的基本方法有了较为系统的认识。</p>
+<p>后续计划重新搭建官方实验环境或进一步验证当前镜像中的 FTP 服务版本，在环境确认无误后再次尝试复现该漏洞，并继续学习 Metasploitable2 中的其他经典漏洞，如 Samba、UnrealIRCd、Tomcat 等，不断完善对漏洞分析与利用技术的理解。</p> </article>  </main> <footer class="footer"> <div class="footer-links"> <a href="https://github.com/yangpeter26-bot" target="_blank" rel="noopener">GitHub</a> <a href="/rss.xml">RSS</a> <a href="https://mail.google.com/mail/?view=cm&to=yangpeter26@gmail.com" target="_blank">Email</a> </div> <p>&copy; 2026 YangPeter</p> </footer> <script>
+      const saved = localStorage.getItem("theme");
+      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      document.documentElement.dataset.theme = saved || (prefersDark ? "dark" : "light");
+      const btn = document.getElementById("theme-toggle");
+      btn.textContent = document.documentElement.dataset.theme === "dark" ? "☀️" : "🌙";
+      btn.addEventListener("click", () => {
+        const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+        document.documentElement.dataset.theme = next;
+        localStorage.setItem("theme", next);
+        btn.textContent = next === "dark" ? "☀️" : "🌙";
+      });
+      const hamburger = document.getElementById("hamburger");
+      let mobileMenu = null;
+      const links = [
+        { href: "/", text: "Home" },
+        { href: "/archive/", text: "Archive" },
+        { href: "/posts/about/", text: "About" },
+        { href: "/posts/guestbook/", text: "Guestbook" },
+      ];
+      hamburger.addEventListener("click", () => {
+        if (!mobileMenu) {
+          mobileMenu = document.createElement("div");
+          mobileMenu.className = "mobile-menu open";
+          links.forEach(l => {
+            const a = document.createElement("a");
+            a.href = l.href;
+            a.textContent = l.text;
+            mobileMenu.appendChild(a);
+          });
+          document.querySelector(".nav").after(mobileMenu);
+        } else {
+          mobileMenu.classList.toggle("open");
+          if (!mobileMenu.classList.contains("open")) {
+            mobileMenu.remove();
+            mobileMenu = null;
+          }
+        }
+      });
+    </script> </body> </html> 
