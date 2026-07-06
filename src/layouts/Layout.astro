@@ -177,14 +177,16 @@ const ogImage = "/avatar.jpg";
       .footer-links { display: flex; justify-content: center; gap: 26px; margin-bottom: 12px; flex-wrap: wrap; }
       .footer-links a { color: var(--blue); text-decoration: none; font-size: 14px; font-weight: 500; transition: opacity 0.15s; }
       .footer-links a:hover { opacity: 0.65; }
+      .mobile-menu { display: none; }
       @media (max-width: 640px) {
         .nav { padding: 9px 16px; }
         .nav-links { display: none; }
         .hamburger { display: block; }
         .mobile-menu {
-          display: none; position: fixed; top: 48px; left: 0; right: 0; z-index: 99;
+          position: fixed; top: 48px; left: 0; right: 0; z-index: 99;
           background: rgba(232,234,237,0.95); backdrop-filter: blur(24px);
           padding: 16px 24px; border-bottom: 0.5px solid rgba(255,255,255,0.2);
+          display: none;
         }
         html[data-theme="dark"] .mobile-menu { background: rgba(26,26,46,0.95); }
         .mobile-menu.open { display: flex; flex-direction: column; gap: 16px; }
