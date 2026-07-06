@@ -1,0 +1,92 @@
+---
+import { getCollection, render } from "astro:content";
+import Layout from "../../layouts/Layout.astro";
+
+export async function getStaticPaths() {
+  const posts = await getCollection("posts", ({ data }) => !data.draft);
+  return posts.map((post) => ({ params: { slug: post.id }, props: { post } }));
+}
+
+const { post } = Astro.props;
+const { Content, headings } = await render(post);
+
+const readingTime = Math.max(1, Math.ceil(post.body.split(/\s+/).length / 200));
+const toc = headings.filter((h) => h.depth === 2 || h.depth === 3);
+---
+
+<Layout title={post.data.title} description={post.data.excerpt}>
+  <article class="prose liquid-glass">
+    <a class="back-link" href="/">&larr; Back</a>
+    <h1>{post.data.title}</h1>
+    <div class="meta">
+      <span class="date">{post.data.date}</span>
+      <span class="reading-time">· {readingTime} min read</span>
+      {post.data.tags.map((tag) => (
+        <span class="tag">{tag}</span>
+      ))}
+    </div>
+    <hr />
+
+    {toc.length > 0 && (
+      <nav class="toc">
+        <p class="toc-title">Contents</p>
+        <ul>
+          {toc.map((h) => (
+            <li class={h.depth === 3 ? "toc-h3" : ""}>
+              <a href={`#${h.slug}`}>{h.text}</a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+    )}
+
+    <Content />
+  </article>
+</Layout>
+
+<style>
+  .meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+    font-size: 14px;
+    color: var(--text-tertiary);
+  }
+  .tag {
+    font-size: 11px;
+    padding: 2px 9px;
+    border-radius: 9999px;
+    background: rgba(0,122,255,0.1);
+    color: var(--blue);
+    font-weight: 540;
+  }
+  .toc {
+    background: rgba(0,0,0,0.02);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin: 20px 0 28px;
+  }
+  .toc-title {
+    font-size: 14px;
+    font-weight: 620;
+    margin-bottom: 8px;
+    color: var(--text);
+  }
+  .toc ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .toc li {
+    margin: 4px 0;
+  }
+  .toc a {
+    font-size: 14px;
+    color: var(--blue);
+    text-decoration: none;
+  }
+  .toc a:hover { opacity: 0.65; }
+  .toc-h3 { padding-left: 16px; }
+</style>

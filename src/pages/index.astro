@@ -1,5 +1,9 @@
 ---
-import Layout from '../layouts/Layout.astro';
+import { getCollection } from "astro:content";
+import Layout from "../layouts/Layout.astro";
+
+const posts = (await getCollection("posts", ({ data }) => !data.draft))
+  .sort((a, b) => b.data.date.localeCompare(a.data.date));
 ---
 
 <Layout title="Home" description="YangPeter's blog — tech & life">
@@ -10,50 +14,25 @@ import Layout from '../layouts/Layout.astro';
       </div>
     </div>
     <h1>YangPeter</h1>
-    <p class="tagline">Cybersecurity Engineer &middot; Lifelong Learner</p>
+    <p class="tagline">Cybersecurity Engineer · Lifelong Learner</p>
     <p class="bio">
       Forever learning, forever curious. Notes on tech, projects, and source code deep-dives.
     </p>
   </section>
 
-  <a class="card liquid-glass" href="/posts/d2l-linear-regression/">
-    <div class="card-meta">
-      <span class="card-date">2026-06-23</span>
-      <span class="card-tag accent">Deep Learning</span>
-      <span class="card-tag">d2l</span>
-    </div>
-    <h2 class="card-title">《动手学深度学习》线性回归 — 代码逐行翻译</h2>
-    <p class="card-excerpt">
-      d2l 3.2 节从头实现线性回归：造数据、取批次、定义模型、损失函数、SGD、训练循环。逐行人话翻译。
-    </p>
-    <div class="card-footer">
-      <span>Read &rarr;</span>
-    </div>
-  </a>
-
-  <a class="card liquid-glass" href="/posts/vulhub-1/">
-    <div class="card-meta">
-      <span class="card-date">2026-06-23</span>
-      <span class="card-tag accent">Security</span>
-      <span class="card-tag">Vulhub</span>
-    </div>
-    <h2 class="card-title">Vulhub 漏洞复现学习笔记（一）：Redis CVE-2022-0543</h2>
-    <p class="card-excerpt">
-      Vulhub 是一个基于 Docker-Compose 的漏洞环境集合。这是系列第一篇，记录环境搭建和漏洞复现过程。
-    </p>
-    <div class="card-footer">
-      <span>Read &rarr;</span>
-    </div>
-  </a>
-
-  <a class="card liquid-glass" href="/posts/about/">
-    <h2 class="card-title">About Me</h2>
-    <p class="card-excerpt">
-      Hi, I'm YangPeter. At this moment, I have nothing to say — and that's okay. Click to read more.
-    </p>
-    <div class="card-footer">
-      <span>Read more &rarr;</span>
-    </div>
-  </a>
-
+  {posts.map((post) => (
+    <a class="card liquid-glass" href={`/posts/${post.id}/`}>
+      <div class="card-meta">
+        <span class="card-date">{post.data.date}</span>
+        {post.data.tags.map((tag, i) => (
+          <span class={`card-tag ${i === 0 ? "accent" : ""}`}>{tag}</span>
+        ))}
+      </div>
+      <h2 class="card-title">{post.data.title}</h2>
+      <p class="card-excerpt">{post.data.excerpt}</p>
+      <div class="card-footer">
+        <span>Read &rarr;</span>
+      </div>
+    </a>
+  ))}
 </Layout>

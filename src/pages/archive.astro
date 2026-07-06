@@ -1,0 +1,48 @@
+---
+import { getCollection } from "astro:content";
+import Layout from "../layouts/Layout.astro";
+
+const posts = (await getCollection("posts", ({ data }) => !data.draft))
+  .sort((a, b) => b.data.date.localeCompare(a.data.date));
+
+const grouped = {};
+posts.forEach((post) => {
+  const year = post.data.date.slice(0, 4);
+  if (!grouped[year]) grouped[year] = [];
+  grouped[year].push(post);
+});
+---
+
+<Layout title="Archive">
+  <div class="prose liquid-glass">
+    <a class="back-link" href="/">&larr; Back Home</a>
+    <h1>Archive</h1>
+    <p class="date">{posts.length} articles</p>
+    <hr />
+    {Object.entries(grouped).map(([year, yearPosts]) => (
+      <div class="year-group">
+        <h2 class="year-title">{year}</h2>
+        {yearPosts.map((post) => (
+          <a class="archive-item" href={`/posts/${post.id}/`}>
+            <span class="archive-date">{post.data.date}</span>
+            <span class="archive-title">{post.data.title}</span>
+          </a>
+        ))}
+      </div>
+    ))}
+  </div>
+</Layout>
+
+<style>
+  .year-group { margin: 24px 0; }
+  .year-title { font-size: 20px; font-weight: 640; margin-bottom: 12px; color: var(--text); }
+  .archive-item {
+    display: flex; align-items: baseline; gap: 16px;
+    padding: 8px 0; text-decoration: none; color: inherit;
+    border-bottom: 0.5px solid rgba(0,0,0,0.04);
+    transition: opacity 0.15s;
+  }
+  .archive-item:hover { opacity: 0.65; }
+  .archive-date { font-size: 13px; color: var(--text-tertiary); white-space: nowrap; min-width: 80px; }
+  .archive-title { font-size: 15px; color: var(--text); }
+</style>
