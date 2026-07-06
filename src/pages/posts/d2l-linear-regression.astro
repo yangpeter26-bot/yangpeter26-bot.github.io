@@ -1,0 +1,137 @@
+---
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout title="d2l 线性回归学习笔记">
+  <div class="prose">
+    <a class="back-link" href="/">&larr; Back</a>
+    <h1>《动手学深度学习》3.2 — 线性回归从头实现</h1>
+    <p class="date">2026-06-23</p>
+    <hr />
+
+    <p>以下是 d2l 3.2 节逐行翻译，对照 Jupyter Notebook 食用。</p>
+
+    <h2>代码框 1：导入</h2>
+    <pre><code>%matplotlib inline                    # 让画图显示在 Jupyter 里
+import random                         # 用来打乱数据顺序
+import torch                          # 深度学习核心库
+from d2l import torch as d2l          # 书自带工具包</code></pre>
+
+    <h2>代码框 2：造假数据</h2>
+    <pre><code>def synthetic_data(w, b, num_examples):</code></pre>
+    <p>定义函数，功能：根据 w 和 b 生成数据</p>
+    <pre><code>    X = torch.normal(0, 1, (num_examples, len(w)))</code></pre>
+    <p><code>torch.normal(均值, 标准差, 形状)</code> — 生成随机数。这里生成均值 0、标准差 1 的随机数，形状是 (1000 行, 2 列)，即 1000 条数据，每条有 2 个特征。</p>
+    <pre><code>    y = X @ w + b</code></pre>
+    <p><code>@</code> 是矩阵乘法。<code>X</code> 是 1000×2，<code>w</code> 是 2×1 → 结果 1000×1。就是：第 1 个特征 × w1 + 第 2 个特征 × w2，再加 b。<strong>这条就是 y = 4x₁ − 3x₂ + 2，但我们假装不知道。</strong></p>
+    <pre><code>    y += torch.normal(0, 0.01, y.shape)</code></pre>
+    <p>给 y 加一点随机噪音，模拟现实中的数据误差 — 真实的房价不可能完美符合公式嘛。</p>
+    <pre><code>    return X, y.reshape((-1, 1))</code></pre>
+    <p>返回 X 和 y。<code>.reshape((-1, 1))</code> 把 y 变成 (1000, 1) 的列向量。</p>
+    <pre><code>true_w = torch.tensor([4.0, -3.0])     # 真正的权重（我们假装不知道）
+true_b = 2.0                            # 真正的偏置（我们假装不知道）
+X, y = synthetic_data(true_w, true_b, 1000)  # 造1000条数据
+print(f'X: {X.shape}, y: {y.shape}')   # X是(1000,2), y是(1000,1)</code></pre>
+
+    <h2>代码框 3：取数据</h2>
+    <pre><code>def data_iter(X, y, batch_size):</code></pre>
+    <p>每次从全部数据里取一小批出来。</p>
+    <pre><code>    n = len(X)                          # 总共有多少条数据（1000）
+    indices = list(range(n))            # [0, 1, 2, 3, ..., 999]
+    random.shuffle(indices)             # 打乱顺序，像洗牌</code></pre>
+    <pre><code>    for i in range(0, n, batch_size):   # 从0开始，每次跳batch_size步</code></pre>
+    <p><code>range(0, 1000, 10)</code> = 0, 10, 20, 30, ..., 990，每次取 10 条。</p>
+    <pre><code>        batch_idx = torch.tensor(
+            indices[i: i + batch_size])     # 取第i到第i+10个下标</code></pre>
+    <p><code>indices[0:10]</code> = 洗牌后的前 10 个索引。</p>
+    <pre><code>        yield X[batch_idx], y[batch_idx]    # 返回这一批的X和y</code></pre>
+    <p><code>yield</code> = 返回一批数据，下次调用时从这继续，不是一次性返回全部，而是一批一批给。</p>
+    <pre><code>batch_size = 10       # 每批10条</code></pre>
+
+    <h2>代码框 4：初始化参数</h2>
+    <pre><code>w = torch.normal(0, 0.01, size=(2, 1), requires_grad=True)</code></pre>
+    <p>随机生成一个 2 行 1 列的 w，值接近 0。<code>requires_grad=True</code> = <strong>告诉 PyTorch：这个变量的梯度要帮我算</strong>。</p>
+    <pre><code>b = torch.zeros(1, requires_grad=True)</code></pre>
+    <p>b 初始化为 0，也要求梯度。</p>
+
+    <h2>代码框 5：定义模型</h2>
+    <pre><code>def linreg(X, w, b):
+    return X @ w + b</code></pre>
+    <p>线性回归就是：输入 × 权重 + 偏置。<code>X @ w</code> = 矩阵乘法，等价于每行和 w 做点积。</p>
+
+    <h2>代码框 6：定义损失函数</h2>
+    <pre><code>def squared_loss(y_pred, y):
+    return ((y_pred - y) ** 2) / 2</code></pre>
+    <p>预测值减真实值，平方，除以 2。</p>
+
+    <h2>代码框 7：定义更新函数</h2>
+    <pre><code>def sgd(params, lr):</code></pre>
+    <p>sgd = 随机梯度下降，params 是要更新的参数（w 和 b）。</p>
+    <pre><code>    with torch.no_grad():</code></pre>
+    <p>下面操作不需要算梯度（因为我们在手动更新参数，不需要自动追踪）。</p>
+    <pre><code>        for param in params:
+            param -= lr * param.grad</code></pre>
+    <p>每个参数 = 原值 − 学习率 × 梯度。<code>param.grad</code> = 之前 <code>backward()</code> 自动算好的梯度。</p>
+    <pre><code>            param.grad.zero_()</code></pre>
+    <p>梯度清零。不清的话下次会叠加，就错了。</p>
+    <pre><code>lr = 0.03           # 学习率：每次调整的步长</code></pre>
+
+    <h2>代码框 8：训练</h2>
+    <pre><code>num_epochs = 3      # 把全部数据看3遍</code></pre>
+    <p>epoch = 一轮 = 把所有数据学一遍。</p>
+    <pre><code>for epoch in range(num_epochs):</code></pre>
+    <p>循环 3 次，每轮把所有数据学一遍。</p>
+    <pre><code>    for X_batch, y_batch in data_iter(X, y, batch_size):</code></pre>
+    <p>每次拿 10 条数据。</p>
+    <pre><code>        loss = squared_loss(linreg(X_batch, w, b), y_batch)</code></pre>
+    <p>① <code>linreg(数据, w, b)</code> → 用当前的 w, b 预测<br/>② <code>squared_loss(预测, 真实)</code> → 算误差</p>
+    <pre><code>        loss.sum().backward()</code></pre>
+    <p><code>loss.sum()</code> = 把 10 条数据的误差加一起。<code>backward()</code> = <strong>自动算 w 和 b 的梯度</strong>。</p>
+    <pre><code>        sgd([w, b], lr)</code></pre>
+    <p>用梯度更新 w 和 b。</p>
+    <pre><code>    with torch.no_grad():
+        total_loss = squared_loss(linreg(X, w, b), y)
+        print(f'第 {epoch+1} 轮, 总损失: {total_loss.mean():.4f}')</code></pre>
+    <p>训练完一轮后，用全部数据算一次总误差，看看进步了没。</p>
+    <pre><code>print(f'\n训练出的 w: {w.tolist()}, 真实的 w: {true_w.tolist()}')
+print(f'训练出的 b: {b.item():.4f},  真实的 b: {true_b}')</code></pre>
+    <p>最后打印：我们学到的 w, b 和真实的 w, b 对比。</p>
+
+    <h2>流程图</h2>
+    <pre><code>造数据 (w=4, b=-3, 但我们不知道)
+   ↓
+随便猜 w≈0, b=0
+   ↓
+拿10条数据
+   ↓
+预测 → 算误差 → backward算梯度 → 调 w,b  ← 重复，误差越来越小
+   ↓
+3轮后：w≈[4, -3], b≈2  ← 从数据中学到了正确答案！</code></pre>
+
+    <hr />
+    <p><a class="back-link" href="/">&larr; Back Home</a></p>
+  </div>
+</Layout>
+
+<style>
+  pre {
+    background: rgba(0,0,0,0.04);
+    border-radius: 12px;
+    padding: 16px 20px;
+    overflow-x: auto;
+    margin: 12px 0;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  code {
+    font-family: "SF Mono", "Fira Code", "Cascadia Code", Consolas, monospace;
+    font-size: 13px;
+  }
+  h2 {
+    font-size: 22px;
+    font-weight: 640;
+    margin-top: 36px;
+    margin-bottom: 10px;
+  }
+  strong { color: var(--text); font-weight: 640; }
+</style>
