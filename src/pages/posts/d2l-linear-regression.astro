@@ -31,7 +31,7 @@ from d2l import torch as d2l          # 书自带工具包</code></pre>
     <pre><code>true_w = torch.tensor([4.0, -3.0])     # 真正的权重（我们假装不知道）
 true_b = 2.0                            # 真正的偏置（我们假装不知道）
 X, y = synthetic_data(true_w, true_b, 1000)  # 造1000条数据
-print(f'X: {X.shape}, y: {y.shape}')   # X是(1000,2), y是(1000,1)</code></pre>
+print(f'X: &#123;X.shape&#125;, y: &#123;y.shape&#125;')   # X是(1000,2), y是(1000,1)</code></pre>
 
     <h2>代码框 3：取数据</h2>
     <pre><code>def data_iter(X, y, batch_size):</code></pre>
@@ -91,10 +91,10 @@ print(f'X: {X.shape}, y: {y.shape}')   # X是(1000,2), y是(1000,1)</code></pre>
     <p>用梯度更新 w 和 b。</p>
     <pre><code>    with torch.no_grad():
         total_loss = squared_loss(linreg(X, w, b), y)
-        print(f'第 {epoch+1} 轮, 总损失: {total_loss.mean():.4f}')</code></pre>
+        print(f'第 &#123;epoch+1&#125; 轮, 总损失: &#123;total_loss.mean():.4f&#125;')</code></pre>
     <p>训练完一轮后，用全部数据算一次总误差，看看进步了没。</p>
-    <pre><code>print(f'\n训练出的 w: {w.tolist()}, 真实的 w: {true_w.tolist()}')
-print(f'训练出的 b: {b.item():.4f},  真实的 b: {true_b}')</code></pre>
+    <pre><code>print(f'\n训练出的 w: &#123;w.tolist()&#125;, 真实的 w: &#123;true_w.tolist()&#125;')
+print(f'训练出的 b: &#123;b.item():.4f&#125;,  真实的 b: &#123;true_b&#125;')</code></pre>
     <p>最后打印：我们学到的 w, b 和真实的 w, b 对比。</p>
 
     <h2>流程图</h2>
