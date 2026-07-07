@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="zh-CN"> <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="description" content="PeterYang's tech blog"><meta property="og:title" content="About Me | PeterYang"><meta property="og:description" content="PeterYang's tech blog"><meta property="og:image" content="/avatar.jpg"><meta property="og:type" content="website"><title>About Me | PeterYang</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/_astro/archive.aiS2ec1S.css"></head> <body> <div class="bg-ambient bg-ambient-1"></div> <div class="bg-ambient bg-ambient-2"></div> <div class="bg-ambient bg-ambient-3"></div> <nav class="nav"> <a href="/" class="nav-brand">PeterYang</a> <div class="nav-right"> <ul class="nav-links"> <li><a href="/">Home</a></li> <li><a href="/archive/">Archive</a></li> <li><a href="/posts/about/">About</a></li> <li><a href="/posts/guestbook/">Guestbook</a></li> </ul> <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme"> <svg class="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg> <svg class="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg> </button> <button class="hamburger" id="hamburger" aria-label="Menu">☰</button> </div> </nav> <main class="container">  <div class="prose liquid-glass"> <a class="back-link" href="/">&larr; Back Home</a> <h1>About Me</h1> <p class="date">Forever a work in progress.</p> <hr> <p>Hi, I'm <strong>PeterYang</strong>.</p> <p>
+<!DOCTYPE html><html lang="zh-CN"> <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="description" content="PeterYang's tech blog"><meta property="og:title" content="About Me | PeterYang"><meta property="og:description" content="PeterYang's tech blog"><meta property="og:image" content="/avatar.jpg"><meta property="og:type" content="website"><title>About Me | PeterYang</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/_astro/archive.DKGpTYv1.css"></head> <body> <div class="bg-ambient bg-ambient-1"></div> <div class="bg-ambient bg-ambient-2"></div> <div class="bg-ambient bg-ambient-3"></div> <nav class="nav"> <a href="/" class="nav-brand">PeterYang</a> <div class="nav-right"> <ul class="nav-links"> <li><a href="/">Home</a></li> <li><a href="/archive/">Archive</a></li> <li><a href="/posts/about/">About</a></li> <li><a href="/posts/guestbook/">Guestbook</a></li> </ul> <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme"> <svg class="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg> <svg class="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg> </button> <button class="hamburger" id="hamburger" aria-label="Menu">☰</button> </div> </nav> <main class="container">  <div class="prose liquid-glass"> <a class="back-link" href="/">&larr; Back Home</a> <h1>About Me</h1> <p class="date">Forever a work in progress.</p> <hr> <p>Hi, I'm <strong>PeterYang</strong>.</p> <p>
 At this moment, I have nothing to say.
 </p> <p>
 It's not that there's nothing to share — sometimes a blank page is beautiful in its own way. This blog is a canvas waiting to be filled. Maybe tech, maybe rants, maybe nothing at all. Either way, you're here now. Stick around.
@@ -24,10 +24,30 @@ It's not that there's nothing to share — sometimes a blank page is beautiful i
         if (!mobileMenu) {
           mobileMenu = document.createElement("div");
           mobileMenu.className = "mobile-menu open";
+          mobileMenu.style.cssText = `
+            position: fixed; top: 60px; left: 12px; right: 12px; z-index: 99;
+            padding: 12px; display: flex; flex-direction: column; gap: 4px;
+            background: rgba(232,234,237,0.4);
+            backdrop-filter: blur(24px) saturate(140%);
+            -webkit-backdrop-filter: blur(24px) saturate(140%);
+            border: 0.5px solid rgba(255,255,255,0.2);
+            border-radius: 20px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.04);
+          `;
+          if (document.documentElement.dataset.theme === "dark") {
+            mobileMenu.style.background = "rgba(26,26,46,0.4)";
+          }
           links.forEach(l => {
             const a = document.createElement("a");
             a.href = l.href;
             a.textContent = l.text;
+            a.style.cssText = `
+              color: var(--blue); text-decoration: none; font-size: 15px;
+              font-weight: 500; padding: 10px 16px; border-radius: 12px;
+              transition: background 0.2s;
+            `;
+            a.addEventListener("mouseenter", () => a.style.background = "rgba(0,122,255,0.06)");
+            a.addEventListener("mouseleave", () => a.style.background = "transparent");
             mobileMenu.appendChild(a);
           });
           document.querySelector(".nav").after(mobileMenu);

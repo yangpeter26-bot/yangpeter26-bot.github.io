@@ -216,18 +216,11 @@ const ogImage = "/avatar.jpg";
       .footer-links a:hover { opacity: 0.65; }
       .mobile-menu { display: none; }
       @media (max-width: 640px) {
-        .nav { padding: 9px 16px; }
+        .nav { gap: 8px; margin: 8px 12px 0; }
+        .nav-brand { padding: 8px 16px; font-size: 15px; }
+        .nav-right { padding: 6px 8px; gap: 4px; }
         .nav-links { display: none; }
         .hamburger { display: block; }
-        .mobile-menu {
-          position: fixed; top: 48px; left: 0; right: 0; z-index: 99;
-          background: rgba(232,234,237,0.95); backdrop-filter: blur(24px);
-          padding: 16px 24px; border-bottom: 0.5px solid rgba(255,255,255,0.2);
-          display: none;
-        }
-        html[data-theme="dark"] .mobile-menu { background: rgba(26,26,46,0.95); }
-        .mobile-menu.open { display: flex; flex-direction: column; gap: 16px; }
-        .mobile-menu a { color: var(--blue); text-decoration: none; font-size: 16px; font-weight: 500; }
         .hero { margin-top: 48px; margin-bottom: 36px; }
         .hero h1 { font-size: 28px; }
         .card { padding: 18px; }
@@ -292,10 +285,30 @@ const ogImage = "/avatar.jpg";
         if (!mobileMenu) {
           mobileMenu = document.createElement("div");
           mobileMenu.className = "mobile-menu open";
+          mobileMenu.style.cssText = `
+            position: fixed; top: 60px; left: 12px; right: 12px; z-index: 99;
+            padding: 12px; display: flex; flex-direction: column; gap: 4px;
+            background: rgba(232,234,237,0.4);
+            backdrop-filter: blur(24px) saturate(140%);
+            -webkit-backdrop-filter: blur(24px) saturate(140%);
+            border: 0.5px solid rgba(255,255,255,0.2);
+            border-radius: 20px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.04);
+          `;
+          if (document.documentElement.dataset.theme === "dark") {
+            mobileMenu.style.background = "rgba(26,26,46,0.4)";
+          }
           links.forEach(l => {
             const a = document.createElement("a");
             a.href = l.href;
             a.textContent = l.text;
+            a.style.cssText = `
+              color: var(--blue); text-decoration: none; font-size: 15px;
+              font-weight: 500; padding: 10px 16px; border-radius: 12px;
+              transition: background 0.2s;
+            `;
+            a.addEventListener("mouseenter", () => a.style.background = "rgba(0,122,255,0.06)");
+            a.addEventListener("mouseleave", () => a.style.background = "transparent");
             mobileMenu.appendChild(a);
           });
           document.querySelector(".nav").after(mobileMenu);
