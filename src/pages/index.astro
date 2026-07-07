@@ -8,11 +8,11 @@ const posts = (await getCollection("posts", ({ data }) => !data.draft))
 
 <Layout title="Home" description="PeterYang's blog — tech & life">
   <section class="hero">
-    <div class="avatar">
+    <a class="avatar" href="/posts/about/">
       <div class="avatar-inner">
         <img src="/avatar.jpg" alt="PeterYang" />
       </div>
-    </div>
+    </a>
     <h1>PeterYang</h1>
     <p class="tagline">Cybersecurity Engineer · Lifelong Learner</p>
     <p class="bio">
