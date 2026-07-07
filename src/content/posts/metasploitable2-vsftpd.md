@@ -1,6 +1,6 @@
 ---
 title: "Metasploitable2 漏洞复现学习记录——vsFTPd 2.3.4 后门漏洞"
-date: "2026-07-07"
+date: "2026-07-06"
 tags: ["Security", "Metasploitable2"]
 excerpt: "Metasploitable2 靶机 vsFTPd 2.3.4 后门漏洞复现：信息收集、漏洞分析、Exploit 阅读与手工验证的完整流程记录。"
 ---
