@@ -6,14 +6,14 @@ const posts = (await getCollection("posts", ({ data }) => !data.draft))
   .sort((a, b) => b.data.date.localeCompare(a.data.date));
 ---
 
-<Layout title="Home" description="YangPeter's blog — tech & life">
+<Layout title="Home" description="PeterYang's blog — tech & life">
   <section class="hero">
     <div class="avatar">
       <div class="avatar-inner">
-        <img src="/avatar.jpg" alt="YangPeter" />
+        <img src="/avatar.jpg" alt="PeterYang" />
       </div>
     </div>
-    <h1>YangPeter</h1>
+    <h1>PeterYang</h1>
     <p class="tagline">Cybersecurity Engineer · Lifelong Learner</p>
     <p class="bio">
       Forever learning, forever curious. Notes on tech, projects, and source code deep-dives.
