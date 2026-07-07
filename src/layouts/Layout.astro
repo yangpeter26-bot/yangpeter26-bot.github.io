@@ -156,7 +156,11 @@ const ogImage = "/avatar.jpg";
       .hero .tagline { color: var(--text-secondary); font-size: 16px; font-weight: 460; margin-bottom: 14px; }
       .hero .bio { color: var(--text-tertiary); font-size: 14px; max-width: 420px; margin: 0 auto; line-height: 1.65; }
       .card { display: block; text-decoration: none; color: inherit; padding: 22px 26px; margin-bottom: 12px; will-change: auto; }
-      .card:hover { box-shadow: 0 8px 32px rgba(0,0,0,0.10); }
+      .card:hover {
+        background: rgba(255,255,255,0.16);
+        box-shadow: 0 8px 32px rgba(0,0,0,0.10);
+        border-color: rgba(255,255,255,0.4);
+      }
       .card-meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 6px; }
       .card-date { font-size: 13px; color: var(--text-tertiary); }
       .card-tag { font-size: 11px; padding: 2px 9px; border-radius: var(--radius-full); background: rgba(0,122,255,0.1); color: var(--blue); font-weight: 540; }
