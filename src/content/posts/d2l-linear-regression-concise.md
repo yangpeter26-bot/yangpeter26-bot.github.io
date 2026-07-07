@@ -1,6 +1,6 @@
 ---
 title: "《动手学深度学习》3.3 — 线性回归的简洁实现"
-date: "2026-07-06"
+date: "2026-07-07"
 tags: ["Deep Learning", "d2l"]
 excerpt: "使用 PyTorch 高级 API 简洁地实现线性回归：DataLoader、nn.Linear、MSELoss、optim.SGD，代码量减少 60%。"
 ---
