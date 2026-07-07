@@ -3,7 +3,11 @@ import { getCollection } from "astro:content";
 import Layout from "../layouts/Layout.astro";
 
 const posts = (await getCollection("posts", ({ data }) => !data.draft))
-  .sort((a, b) => b.data.date.localeCompare(a.data.date));
+  .sort((a, b) => {
+    const dateDiff = b.data.date.localeCompare(a.data.date);
+    if (dateDiff !== 0) return dateDiff;
+    return (b.data.seriesOrder || 0) - (a.data.seriesOrder || 0);
+  });
 ---
 
 <Layout title="Home" description="PeterYang's blog — tech & life">
