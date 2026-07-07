@@ -155,11 +155,12 @@ const ogImage = "/avatar.jpg";
       .hero h1 { font-size: 36px; font-weight: 700; letter-spacing: -0.03em; margin-bottom: 6px; }
       .hero .tagline { color: var(--text-secondary); font-size: 16px; font-weight: 460; margin-bottom: 14px; }
       .hero .bio { color: var(--text-tertiary); font-size: 14px; max-width: 420px; margin: 0 auto; line-height: 1.65; }
-      .card { display: block; text-decoration: none; color: inherit; padding: 22px 26px; margin-bottom: 12px; will-change: auto; }
+      .card { display: block; text-decoration: none; color: inherit; padding: 22px 26px; margin-bottom: 12px; will-change: transform; transition: all 0.2s ease; }
       .card:hover {
         background: rgba(255,255,255,0.16);
         box-shadow: 0 8px 32px rgba(0,0,0,0.10);
         border-color: rgba(255,255,255,0.4);
+        transform: scale(1.005);
       }
       .card-meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 6px; }
       .card-date { font-size: 13px; color: var(--text-tertiary); }
