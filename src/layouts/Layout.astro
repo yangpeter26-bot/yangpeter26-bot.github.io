@@ -111,11 +111,22 @@ const ogImage = "/avatar.jpg";
       .nav-links a { color: var(--blue); text-decoration: none; font-size: 15px; font-weight: 500; transition: opacity 0.15s; }
       .nav-links a:hover { opacity: 0.65; }
       .theme-toggle {
-        background: none; border: none; cursor: pointer; font-size: 18px;
-        padding: 4px 8px; border-radius: 8px; transition: background 0.2s;
+        background: none; border: none; cursor: pointer;
+        width: 36px; height: 36px; padding: 0;
+        border-radius: 50%; transition: background 0.2s;
+        display: flex; align-items: center; justify-content: center;
       }
       .theme-toggle:hover { background: rgba(0,0,0,0.05); }
       html[data-theme="dark"] .theme-toggle:hover { background: rgba(255,255,255,0.05); }
+      .theme-toggle svg {
+        width: 18px; height: 18px; stroke: var(--text);
+        fill: none; stroke-width: 2; stroke-linecap: round;
+        transition: transform 0.3s ease;
+      }
+      .theme-toggle:hover svg { transform: rotate(15deg); }
+      .icon-sun { display: none; }
+      html[data-theme="dark"] .icon-moon { display: none; }
+      html[data-theme="dark"] .icon-sun { display: block; }
       .hamburger {
         display: none; background: none; border: none; cursor: pointer;
         font-size: 22px; padding: 4px 8px; color: var(--text);
@@ -212,7 +223,10 @@ const ogImage = "/avatar.jpg";
           <li><a href="/posts/about/">About</a></li>
           <li><a href="/posts/guestbook/">Guestbook</a></li>
         </ul>
-        <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">🌙</button>
+        <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
+          <svg class="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          <svg class="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        </button>
         <button class="hamburger" id="hamburger" aria-label="Menu">☰</button>
       </div>
     </nav>
@@ -235,12 +249,10 @@ const ogImage = "/avatar.jpg";
       const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
       document.documentElement.dataset.theme = saved || (prefersDark ? "dark" : "light");
       const btn = document.getElementById("theme-toggle");
-      btn.textContent = document.documentElement.dataset.theme === "dark" ? "☀️" : "🌙";
       btn.addEventListener("click", () => {
         const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
         document.documentElement.dataset.theme = next;
         localStorage.setItem("theme", next);
-        btn.textContent = next === "dark" ? "☀️" : "🌙";
       });
       const hamburger = document.getElementById("hamburger");
       let mobileMenu = null;
