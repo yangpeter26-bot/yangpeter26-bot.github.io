@@ -3,6 +3,8 @@ title: "《动手学深度学习》线性回归 — 代码逐行翻译"
 date: "2026-06-23"
 tags: ["Deep Learning", "d2l"]
 excerpt: "d2l 3.2 节从头实现线性回归：造数据、取批次、定义模型、损失函数、SGD、训练循环。逐行人话翻译。"
+series: "d2l"
+seriesOrder: 1
 ---
 
 以下是 d2l 3.2 节逐行翻译，对照 Jupyter Notebook 食用。

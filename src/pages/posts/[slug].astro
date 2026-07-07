@@ -4,14 +4,27 @@ import Layout from "../../layouts/Layout.astro";
 
 export async function getStaticPaths() {
   const posts = await getCollection("posts", ({ data }) => !data.draft);
-  return posts.map((post) => ({ params: { slug: post.id }, props: { post } }));
+  return posts.map((post) => ({ params: { slug: post.id }, props: { post, posts } }));
 }
 
-const { post } = Astro.props;
+const { post, posts } = Astro.props;
 const { Content, headings } = await render(post);
 
 const readingTime = Math.max(1, Math.ceil(post.body.split(/\s+/).length / 200));
 const toc = headings.filter((h) => h.depth === 2 || h.depth === 3);
+
+// Series navigation
+let seriesPosts = [];
+let prev = null;
+let next = null;
+if (post.data.series) {
+  seriesPosts = posts
+    .filter((p) => p.data.series === post.data.series)
+    .sort((a, b) => (a.data.seriesOrder || 0) - (b.data.seriesOrder || 0));
+  const idx = seriesPosts.findIndex((p) => p.id === post.id);
+  prev = idx > 0 ? seriesPosts[idx - 1] : null;
+  next = idx < seriesPosts.length - 1 ? seriesPosts[idx + 1] : null;
+}
 ---
 
 <Layout title={post.data.title} description={post.data.excerpt}>
@@ -41,52 +54,86 @@ const toc = headings.filter((h) => h.depth === 2 || h.depth === 3);
     )}
 
     <Content />
+
+    {(prev || next) && (
+      <div class="series-nav">
+        <p class="series-title">📖 {post.data.series === "d2l" ? "动手学深度学习" : post.data.series} 系列</p>
+        <div class="series-links">
+          {prev ? (
+            <a class="series-prev" href={`/posts/${prev.id}/`}>
+              <span class="series-label">&larr; 上一篇</span>
+              <span class="series-name">{prev.data.title}</span>
+            </a>
+          ) : <div />}
+          {next ? (
+            <a class="series-next" href={`/posts/${next.id}/`}>
+              <span class="series-label">下一篇 &rarr;</span>
+              <span class="series-name">{next.data.title}</span>
+            </a>
+          ) : <div />}
+        </div>
+      </div>
+    )}
   </article>
 </Layout>
 
 <style>
   .meta {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
-    margin-bottom: 20px;
-    font-size: 14px;
-    color: var(--text-tertiary);
+    display: flex; align-items: center; gap: 8px;
+    flex-wrap: wrap; margin-bottom: 20px;
+    font-size: 14px; color: var(--text-tertiary);
   }
   .tag {
-    font-size: 11px;
-    padding: 2px 9px;
-    border-radius: 9999px;
-    background: rgba(0,122,255,0.1);
-    color: var(--blue);
-    font-weight: 540;
+    font-size: 11px; padding: 2px 9px; border-radius: 9999px;
+    background: rgba(0,122,255,0.1); color: var(--blue); font-weight: 540;
   }
   .toc {
-    background: rgba(0,0,0,0.02);
-    border-radius: 12px;
-    padding: 16px 20px;
-    margin: 20px 0 28px;
+    background: rgba(0,0,0,0.02); border-radius: 12px;
+    padding: 16px 20px; margin: 20px 0 28px;
   }
-  .toc-title {
-    font-size: 14px;
-    font-weight: 620;
-    margin-bottom: 8px;
-    color: var(--text);
-  }
-  .toc ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-  }
-  .toc li {
-    margin: 4px 0;
-  }
-  .toc a {
-    font-size: 14px;
-    color: var(--blue);
-    text-decoration: none;
-  }
+  :global(html[data-theme="dark"]) .toc { background: rgba(255,255,255,0.03); }
+  .toc-title { font-size: 14px; font-weight: 620; margin-bottom: 8px; color: var(--text); }
+  .toc ul { list-style: none; padding: 0; margin: 0; }
+  .toc li { margin: 4px 0; }
+  .toc a { font-size: 14px; color: var(--blue); text-decoration: none; }
   .toc a:hover { opacity: 0.65; }
   .toc-h3 { padding-left: 16px; }
+
+  /* Series navigation */
+  .series-nav {
+    margin-top: 40px; padding-top: 24px;
+    border-top: 0.5px solid rgba(0,0,0,0.06);
+  }
+  :global(html[data-theme="dark"]) .series-nav {
+    border-top-color: rgba(255,255,255,0.06);
+  }
+  .series-title {
+    font-size: 14px; font-weight: 620; color: var(--text);
+    margin-bottom: 12px;
+  }
+  .series-links {
+    display: flex; gap: 12px;
+  }
+  .series-prev, .series-next {
+    flex: 1; display: flex; flex-direction: column; gap: 4px;
+    padding: 14px 16px; border-radius: 12px;
+    background: rgba(0,0,0,0.02); text-decoration: none;
+    transition: background 0.2s;
+  }
+  :global(html[data-theme="dark"]) .series-prev,
+  :global(html[data-theme="dark"]) .series-next {
+    background: rgba(255,255,255,0.03);
+  }
+  .series-prev:hover, .series-next:hover { background: rgba(0,122,255,0.06); }
+  .series-label { font-size: 12px; color: var(--text-tertiary); }
+  .series-name {
+    font-size: 14px; font-weight: 540; color: var(--blue);
+    display: -webkit-box; -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .series-next { text-align: right; }
+
+  @media (max-width: 640px) {
+    .series-links { flex-direction: column; }
+  }
 </style>

@@ -24,6 +24,12 @@
           "type": "boolean",
           "default": false
         },
+        "series": {
+          "type": "string"
+        },
+        "seriesOrder": {
+          "type": "number"
+        },
         "$schema": {
           "type": "string"
         }

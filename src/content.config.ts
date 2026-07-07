@@ -9,6 +9,8 @@ const posts = defineCollection({
     tags: z.array(z.string()).default([]),
     excerpt: z.string(),
     draft: z.boolean().default(false),
+    series: z.string().optional(),
+    seriesOrder: z.number().optional(),
   }),
 });
 
