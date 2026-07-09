@@ -1,0 +1,317 @@
+<!DOCTYPE html><html lang="zh-CN"> <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="description" content="Softmax 回归完整详解：从线性回归到分类问题，Softmax 函数手算演示，交叉熵损失，Fashion-MNIST 数据集，从零实现与 PyTorch 简洁实现。"><meta property="og:title" content="《动手学深度学习》4.1 — Softmax 回归与分类问题 | PeterYang"><meta property="og:description" content="Softmax 回归完整详解：从线性回归到分类问题，Softmax 函数手算演示，交叉熵损失，Fashion-MNIST 数据集，从零实现与 PyTorch 简洁实现。"><meta property="og:image" content="/avatar.jpg"><meta property="og:type" content="website"><title>《动手学深度学习》4.1 — Softmax 回归与分类问题 | PeterYang</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/_astro/archive.Dw7fWL3R.css">
+<style>.meta[data-astro-cid-gysqo7gh]{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:20px;font-size:14px;color:var(--text-tertiary)}.tag[data-astro-cid-gysqo7gh]{font-size:11px;padding:2px 9px;border-radius:9999px;background:#007aff1a;color:var(--blue);font-weight:540}.toc[data-astro-cid-gysqo7gh]{background:#00000005;border-radius:12px;padding:16px 20px;margin:20px 0 28px}html[data-theme=dark] .toc[data-astro-cid-gysqo7gh]{background:#ffffff08}.toc-title[data-astro-cid-gysqo7gh]{font-size:14px;font-weight:620;margin-bottom:8px;color:var(--text)}.toc[data-astro-cid-gysqo7gh] ul[data-astro-cid-gysqo7gh]{list-style:none;padding:0;margin:0}.toc[data-astro-cid-gysqo7gh] li[data-astro-cid-gysqo7gh]{margin:4px 0}.toc[data-astro-cid-gysqo7gh] a[data-astro-cid-gysqo7gh]{font-size:14px;color:var(--blue);text-decoration:none}.toc[data-astro-cid-gysqo7gh] a[data-astro-cid-gysqo7gh]:hover{opacity:.65}.toc-h3[data-astro-cid-gysqo7gh]{padding-left:16px}.series-nav[data-astro-cid-gysqo7gh]{margin-top:40px;padding-top:24px;border-top:.5px solid rgba(0,0,0,.06)}html[data-theme=dark] .series-nav[data-astro-cid-gysqo7gh]{border-top-color:#ffffff0f}.series-title[data-astro-cid-gysqo7gh]{font-size:14px;font-weight:620;color:var(--text);margin-bottom:12px}.series-links[data-astro-cid-gysqo7gh]{display:flex;gap:12px}.series-prev[data-astro-cid-gysqo7gh],.series-next[data-astro-cid-gysqo7gh]{flex:1;display:flex;flex-direction:column;gap:4px;padding:14px 16px;border-radius:12px;background:#00000005;text-decoration:none;transition:background .2s}html[data-theme=dark] .series-prev[data-astro-cid-gysqo7gh],html[data-theme=dark] .series-next[data-astro-cid-gysqo7gh]{background:#ffffff08}.series-prev[data-astro-cid-gysqo7gh]:hover,.series-next[data-astro-cid-gysqo7gh]:hover{background:#007aff0f}.series-label[data-astro-cid-gysqo7gh]{font-size:12px;color:var(--text-tertiary)}.series-name[data-astro-cid-gysqo7gh]{font-size:14px;font-weight:540;color:var(--blue);display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}.series-next[data-astro-cid-gysqo7gh]{text-align:right}@media(max-width:640px){.series-links[data-astro-cid-gysqo7gh]{flex-direction:column}}
+</style></head> <body> <div class="bg-ambient bg-ambient-1"></div> <div class="bg-ambient bg-ambient-2"></div> <div class="bg-ambient bg-ambient-3"></div> <nav class="nav"> <a href="/" class="nav-brand">PeterYang</a> <div class="nav-right"> <ul class="nav-links"> <li><a href="/">Home</a></li> <li><a href="/archive/">Archive</a></li> <li><a href="/posts/about/">About</a></li> <li><a href="/posts/guestbook/">Guestbook</a></li> </ul> <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme"> <svg class="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg> <svg class="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg> </button> <button class="hamburger" id="hamburger" aria-label="Menu">☰</button> </div> </nav> <main class="container">  <article class="prose liquid-glass" data-astro-cid-gysqo7gh> <a class="back-link" href="/" data-astro-cid-gysqo7gh>&larr; Back</a> <h1 data-astro-cid-gysqo7gh>《动手学深度学习》4.1 — Softmax 回归与分类问题</h1> <div class="meta" data-astro-cid-gysqo7gh> <span class="date" data-astro-cid-gysqo7gh>2026-07-09</span> <span class="reading-time" data-astro-cid-gysqo7gh>· 4 min read</span> <span class="tag" data-astro-cid-gysqo7gh>Deep Learning</span><span class="tag" data-astro-cid-gysqo7gh>d2l</span> </div> <hr data-astro-cid-gysqo7gh> <nav class="toc" data-astro-cid-gysqo7gh> <p class="toc-title" data-astro-cid-gysqo7gh>Contents</p> <ul data-astro-cid-gysqo7gh> <li class data-astro-cid-gysqo7gh> <a href="#softmax-回归解决什么问题" data-astro-cid-gysqo7gh>Softmax 回归解决什么问题</a> </li><li class data-astro-cid-gysqo7gh> <a href="#从线性回归到-softmax-回归" data-astro-cid-gysqo7gh>从线性回归到 Softmax 回归</a> </li><li class data-astro-cid-gysqo7gh> <a href="#代码框-1softmax-函数手算" data-astro-cid-gysqo7gh>代码框 1：Softmax 函数手算</a> </li><li class data-astro-cid-gysqo7gh> <a href="#代码框-2softmax-函数实现" data-astro-cid-gysqo7gh>代码框 2：Softmax 函数实现</a> </li><li class data-astro-cid-gysqo7gh> <a href="#代码框-3交叉熵损失函数" data-astro-cid-gysqo7gh>代码框 3：交叉熵损失函数</a> </li><li class data-astro-cid-gysqo7gh> <a href="#代码框-4fashion-mnist-数据集" data-astro-cid-gysqo7gh>代码框 4：Fashion-MNIST 数据集</a> </li><li class data-astro-cid-gysqo7gh> <a href="#代码框-5初始化参数" data-astro-cid-gysqo7gh>代码框 5：初始化参数</a> </li><li class data-astro-cid-gysqo7gh> <a href="#代码框-6定义模型" data-astro-cid-gysqo7gh>代码框 6：定义模型</a> </li><li class data-astro-cid-gysqo7gh> <a href="#代码框-7计算精度" data-astro-cid-gysqo7gh>代码框 7：计算精度</a> </li><li class data-astro-cid-gysqo7gh> <a href="#代码框-8评估函数" data-astro-cid-gysqo7gh>代码框 8：评估函数</a> </li><li class data-astro-cid-gysqo7gh> <a href="#代码框-9训练一轮" data-astro-cid-gysqo7gh>代码框 9：训练一轮</a> </li><li class data-astro-cid-gysqo7gh> <a href="#代码框-10正式训练" data-astro-cid-gysqo7gh>代码框 10：正式训练</a> </li><li class data-astro-cid-gysqo7gh> <a href="#代码框-11pytorch-简洁实现" data-astro-cid-gysqo7gh>代码框 11：PyTorch 简洁实现</a> </li><li class data-astro-cid-gysqo7gh> <a href="#32-vs-41-对比" data-astro-cid-gysqo7gh>3.2 vs 4.1 对比</a> </li> </ul> </nav> <h2 id="softmax-回归解决什么问题">Softmax 回归解决什么问题</h2>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th></th><th>线性回归</th><th>Softmax 回归</th></tr></thead><tbody><tr><td>回答的问题</td><td>”多少？"</td><td>"哪一个？“</td></tr><tr><td>举例</td><td>房价多少钱？</td><td>这是猫还是狗？</td></tr><tr><td>输出</td><td>1 个数字</td><td>每个类别的概率</td></tr><tr><td>损失函数</td><td>平方损失</td><td>交叉熵</td></tr></tbody></table>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>场景：Fashion-MNIST 衣服识别</span></span>
+<span class="line"><span>  输入：28×28 灰度图片</span></span>
+<span class="line"><span>  输出：[T恤 5%, 裤子 85%, 套头衫 3%, ... 等 10 个概率]</span></span>
+<span class="line"><span>  → 概率最高的是"裤子"</span></span></code></pre>
+<hr>
+<h2 id="从线性回归到-softmax-回归">从线性回归到 Softmax 回归</h2>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>线性回归：输入 → [W, b] → 输出(一个数字)</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>Softmax：输入 → [W, b] → 10个分数</span></span>
+<span class="line"><span>                       → Softmax → 10个概率(和为1)</span></span>
+<span class="line"><span>                       → argmax → 预测类别</span></span></code></pre>
+<p>关键区别：输出不是一个数字，而是每个类别都输出一个分数。有多少个类别，就有多少个输出。</p>
+<hr>
+<h2 id="代码框-1softmax-函数手算">代码框 1：Softmax 函数手算</h2>
+<p>模型直接输出的分数（logit）有问题：可能大于 1，可能是负数，总和不等于 1。</p>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>猫的分数 = 4.0   ← 大于1</span></span>
+<span class="line"><span>狗的分数 = 1.0</span></span>
+<span class="line"><span>鸟的分数 = -2.0  ← 负数</span></span></code></pre>
+<p>Softmax 公式：</p>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>                 exp(o_j)</span></span>
+<span class="line"><span>Softmax(o_j) = ──────────────</span></span>
+<span class="line"><span>                Σ exp(o_k)</span></span></code></pre>
+<p>三步：取指数 exp → 求和 → 除以总和。</p>
+<p>手算：</p>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>exp(4.0) = 54.598</span></span>
+<span class="line"><span>exp(1.0) = 2.718</span></span>
+<span class="line"><span>exp(-2.0) = 0.135</span></span>
+<span class="line"><span>总和 = 57.451</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>猫 = 54.598 / 57.451 = 95.0%</span></span>
+<span class="line"><span>狗 = 2.718  / 57.451 =  4.7%</span></span>
+<span class="line"><span>鸟 = 0.135  / 57.451 =  0.2%</span></span>
+<span class="line"><span>总和 ≈ 1.0 ✅</span></span></code></pre>
+<hr>
+<h2 id="代码框-2softmax-函数实现">代码框 2：Softmax 函数实现</h2>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#CBA6F7">def</span><span style="color:#89B4FA;font-style:italic"> softmax</span><span style="color:#9399B2">(</span><span style="color:#EBA0AC;font-style:italic">X</span><span style="color:#9399B2">):</span></span>
+<span class="line"><span style="color:#CDD6F4">    X_exp </span><span style="color:#94E2D5">=</span><span style="color:#CDD6F4"> torch</span><span style="color:#9399B2">.</span><span style="color:#89B4FA">exp</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">X</span><span style="color:#9399B2">)</span><span style="color:#9399B2;font-style:italic">                     # 每个元素取指数</span></span>
+<span class="line"><span style="color:#CDD6F4">    partition </span><span style="color:#94E2D5">=</span><span style="color:#CDD6F4"> X_exp</span><span style="color:#9399B2">.</span><span style="color:#89B4FA">sum</span><span style="color:#9399B2">(</span><span style="color:#FAB387">1</span><span style="color:#9399B2">,</span><span style="color:#EBA0AC;font-style:italic"> keepdim</span><span style="color:#94E2D5">=</span><span style="color:#FAB387">True</span><span style="color:#9399B2">)</span><span style="color:#9399B2;font-style:italic">    # 每行求和</span></span>
+<span class="line"><span style="color:#CBA6F7">    return</span><span style="color:#CDD6F4"> X_exp </span><span style="color:#94E2D5">/</span><span style="color:#CDD6F4"> partition                  </span><span style="color:#9399B2;font-style:italic"># 除以总和（广播）</span></span></code></pre>
+<p><code>dim=1</code> 是按行求和，每个样本分开算自己的概率。</p>
+<hr>
+<h2 id="代码框-3交叉熵损失函数">代码框 3：交叉熵损失函数</h2>
+<p>不用平方损失了。分类问题要关心”正确类的概率有多高”。</p>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>loss = -log(正确类的概率)</span></span></code></pre>
+<p>不同概率对应不同损失：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>正确类概率</th><th>损失 -log(p)</th><th>评价</th></tr></thead><tbody><tr><td>0.99</td><td>0.010</td><td>几乎完美</td></tr><tr><td>0.50</td><td>0.693</td><td>一半一半</td></tr><tr><td>0.10</td><td>2.303</td><td>很差</td></tr><tr><td>0.01</td><td>4.605</td><td>烂到极点</td></tr></tbody></table>
+<p>概率越高 → 损失越小。</p>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#CBA6F7">def</span><span style="color:#89B4FA;font-style:italic"> cross_entropy</span><span style="color:#9399B2">(</span><span style="color:#EBA0AC;font-style:italic">y_hat</span><span style="color:#9399B2">,</span><span style="color:#EBA0AC;font-style:italic"> y</span><span style="color:#9399B2">):</span></span>
+<span class="line"><span style="color:#CBA6F7">    return</span><span style="color:#94E2D5"> -</span><span style="color:#CDD6F4">torch</span><span style="color:#9399B2">.</span><span style="color:#89B4FA">log</span><span style="color:#9399B2">(</span><span style="color:#EBA0AC;font-style:italic">y_hat</span><span style="color:#9399B2">[</span><span style="color:#FAB387;font-style:italic">range</span><span style="color:#9399B2">(</span><span style="color:#FAB387;font-style:italic">len</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4;font-style:italic">y_hat</span><span style="color:#9399B2">)),</span><span style="color:#EBA0AC;font-style:italic"> y</span><span style="color:#9399B2">])</span></span></code></pre>
+<p><code>y_hat[range(len(y_hat)), y]</code> 取每个样本”正确类的概率”。</p>
+<hr>
+<h2 id="代码框-4fashion-mnist-数据集">代码框 4：Fashion-MNIST 数据集</h2>
+<p>28×28 灰度图片，10 个类别，训练集 60000 张，测试集 10000 张。</p>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>标签 0：T恤      标签 5：凉鞋</span></span>
+<span class="line"><span>标签 1：裤子      标签 6：衬衫</span></span>
+<span class="line"><span>标签 2：套头衫    标签 7：运动鞋</span></span>
+<span class="line"><span>标签 3：连衣裙    标签 8：包</span></span>
+<span class="line"><span>标签 4：外套      标签 9：短靴</span></span></code></pre>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#CDD6F4">batch_size </span><span style="color:#94E2D5">=</span><span style="color:#FAB387"> 256</span></span>
+<span class="line"><span style="color:#CDD6F4">train_iter</span><span style="color:#9399B2">,</span><span style="color:#CDD6F4"> test_iter </span><span style="color:#94E2D5">=</span><span style="color:#CDD6F4"> d2l</span><span style="color:#9399B2">.</span><span style="color:#89B4FA">load_data_fashion_mnist</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">batch_size</span><span style="color:#9399B2">)</span></span></code></pre>
+<hr>
+<h2 id="代码框-5初始化参数">代码框 5：初始化参数</h2>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#CDD6F4">num_inputs </span><span style="color:#94E2D5">=</span><span style="color:#FAB387"> 784</span><span style="color:#9399B2;font-style:italic">   # 28×28 = 784 个像素</span></span>
+<span class="line"><span style="color:#CDD6F4">num_outputs </span><span style="color:#94E2D5">=</span><span style="color:#FAB387"> 10</span><span style="color:#9399B2;font-style:italic">   # 10 个类别</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#CDD6F4">W </span><span style="color:#94E2D5">=</span><span style="color:#CDD6F4"> torch</span><span style="color:#9399B2">.</span><span style="color:#89B4FA">normal</span><span style="color:#9399B2">(</span><span style="color:#FAB387">0</span><span style="color:#9399B2">,</span><span style="color:#FAB387"> 0.01</span><span style="color:#9399B2">,</span><span style="color:#EBA0AC;font-style:italic"> size</span><span style="color:#94E2D5">=</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">num_inputs</span><span style="color:#9399B2">,</span><span style="color:#CDD6F4"> num_outputs</span><span style="color:#9399B2">),</span><span style="color:#EBA0AC;font-style:italic"> requires_grad</span><span style="color:#94E2D5">=</span><span style="color:#FAB387">True</span><span style="color:#9399B2">)</span></span>
+<span class="line"><span style="color:#CDD6F4">b </span><span style="color:#94E2D5">=</span><span style="color:#CDD6F4"> torch</span><span style="color:#9399B2">.</span><span style="color:#89B4FA">zeros</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">num_outputs</span><span style="color:#9399B2">,</span><span style="color:#EBA0AC;font-style:italic"> requires_grad</span><span style="color:#94E2D5">=</span><span style="color:#FAB387">True</span><span style="color:#9399B2">)</span></span></code></pre>
+<p>参数总量：784×10 + 10 = 7850 个。</p>
+<hr>
+<h2 id="代码框-6定义模型">代码框 6：定义模型</h2>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#CBA6F7">def</span><span style="color:#89B4FA;font-style:italic"> net</span><span style="color:#9399B2">(</span><span style="color:#EBA0AC;font-style:italic">X</span><span style="color:#9399B2">):</span></span>
+<span class="line"><span style="color:#CBA6F7">    return</span><span style="color:#89B4FA"> softmax</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">torch</span><span style="color:#9399B2">.</span><span style="color:#89B4FA">matmul</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">X</span><span style="color:#9399B2">.</span><span style="color:#89B4FA">reshape</span><span style="color:#9399B2">((</span><span style="color:#94E2D5">-</span><span style="color:#FAB387">1</span><span style="color:#9399B2">,</span><span style="color:#CDD6F4"> W</span><span style="color:#9399B2">.</span><span style="color:#EBA0AC;font-style:italic">shape</span><span style="color:#9399B2">[</span><span style="color:#FAB387;font-style:italic">0</span><span style="color:#9399B2">])),</span><span style="color:#CDD6F4"> W</span><span style="color:#9399B2">)</span><span style="color:#94E2D5"> +</span><span style="color:#CDD6F4"> b</span><span style="color:#9399B2">)</span></span></code></pre>
+<p>展平 (256,1,28,28) → (256,784)，矩阵乘法 (256,784)×(784,10) = (256,10)，加偏置，Softmax。</p>
+<hr>
+<h2 id="代码框-7计算精度">代码框 7：计算精度</h2>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#CBA6F7">def</span><span style="color:#89B4FA;font-style:italic"> accuracy</span><span style="color:#9399B2">(</span><span style="color:#EBA0AC;font-style:italic">y_hat</span><span style="color:#9399B2">,</span><span style="color:#EBA0AC;font-style:italic"> y</span><span style="color:#9399B2">):</span></span>
+<span class="line"><span style="color:#CBA6F7">    if</span><span style="color:#FAB387;font-style:italic"> len</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">y_hat</span><span style="color:#9399B2">.</span><span style="color:#CDD6F4">shape</span><span style="color:#9399B2">)</span><span style="color:#94E2D5"> ></span><span style="color:#FAB387"> 1</span><span style="color:#CBA6F7"> and</span><span style="color:#CDD6F4"> y_hat</span><span style="color:#9399B2">.</span><span style="color:#EBA0AC;font-style:italic">shape</span><span style="color:#9399B2">[</span><span style="color:#FAB387;font-style:italic">1</span><span style="color:#9399B2">]</span><span style="color:#94E2D5"> ></span><span style="color:#FAB387"> 1</span><span style="color:#9399B2">:</span></span>
+<span class="line"><span style="color:#CDD6F4">        y_hat </span><span style="color:#94E2D5">=</span><span style="color:#CDD6F4"> y_hat</span><span style="color:#9399B2">.</span><span style="color:#89B4FA">argmax</span><span style="color:#9399B2">(</span><span style="color:#EBA0AC;font-style:italic">axis</span><span style="color:#94E2D5">=</span><span style="color:#FAB387">1</span><span style="color:#9399B2">)</span><span style="color:#9399B2;font-style:italic">       # 取每行最大值的下标</span></span>
+<span class="line"><span style="color:#CDD6F4">    cmp </span><span style="color:#94E2D5">=</span><span style="color:#CDD6F4"> y_hat</span><span style="color:#9399B2">.</span><span style="color:#89B4FA">type</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">y</span><span style="color:#9399B2">.</span><span style="color:#CDD6F4">dtype</span><span style="color:#9399B2">)</span><span style="color:#94E2D5"> ==</span><span style="color:#CDD6F4"> y         </span><span style="color:#9399B2;font-style:italic"># 比较预测和真实</span></span>
+<span class="line"><span style="color:#CBA6F7">    return</span><span style="color:#CBA6F7;font-style:italic"> float</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">cmp</span><span style="color:#9399B2">.</span><span style="color:#89B4FA">type</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">y</span><span style="color:#9399B2">.</span><span style="color:#CDD6F4">dtype</span><span style="color:#9399B2">).</span><span style="color:#89B4FA">sum</span><span style="color:#9399B2">())</span><span style="color:#9399B2;font-style:italic">  # 数有几个对的</span></span></code></pre>
+<hr>
+<h2 id="代码框-8评估函数">代码框 8：评估函数</h2>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#CBA6F7">class</span><span style="color:#F9E2AF;font-style:italic"> Accumulator</span><span style="color:#9399B2">:</span></span>
+<span class="line"><span style="color:#CBA6F7">    def</span><span style="color:#89DCEB;font-style:italic"> __init__</span><span style="color:#9399B2">(</span><span style="color:#F38BA8;font-style:italic">self</span><span style="color:#9399B2">,</span><span style="color:#EBA0AC;font-style:italic"> n</span><span style="color:#9399B2">):</span></span>
+<span class="line"><span style="color:#F38BA8;font-style:italic">        self</span><span style="color:#9399B2">.</span><span style="color:#CDD6F4">data </span><span style="color:#94E2D5">=</span><span style="color:#9399B2"> [</span><span style="color:#FAB387">0.0</span><span style="color:#9399B2">]</span><span style="color:#94E2D5"> *</span><span style="color:#CDD6F4"> n</span></span>
+<span class="line"><span style="color:#CBA6F7">    def</span><span style="color:#89B4FA;font-style:italic"> add</span><span style="color:#9399B2">(</span><span style="color:#F38BA8;font-style:italic">self</span><span style="color:#9399B2">,</span><span style="color:#94E2D5"> *</span><span style="color:#EBA0AC;font-style:italic">args</span><span style="color:#9399B2">):</span></span>
+<span class="line"><span style="color:#F38BA8;font-style:italic">        self</span><span style="color:#9399B2">.</span><span style="color:#CDD6F4">data </span><span style="color:#94E2D5">=</span><span style="color:#9399B2"> [</span><span style="color:#CDD6F4">a </span><span style="color:#94E2D5">+</span><span style="color:#CBA6F7;font-style:italic"> float</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">b</span><span style="color:#9399B2">)</span><span style="color:#CBA6F7"> for</span><span style="color:#CDD6F4"> a</span><span style="color:#9399B2">,</span><span style="color:#CDD6F4"> b </span><span style="color:#CBA6F7">in</span><span style="color:#FAB387;font-style:italic"> zip</span><span style="color:#9399B2">(</span><span style="color:#F38BA8;font-style:italic">self</span><span style="color:#9399B2">.</span><span style="color:#CDD6F4">data</span><span style="color:#9399B2">,</span><span style="color:#CDD6F4"> args</span><span style="color:#9399B2">)]</span></span>
+<span class="line"><span style="color:#CBA6F7">    def</span><span style="color:#89B4FA;font-style:italic"> reset</span><span style="color:#9399B2">(</span><span style="color:#F38BA8;font-style:italic">self</span><span style="color:#9399B2">):</span></span>
+<span class="line"><span style="color:#F38BA8;font-style:italic">        self</span><span style="color:#9399B2">.</span><span style="color:#CDD6F4">data </span><span style="color:#94E2D5">=</span><span style="color:#9399B2"> [</span><span style="color:#FAB387">0.0</span><span style="color:#9399B2">]</span><span style="color:#94E2D5"> *</span><span style="color:#FAB387;font-style:italic"> len</span><span style="color:#9399B2">(</span><span style="color:#F38BA8;font-style:italic">self</span><span style="color:#9399B2">.</span><span style="color:#CDD6F4">data</span><span style="color:#9399B2">)</span></span>
+<span class="line"><span style="color:#CBA6F7">    def</span><span style="color:#89DCEB;font-style:italic"> __getitem__</span><span style="color:#9399B2">(</span><span style="color:#F38BA8;font-style:italic">self</span><span style="color:#9399B2">,</span><span style="color:#EBA0AC;font-style:italic"> idx</span><span style="color:#9399B2">):</span></span>
+<span class="line"><span style="color:#CBA6F7">        return</span><span style="color:#F38BA8;font-style:italic"> self</span><span style="color:#9399B2">.</span><span style="color:#EBA0AC;font-style:italic">data</span><span style="color:#9399B2">[</span><span style="color:#EBA0AC;font-style:italic">idx</span><span style="color:#9399B2">]</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#CBA6F7">def</span><span style="color:#89B4FA;font-style:italic"> evaluate_accuracy</span><span style="color:#9399B2">(</span><span style="color:#EBA0AC;font-style:italic">net</span><span style="color:#9399B2">,</span><span style="color:#EBA0AC;font-style:italic"> data_iter</span><span style="color:#9399B2">):</span></span>
+<span class="line"><span style="color:#CBA6F7">    if</span><span style="color:#FAB387;font-style:italic"> isinstance</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">net</span><span style="color:#9399B2">,</span><span style="color:#CDD6F4"> torch</span><span style="color:#9399B2">.</span><span style="color:#CDD6F4">nn</span><span style="color:#9399B2">.</span><span style="color:#CDD6F4">Module</span><span style="color:#9399B2">):</span></span>
+<span class="line"><span style="color:#CDD6F4">        net</span><span style="color:#9399B2">.</span><span style="color:#89B4FA">eval</span><span style="color:#9399B2">()</span></span>
+<span class="line"><span style="color:#CDD6F4">    metric </span><span style="color:#94E2D5">=</span><span style="color:#89B4FA"> Accumulator</span><span style="color:#9399B2">(</span><span style="color:#FAB387">2</span><span style="color:#9399B2">)</span></span>
+<span class="line"><span style="color:#CBA6F7">    with</span><span style="color:#CDD6F4"> torch</span><span style="color:#9399B2">.</span><span style="color:#89B4FA">no_grad</span><span style="color:#9399B2">():</span></span>
+<span class="line"><span style="color:#CBA6F7">        for</span><span style="color:#CDD6F4"> X</span><span style="color:#9399B2">,</span><span style="color:#CDD6F4"> y </span><span style="color:#CBA6F7">in</span><span style="color:#CDD6F4"> data_iter</span><span style="color:#9399B2">:</span></span>
+<span class="line"><span style="color:#CDD6F4">            metric</span><span style="color:#9399B2">.</span><span style="color:#89B4FA">add</span><span style="color:#9399B2">(</span><span style="color:#89B4FA">accuracy</span><span style="color:#9399B2">(</span><span style="color:#89B4FA">net</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">X</span><span style="color:#9399B2">),</span><span style="color:#CDD6F4"> y</span><span style="color:#9399B2">),</span><span style="color:#CDD6F4"> y</span><span style="color:#9399B2">.</span><span style="color:#89B4FA">numel</span><span style="color:#9399B2">())</span></span>
+<span class="line"><span style="color:#CBA6F7">    return</span><span style="color:#EBA0AC;font-style:italic"> metric</span><span style="color:#9399B2">[</span><span style="color:#FAB387;font-style:italic">0</span><span style="color:#9399B2">]</span><span style="color:#94E2D5"> /</span><span style="color:#EBA0AC;font-style:italic"> metric</span><span style="color:#9399B2">[</span><span style="color:#FAB387;font-style:italic">1</span><span style="color:#9399B2">]</span></span></code></pre>
+<hr>
+<h2 id="代码框-9训练一轮">代码框 9：训练一轮</h2>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#CBA6F7">def</span><span style="color:#89B4FA;font-style:italic"> train_epoch_ch3</span><span style="color:#9399B2">(</span><span style="color:#EBA0AC;font-style:italic">net</span><span style="color:#9399B2">,</span><span style="color:#EBA0AC;font-style:italic"> train_iter</span><span style="color:#9399B2">,</span><span style="color:#EBA0AC;font-style:italic"> loss</span><span style="color:#9399B2">,</span><span style="color:#EBA0AC;font-style:italic"> updater</span><span style="color:#9399B2">):</span></span>
+<span class="line"><span style="color:#CBA6F7">    if</span><span style="color:#FAB387;font-style:italic"> isinstance</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">net</span><span style="color:#9399B2">,</span><span style="color:#CDD6F4"> torch</span><span style="color:#9399B2">.</span><span style="color:#CDD6F4">nn</span><span style="color:#9399B2">.</span><span style="color:#CDD6F4">Module</span><span style="color:#9399B2">):</span></span>
+<span class="line"><span style="color:#CDD6F4">        net</span><span style="color:#9399B2">.</span><span style="color:#89B4FA">train</span><span style="color:#9399B2">()</span></span>
+<span class="line"><span style="color:#CDD6F4">    metric </span><span style="color:#94E2D5">=</span><span style="color:#89B4FA"> Accumulator</span><span style="color:#9399B2">(</span><span style="color:#FAB387">3</span><span style="color:#9399B2">)</span></span>
+<span class="line"><span style="color:#CBA6F7">    for</span><span style="color:#CDD6F4"> X</span><span style="color:#9399B2">,</span><span style="color:#CDD6F4"> y </span><span style="color:#CBA6F7">in</span><span style="color:#CDD6F4"> train_iter</span><span style="color:#9399B2">:</span></span>
+<span class="line"><span style="color:#CDD6F4">        y_hat </span><span style="color:#94E2D5">=</span><span style="color:#89B4FA"> net</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">X</span><span style="color:#9399B2">)</span><span style="color:#9399B2;font-style:italic">          # 前向传播</span></span>
+<span class="line"><span style="color:#CDD6F4">        l </span><span style="color:#94E2D5">=</span><span style="color:#89B4FA"> loss</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">y_hat</span><span style="color:#9399B2">,</span><span style="color:#CDD6F4"> y</span><span style="color:#9399B2">)</span><span style="color:#9399B2;font-style:italic">      # 算损失</span></span>
+<span class="line"><span style="color:#CDD6F4">        l</span><span style="color:#9399B2">.</span><span style="color:#89B4FA">sum</span><span style="color:#9399B2">().</span><span style="color:#89B4FA">backward</span><span style="color:#9399B2">()</span><span style="color:#9399B2;font-style:italic">      # 反向传播</span></span>
+<span class="line"><span style="color:#89B4FA">        updater</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">X</span><span style="color:#9399B2">.</span><span style="color:#EBA0AC;font-style:italic">shape</span><span style="color:#9399B2">[</span><span style="color:#FAB387;font-style:italic">0</span><span style="color:#9399B2">])</span><span style="color:#9399B2;font-style:italic">     # 更新参数</span></span>
+<span class="line"><span style="color:#CDD6F4">        metric</span><span style="color:#9399B2">.</span><span style="color:#89B4FA">add</span><span style="color:#9399B2">(</span><span style="color:#CBA6F7;font-style:italic">float</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">l</span><span style="color:#9399B2">.</span><span style="color:#89B4FA">sum</span><span style="color:#9399B2">()),</span><span style="color:#89B4FA"> accuracy</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">y_hat</span><span style="color:#9399B2">,</span><span style="color:#CDD6F4"> y</span><span style="color:#9399B2">),</span><span style="color:#CDD6F4"> y</span><span style="color:#9399B2">.</span><span style="color:#89B4FA">numel</span><span style="color:#9399B2">())</span></span>
+<span class="line"><span style="color:#CBA6F7">    return</span><span style="color:#EBA0AC;font-style:italic"> metric</span><span style="color:#9399B2">[</span><span style="color:#FAB387;font-style:italic">0</span><span style="color:#9399B2">]</span><span style="color:#94E2D5"> /</span><span style="color:#EBA0AC;font-style:italic"> metric</span><span style="color:#9399B2">[</span><span style="color:#FAB387;font-style:italic">2</span><span style="color:#9399B2">],</span><span style="color:#EBA0AC;font-style:italic"> metric</span><span style="color:#9399B2">[</span><span style="color:#FAB387;font-style:italic">1</span><span style="color:#9399B2">]</span><span style="color:#94E2D5"> /</span><span style="color:#EBA0AC;font-style:italic"> metric</span><span style="color:#9399B2">[</span><span style="color:#FAB387;font-style:italic">2</span><span style="color:#9399B2">]</span></span></code></pre>
+<p>核心四步：预测 → 算损失 → backward → 更新。</p>
+<hr>
+<h2 id="代码框-10正式训练">代码框 10：正式训练</h2>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#CDD6F4">lr </span><span style="color:#94E2D5">=</span><span style="color:#FAB387"> 0.1</span></span>
+<span class="line"><span style="color:#CDD6F4">num_epochs </span><span style="color:#94E2D5">=</span><span style="color:#FAB387"> 10</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#CBA6F7">def</span><span style="color:#89B4FA;font-style:italic"> updater</span><span style="color:#9399B2">(</span><span style="color:#EBA0AC;font-style:italic">batch_size</span><span style="color:#9399B2">):</span></span>
+<span class="line"><span style="color:#CBA6F7">    return</span><span style="color:#CDD6F4"> d2l</span><span style="color:#9399B2">.</span><span style="color:#89B4FA">sgd</span><span style="color:#9399B2">([</span><span style="color:#CDD6F4">W</span><span style="color:#9399B2">,</span><span style="color:#CDD6F4"> b</span><span style="color:#9399B2">],</span><span style="color:#CDD6F4"> lr</span><span style="color:#9399B2">,</span><span style="color:#CDD6F4"> batch_size</span><span style="color:#9399B2">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#89B4FA">train_ch3</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">net</span><span style="color:#9399B2">,</span><span style="color:#CDD6F4"> train_iter</span><span style="color:#9399B2">,</span><span style="color:#CDD6F4"> test_iter</span><span style="color:#9399B2">,</span><span style="color:#CDD6F4"> cross_entropy</span><span style="color:#9399B2">,</span><span style="color:#CDD6F4"> num_epochs</span><span style="color:#9399B2">,</span><span style="color:#CDD6F4"> updater</span><span style="color:#9399B2">)</span></span></code></pre>
+<p>运行结果：训练损失 0.358，训练精度 87%，测试精度 85%。100 张没见过的图片能猜对 85 张。</p>
+<hr>
+<h2 id="代码框-11pytorch-简洁实现">代码框 11：PyTorch 简洁实现</h2>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#CBA6F7">from</span><span style="color:#CDD6F4"> torch </span><span style="color:#CBA6F7">import</span><span style="color:#CDD6F4"> nn</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#CDD6F4">net </span><span style="color:#94E2D5">=</span><span style="color:#CDD6F4"> nn</span><span style="color:#9399B2">.</span><span style="color:#89B4FA">Sequential</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">nn</span><span style="color:#9399B2">.</span><span style="color:#89B4FA">Flatten</span><span style="color:#9399B2">(),</span><span style="color:#CDD6F4"> nn</span><span style="color:#9399B2">.</span><span style="color:#89B4FA">Linear</span><span style="color:#9399B2">(</span><span style="color:#FAB387">784</span><span style="color:#9399B2">,</span><span style="color:#FAB387"> 10</span><span style="color:#9399B2">))</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#CBA6F7">def</span><span style="color:#89B4FA;font-style:italic"> init_weights</span><span style="color:#9399B2">(</span><span style="color:#EBA0AC;font-style:italic">m</span><span style="color:#9399B2">):</span></span>
+<span class="line"><span style="color:#CBA6F7">    if</span><span style="color:#CBA6F7;font-style:italic"> type</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">m</span><span style="color:#9399B2">)</span><span style="color:#94E2D5"> ==</span><span style="color:#CDD6F4"> nn</span><span style="color:#9399B2">.</span><span style="color:#CDD6F4">Linear</span><span style="color:#9399B2">:</span></span>
+<span class="line"><span style="color:#CDD6F4">        nn</span><span style="color:#9399B2">.</span><span style="color:#CDD6F4">init</span><span style="color:#9399B2">.</span><span style="color:#89B4FA">normal_</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">m</span><span style="color:#9399B2">.</span><span style="color:#CDD6F4">weight</span><span style="color:#9399B2">,</span><span style="color:#EBA0AC;font-style:italic"> std</span><span style="color:#94E2D5">=</span><span style="color:#FAB387">0.01</span><span style="color:#9399B2">)</span></span>
+<span class="line"><span style="color:#CDD6F4">net</span><span style="color:#9399B2">.</span><span style="color:#89B4FA">apply</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">init_weights</span><span style="color:#9399B2">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#CDD6F4">loss </span><span style="color:#94E2D5">=</span><span style="color:#CDD6F4"> nn</span><span style="color:#9399B2">.</span><span style="color:#89B4FA">CrossEntropyLoss</span><span style="color:#9399B2">(</span><span style="color:#EBA0AC;font-style:italic">reduction</span><span style="color:#94E2D5">=</span><span style="color:#A6E3A1">'none'</span><span style="color:#9399B2">)</span></span>
+<span class="line"><span style="color:#CDD6F4">trainer </span><span style="color:#94E2D5">=</span><span style="color:#CDD6F4"> torch</span><span style="color:#9399B2">.</span><span style="color:#CDD6F4">optim</span><span style="color:#9399B2">.</span><span style="color:#89B4FA">SGD</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">net</span><span style="color:#9399B2">.</span><span style="color:#89B4FA">parameters</span><span style="color:#9399B2">(),</span><span style="color:#EBA0AC;font-style:italic"> lr</span><span style="color:#94E2D5">=</span><span style="color:#FAB387">0.1</span><span style="color:#9399B2">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#CDD6F4">num_epochs </span><span style="color:#94E2D5">=</span><span style="color:#FAB387"> 10</span></span>
+<span class="line"><span style="color:#89B4FA">train_ch3</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">net</span><span style="color:#9399B2">,</span><span style="color:#CDD6F4"> train_iter</span><span style="color:#9399B2">,</span><span style="color:#CDD6F4"> test_iter</span><span style="color:#9399B2">,</span><span style="color:#CDD6F4"> loss</span><span style="color:#9399B2">,</span><span style="color:#CDD6F4"> num_epochs</span><span style="color:#9399B2">,</span><span style="color:#CDD6F4"> trainer</span><span style="color:#9399B2">)</span></span></code></pre>
+<p><code>nn.CrossEntropyLoss</code> 内部把 Softmax 和交叉熵合并处理，用数学技巧避免了数值溢出。不用手动写 Softmax 和交叉熵了。</p>
+<hr>
+<h2 id="32-vs-41-对比">3.2 vs 4.1 对比</h2>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>组件</th><th>3.2 线性回归</th><th>4.1 Softmax</th></tr></thead><tbody><tr><td>输出</td><td>1 个数字</td><td>10 个概率</td></tr><tr><td>模型</td><td>X @ w + b</td><td>softmax(X @ W + b)</td></tr><tr><td>损失</td><td>(pred-y)²</td><td>-log(p_correct)</td></tr><tr><td>数据</td><td>合成数据</td><td>Fashion-MNIST</td></tr><tr><td>代码量</td><td>~29 行</td><td>~60 行</td></tr></tbody></table>
+<p>训练循环完全一样：预测 → 算损失 → backward → 更新。只是输出从 1 个数变成 10 个概率。</p> <div class="series-nav" data-astro-cid-gysqo7gh> <p class="series-title" data-astro-cid-gysqo7gh>📖 动手学深度学习 系列</p> <div class="series-links" data-astro-cid-gysqo7gh> <a class="series-prev" href="/posts/d2l-linear-regression-concise/" data-astro-cid-gysqo7gh> <span class="series-label" data-astro-cid-gysqo7gh>&larr; 上一篇</span> <span class="series-name" data-astro-cid-gysqo7gh>《动手学深度学习》3.3 — 线性回归的简洁实现</span> </a> <div data-astro-cid-gysqo7gh></div> </div> </div> </article>  </main> <footer class="footer"> <div class="footer-links"> <a href="https://github.com/yangpeter26-bot" target="_blank" rel="noopener">GitHub</a> <a href="/rss.xml">RSS</a> <a href="https://mail.google.com/mail/?view=cm&to=yangpeter26@gmail.com" target="_blank">Email</a> </div> <p>&copy; 2026 PeterYang</p> </footer> <script>
+      const saved = localStorage.getItem("theme");
+      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      document.documentElement.dataset.theme = saved || (prefersDark ? "dark" : "light");
+      const btn = document.getElementById("theme-toggle");
+      btn.addEventListener("click", () => {
+        const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+        document.documentElement.dataset.theme = next;
+        localStorage.setItem("theme", next);
+      });
+      const hamburger = document.getElementById("hamburger");
+      let mobileMenu = null;
+      const links = [
+        { href: "/", text: "Home" },
+        { href: "/archive/", text: "Archive" },
+        { href: "/posts/about/", text: "About" },
+        { href: "/posts/guestbook/", text: "Guestbook" },
+      ];
+      hamburger.addEventListener("click", () => {
+        if (!mobileMenu) {
+          mobileMenu = document.createElement("div");
+          mobileMenu.className = "mobile-menu open";
+          mobileMenu.style.cssText = `
+            position: fixed; top: 60px; left: 12px; right: 12px; z-index: 99;
+            padding: 12px; display: flex; flex-direction: column; gap: 4px;
+            background: rgba(232,234,237,0.4);
+            backdrop-filter: blur(24px) saturate(140%);
+            -webkit-backdrop-filter: blur(24px) saturate(140%);
+            border: 0.5px solid rgba(255,255,255,0.2);
+            border-radius: 20px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.04);
+          `;
+          if (document.documentElement.dataset.theme === "dark") {
+            mobileMenu.style.background = "rgba(26,26,46,0.4)";
+          }
+          links.forEach(l => {
+            const a = document.createElement("a");
+            a.href = l.href;
+            a.textContent = l.text;
+            a.style.cssText = `
+              color: var(--blue); text-decoration: none; font-size: 15px;
+              font-weight: 500; padding: 10px 16px; border-radius: 12px;
+              transition: background 0.2s;
+            `;
+            a.addEventListener("mouseenter", () => a.style.background = "rgba(0,122,255,0.06)");
+            a.addEventListener("mouseleave", () => a.style.background = "transparent");
+            mobileMenu.appendChild(a);
+          });
+          document.querySelector(".nav").after(mobileMenu);
+        } else {
+          mobileMenu.classList.toggle("open");
+          if (!mobileMenu.classList.contains("open")) {
+            mobileMenu.remove();
+            mobileMenu = null;
+          }
+        }
+      });
+
+      // Code copy buttons
+      document.querySelectorAll(".prose pre").forEach((pre) => {
+        const btn = document.createElement("button");
+        btn.className = "copy-btn";
+        btn.textContent = "Copy";
+        btn.addEventListener("click", () => {
+          const code = pre.querySelector("code")?.textContent || pre.textContent;
+          navigator.clipboard.writeText(code).then(() => {
+            btn.textContent = "Copied!";
+            btn.classList.add("copied");
+            setTimeout(() => { btn.textContent = "Copy"; btn.classList.remove("copied"); }, 2000);
+          });
+        });
+        pre.appendChild(btn);
+      });
+    </script> </body> </html> 
