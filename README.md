@@ -142,6 +142,12 @@ git add -A; git commit -m "更新"; git push
 
 等 30 秒刷新 `https://yangpeter26-bot.github.io`（Ctrl+Shift+R 强制刷新）。
 
+每次上传后必须反馈结果：页数、错误数、耗时。例如：
+
+```
+✅ 已上线 — 12 页 build 通过，0 错误，1.64s
+```
+
 ## 注意事项
 
 - GitHub Pages 设置：Settings → Pages → Source: `Deploy from a branch` → `main` → `/ (root)`
