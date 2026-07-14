@@ -1,5 +1,5 @@
 ---
-title: "《动手学深度学习》4.1 — Softmax 回归与分类问题"
+title: "《动手学深度学习》3.4 — Softmax 回归与分类问题"
 date: "2026-07-09"
 tags: ["Deep Learning", "d2l"]
 excerpt: "Softmax 回归完整详解：从线性回归到分类问题，Softmax 函数手算演示，交叉熵损失，Fashion-MNIST 数据集，从零实现与 PyTorch 简洁实现。"
