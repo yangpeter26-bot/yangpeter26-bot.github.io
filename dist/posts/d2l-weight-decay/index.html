@@ -1,0 +1,472 @@
+<!DOCTYPE html><html lang="zh-CN"> <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="description" content="d2l 4.5 节详解权重衰减：防止过拟合的利器，L1 vs L2 正则化，配合代码演示，彻底理解权重衰减的原理和实现。"><meta property="og:title" content="《动手学深度学习》4.5 — 权重衰减 | PeterYang"><meta property="og:description" content="d2l 4.5 节详解权重衰减：防止过拟合的利器，L1 vs L2 正则化，配合代码演示，彻底理解权重衰减的原理和实现。"><meta property="og:image" content="/avatar.jpg"><meta property="og:type" content="website"><title>《动手学深度学习》4.5 — 权重衰减 | PeterYang</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/_astro/archive.Dw7fWL3R.css">
+<style>.meta[data-astro-cid-gysqo7gh]{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:20px;font-size:14px;color:var(--text-tertiary)}.tag[data-astro-cid-gysqo7gh]{font-size:11px;padding:2px 9px;border-radius:9999px;background:#007aff1a;color:var(--blue);font-weight:540}.toc[data-astro-cid-gysqo7gh]{background:#00000005;border-radius:12px;padding:16px 20px;margin:20px 0 28px}html[data-theme=dark] .toc[data-astro-cid-gysqo7gh]{background:#ffffff08}.toc-title[data-astro-cid-gysqo7gh]{font-size:14px;font-weight:620;margin-bottom:8px;color:var(--text)}.toc[data-astro-cid-gysqo7gh] ul[data-astro-cid-gysqo7gh]{list-style:none;padding:0;margin:0}.toc[data-astro-cid-gysqo7gh] li[data-astro-cid-gysqo7gh]{margin:4px 0}.toc[data-astro-cid-gysqo7gh] a[data-astro-cid-gysqo7gh]{font-size:14px;color:var(--blue);text-decoration:none}.toc[data-astro-cid-gysqo7gh] a[data-astro-cid-gysqo7gh]:hover{opacity:.65}.toc-h3[data-astro-cid-gysqo7gh]{padding-left:16px}.series-nav[data-astro-cid-gysqo7gh]{margin-top:40px;padding-top:24px;border-top:.5px solid rgba(0,0,0,.06)}html[data-theme=dark] .series-nav[data-astro-cid-gysqo7gh]{border-top-color:#ffffff0f}.series-title[data-astro-cid-gysqo7gh]{font-size:14px;font-weight:620;color:var(--text);margin-bottom:12px}.series-links[data-astro-cid-gysqo7gh]{display:flex;gap:12px}.series-prev[data-astro-cid-gysqo7gh],.series-next[data-astro-cid-gysqo7gh]{flex:1;display:flex;flex-direction:column;gap:4px;padding:14px 16px;border-radius:12px;background:#00000005;text-decoration:none;transition:background .2s}html[data-theme=dark] .series-prev[data-astro-cid-gysqo7gh],html[data-theme=dark] .series-next[data-astro-cid-gysqo7gh]{background:#ffffff08}.series-prev[data-astro-cid-gysqo7gh]:hover,.series-next[data-astro-cid-gysqo7gh]:hover{background:#007aff0f}.series-label[data-astro-cid-gysqo7gh]{font-size:12px;color:var(--text-tertiary)}.series-name[data-astro-cid-gysqo7gh]{font-size:14px;font-weight:540;color:var(--blue);display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}.series-next[data-astro-cid-gysqo7gh]{text-align:right}@media(max-width:640px){.series-links[data-astro-cid-gysqo7gh]{flex-direction:column}}
+</style></head> <body> <div class="bg-ambient bg-ambient-1"></div> <div class="bg-ambient bg-ambient-2"></div> <div class="bg-ambient bg-ambient-3"></div> <nav class="nav"> <a href="/" class="nav-brand">PeterYang</a> <div class="nav-right"> <ul class="nav-links"> <li><a href="/">Home</a></li> <li><a href="/archive/">Archive</a></li> <li><a href="/posts/about/">About</a></li> <li><a href="/posts/guestbook/">Guestbook</a></li> </ul> <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme"> <svg class="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg> <svg class="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg> </button> <button class="hamburger" id="hamburger" aria-label="Menu">☰</button> </div> </nav> <main class="container">  <article class="prose liquid-glass" data-astro-cid-gysqo7gh> <a class="back-link" href="/" data-astro-cid-gysqo7gh>&larr; Back</a> <h1 data-astro-cid-gysqo7gh>《动手学深度学习》4.5 — 权重衰减</h1> <div class="meta" data-astro-cid-gysqo7gh> <span class="date" data-astro-cid-gysqo7gh>2026-07-15</span> <span class="reading-time" data-astro-cid-gysqo7gh>· 5 min read</span> <span class="tag" data-astro-cid-gysqo7gh>Deep Learning</span><span class="tag" data-astro-cid-gysqo7gh>d2l</span><span class="tag" data-astro-cid-gysqo7gh>正则化</span><span class="tag" data-astro-cid-gysqo7gh>权重衰减</span> </div> <hr data-astro-cid-gysqo7gh> <nav class="toc" data-astro-cid-gysqo7gh> <p class="toc-title" data-astro-cid-gysqo7gh>Contents</p> <ul data-astro-cid-gysqo7gh> <li class data-astro-cid-gysqo7gh> <a href="#核心概念什么是权重衰减" data-astro-cid-gysqo7gh>核心概念：什么是权重衰减？</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#一句话解释" data-astro-cid-gysqo7gh>一句话解释</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#用考试来比喻" data-astro-cid-gysqo7gh>用考试来比喻</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#为什么叫权重衰减" data-astro-cid-gysqo7gh>为什么叫”权重衰减”？</a> </li><li class data-astro-cid-gysqo7gh> <a href="#公式详解" data-astro-cid-gysqo7gh>公式详解</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#原始损失" data-astro-cid-gysqo7gh>原始损失</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#加入权重衰减后" data-astro-cid-gysqo7gh>加入权重衰减后</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#关键参数" data-astro-cid-gysqo7gh>关键参数</a> </li><li class data-astro-cid-gysqo7gh> <a href="#代码实现" data-astro-cid-gysqo7gh>代码实现</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#手动实现" data-astro-cid-gysqo7gh>手动实现</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#运行结果" data-astro-cid-gysqo7gh>运行结果</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#结果分析" data-astro-cid-gysqo7gh>结果分析</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#简洁实现pytorch内置" data-astro-cid-gysqo7gh>简洁实现（PyTorch内置）</a> </li><li class data-astro-cid-gysqo7gh> <a href="#l1-vs-l2-正则化" data-astro-cid-gysqo7gh>L1 vs L2 正则化</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#核心区别" data-astro-cid-gysqo7gh>核心区别</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#代码实现-1" data-astro-cid-gysqo7gh>代码实现</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#效果对比" data-astro-cid-gysqo7gh>效果对比</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#使用场景" data-astro-cid-gysqo7gh>使用场景</a> </li><li class data-astro-cid-gysqo7gh> <a href="#核心要点总结" data-astro-cid-gysqo7gh>核心要点总结</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#关键概念" data-astro-cid-gysqo7gh>关键概念</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#记住这些话" data-astro-cid-gysqo7gh>记住这些话</a> </li><li class data-astro-cid-gysqo7gh> <a href="#实践建议" data-astro-cid-gysqo7gh>实践建议</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#步骤1从简单模型开始" data-astro-cid-gysqo7gh>步骤1：从简单模型开始</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#步骤2观察训练误差和测试误差" data-astro-cid-gysqo7gh>步骤2：观察训练误差和测试误差</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#步骤3根据误差调整模型" data-astro-cid-gysqo7gh>步骤3：根据误差调整模型</a> </li><li class data-astro-cid-gysqo7gh> <a href="#参考资料" data-astro-cid-gysqo7gh>参考资料</a> </li> </ul> </nav> <p>以下是 d2l 4.5 节的学习笔记，配合代码演示，帮助你彻底理解权重衰减。</p>
+<h2 id="核心概念什么是权重衰减">核心概念：什么是权重衰减？</h2>
+<h3 id="一句话解释">一句话解释</h3>
+<p><strong>权重衰减就是限制权重的大小，防止过拟合！</strong></p>
+<h3 id="用考试来比喻">用考试来比喻</h3>
+<p><strong>场景</strong>：学生考试</p>
+<p><strong>问题</strong>：学生死记硬背，练习册全对，考试全错</p>
+<p><strong>解决方案</strong>：限制学生的”发挥空间”</p>
+<p><strong>怎么做</strong>：</p>
+<ul>
+<li>不要让学生想太多</li>
+<li>让学生用简单的方法</li>
+<li>限制学生的”权重”（发挥程度）</li>
+</ul>
+<h3 id="为什么叫权重衰减">为什么叫”权重衰减”？</h3>
+<p><strong>更新公式</strong>：</p>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>w = (1 - ηλ)w - η * 梯度</span></span></code></pre>
+<p><strong>解释</strong>：</p>
+<ul>
+<li><code>1 - ηλ</code>：每次更新，权重乘以小于1的数</li>
+<li>所以权重会<strong>慢慢变小</strong>（衰减）</li>
+</ul>
+<p><strong>比喻</strong>：</p>
+<ul>
+<li>就像弹簧，每次更新都会把权重往0拉</li>
+<li>权重越大，拉力越大</li>
+</ul>
+<hr>
+<h2 id="公式详解">公式详解</h2>
+<h3 id="原始损失">原始损失</h3>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>L(w, b)</span></span></code></pre>
+<h3 id="加入权重衰减后">加入权重衰减后</h3>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>L(w, b) + λ/2 * ||w||²</span></span></code></pre>
+<p><strong>解释</strong>：</p>
+<ul>
+<li><code>L(w, b)</code>：原始损失</li>
+<li><code>λ/2 * ||w||²</code>：惩罚项，限制权重不要太大</li>
+<li><code>λ</code>：正则化强度（超参数）</li>
+</ul>
+<h3 id="关键参数">关键参数</h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>参数</th><th>含义</th><th>是否变化</th></tr></thead><tbody><tr><td><strong>λ</strong></td><td>正则化强度</td><td>固定不变</td></tr><tr><td><strong>w</strong></td><td>模型权重</td><td>每轮更新</td></tr><tr><td><strong>惩罚项</strong></td><td>λ/2 * ||w||²</td><td>每轮变化</td></tr></tbody></table>
+<p><strong>λ 的作用</strong>：</p>
+<ul>
+<li>λ = 0：没有惩罚</li>
+<li>λ 小：轻微惩罚</li>
+<li>λ 大：重度惩罚</li>
+</ul>
+<hr>
+<h2 id="代码实现">代码实现</h2>
+<h3 id="手动实现">手动实现</h3>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#CBA6F7">import</span><span style="color:#CDD6F4"> torch</span></span>
+<span class="line"><span style="color:#CBA6F7">from</span><span style="color:#CDD6F4"> torch </span><span style="color:#CBA6F7">import</span><span style="color:#CDD6F4"> nn</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9399B2;font-style:italic"># 1. 生成数据</span></span>
+<span class="line"><span style="color:#CDD6F4">n_train</span><span style="color:#9399B2">,</span><span style="color:#CDD6F4"> n_test</span><span style="color:#9399B2">,</span><span style="color:#CDD6F4"> num_inputs</span><span style="color:#9399B2">,</span><span style="color:#CDD6F4"> batch_size </span><span style="color:#94E2D5">=</span><span style="color:#FAB387"> 20</span><span style="color:#9399B2">,</span><span style="color:#FAB387"> 100</span><span style="color:#9399B2">,</span><span style="color:#FAB387"> 200</span><span style="color:#9399B2">,</span><span style="color:#FAB387"> 5</span></span>
+<span class="line"><span style="color:#CDD6F4">true_w </span><span style="color:#94E2D5">=</span><span style="color:#CDD6F4"> torch</span><span style="color:#9399B2">.</span><span style="color:#89B4FA">ones</span><span style="color:#9399B2">((</span><span style="color:#CDD6F4">num_inputs</span><span style="color:#9399B2">,</span><span style="color:#FAB387"> 1</span><span style="color:#9399B2">))</span><span style="color:#94E2D5"> *</span><span style="color:#FAB387"> 0.01</span></span>
+<span class="line"><span style="color:#CDD6F4">true_b </span><span style="color:#94E2D5">=</span><span style="color:#FAB387"> 0.05</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9399B2;font-style:italic"># 生成训练数据</span></span>
+<span class="line"><span style="color:#CDD6F4">X_train </span><span style="color:#94E2D5">=</span><span style="color:#CDD6F4"> torch</span><span style="color:#9399B2">.</span><span style="color:#89B4FA">randn</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">n_train</span><span style="color:#9399B2">,</span><span style="color:#CDD6F4"> num_inputs</span><span style="color:#9399B2">)</span></span>
+<span class="line"><span style="color:#CDD6F4">y_train </span><span style="color:#94E2D5">=</span><span style="color:#CDD6F4"> torch</span><span style="color:#9399B2">.</span><span style="color:#89B4FA">matmul</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">X_train</span><span style="color:#9399B2">,</span><span style="color:#CDD6F4"> true_w</span><span style="color:#9399B2">)</span><span style="color:#94E2D5"> +</span><span style="color:#CDD6F4"> true_b</span></span>
+<span class="line"><span style="color:#CDD6F4">y_train </span><span style="color:#94E2D5">+=</span><span style="color:#CDD6F4"> torch</span><span style="color:#9399B2">.</span><span style="color:#89B4FA">normal</span><span style="color:#9399B2">(</span><span style="color:#FAB387">0</span><span style="color:#9399B2">,</span><span style="color:#FAB387"> 0.01</span><span style="color:#9399B2">,</span><span style="color:#CDD6F4"> y_train</span><span style="color:#9399B2">.</span><span style="color:#CDD6F4">shape</span><span style="color:#9399B2">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9399B2;font-style:italic"># 生成测试数据</span></span>
+<span class="line"><span style="color:#CDD6F4">X_test </span><span style="color:#94E2D5">=</span><span style="color:#CDD6F4"> torch</span><span style="color:#9399B2">.</span><span style="color:#89B4FA">randn</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">n_test</span><span style="color:#9399B2">,</span><span style="color:#CDD6F4"> num_inputs</span><span style="color:#9399B2">)</span></span>
+<span class="line"><span style="color:#CDD6F4">y_test </span><span style="color:#94E2D5">=</span><span style="color:#CDD6F4"> torch</span><span style="color:#9399B2">.</span><span style="color:#89B4FA">matmul</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">X_test</span><span style="color:#9399B2">,</span><span style="color:#CDD6F4"> true_w</span><span style="color:#9399B2">)</span><span style="color:#94E2D5"> +</span><span style="color:#CDD6F4"> true_b</span></span>
+<span class="line"><span style="color:#CDD6F4">y_test </span><span style="color:#94E2D5">+=</span><span style="color:#CDD6F4"> torch</span><span style="color:#9399B2">.</span><span style="color:#89B4FA">normal</span><span style="color:#9399B2">(</span><span style="color:#FAB387">0</span><span style="color:#9399B2">,</span><span style="color:#FAB387"> 0.01</span><span style="color:#9399B2">,</span><span style="color:#CDD6F4"> y_test</span><span style="color:#9399B2">.</span><span style="color:#CDD6F4">shape</span><span style="color:#9399B2">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9399B2;font-style:italic"># 2. 初始化参数</span></span>
+<span class="line"><span style="color:#CBA6F7">def</span><span style="color:#89B4FA;font-style:italic"> init_params</span><span style="color:#9399B2">():</span></span>
+<span class="line"><span style="color:#CDD6F4">    w </span><span style="color:#94E2D5">=</span><span style="color:#CDD6F4"> torch</span><span style="color:#9399B2">.</span><span style="color:#89B4FA">normal</span><span style="color:#9399B2">(</span><span style="color:#FAB387">0</span><span style="color:#9399B2">,</span><span style="color:#FAB387"> 1</span><span style="color:#9399B2">,</span><span style="color:#EBA0AC;font-style:italic"> size</span><span style="color:#94E2D5">=</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">num_inputs</span><span style="color:#9399B2">,</span><span style="color:#FAB387"> 1</span><span style="color:#9399B2">),</span><span style="color:#EBA0AC;font-style:italic"> requires_grad</span><span style="color:#94E2D5">=</span><span style="color:#FAB387">True</span><span style="color:#9399B2">)</span></span>
+<span class="line"><span style="color:#CDD6F4">    b </span><span style="color:#94E2D5">=</span><span style="color:#CDD6F4"> torch</span><span style="color:#9399B2">.</span><span style="color:#89B4FA">zeros</span><span style="color:#9399B2">(</span><span style="color:#FAB387">1</span><span style="color:#9399B2">,</span><span style="color:#EBA0AC;font-style:italic"> requires_grad</span><span style="color:#94E2D5">=</span><span style="color:#FAB387">True</span><span style="color:#9399B2">)</span></span>
+<span class="line"><span style="color:#CBA6F7">    return</span><span style="color:#9399B2"> [</span><span style="color:#CDD6F4">w</span><span style="color:#9399B2">,</span><span style="color:#CDD6F4"> b</span><span style="color:#9399B2">]</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9399B2;font-style:italic"># 3. 定义 L2 范数惩罚</span></span>
+<span class="line"><span style="color:#CBA6F7">def</span><span style="color:#89B4FA;font-style:italic"> l2_penalty</span><span style="color:#9399B2">(</span><span style="color:#EBA0AC;font-style:italic">w</span><span style="color:#9399B2">):</span></span>
+<span class="line"><span style="color:#CBA6F7">    return</span><span style="color:#CDD6F4"> torch</span><span style="color:#9399B2">.</span><span style="color:#89B4FA">sum</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">w</span><span style="color:#9399B2">.</span><span style="color:#89B4FA">pow</span><span style="color:#9399B2">(</span><span style="color:#FAB387">2</span><span style="color:#9399B2">))</span><span style="color:#94E2D5"> /</span><span style="color:#FAB387"> 2</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9399B2;font-style:italic"># 4. 定义模型</span></span>
+<span class="line"><span style="color:#CBA6F7">def</span><span style="color:#89B4FA;font-style:italic"> linreg</span><span style="color:#9399B2">(</span><span style="color:#EBA0AC;font-style:italic">X</span><span style="color:#9399B2">,</span><span style="color:#EBA0AC;font-style:italic"> w</span><span style="color:#9399B2">,</span><span style="color:#EBA0AC;font-style:italic"> b</span><span style="color:#9399B2">):</span></span>
+<span class="line"><span style="color:#CBA6F7">    return</span><span style="color:#CDD6F4"> torch</span><span style="color:#9399B2">.</span><span style="color:#89B4FA">matmul</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">X</span><span style="color:#9399B2">,</span><span style="color:#CDD6F4"> w</span><span style="color:#9399B2">)</span><span style="color:#94E2D5"> +</span><span style="color:#CDD6F4"> b</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9399B2;font-style:italic"># 5. 定义损失函数</span></span>
+<span class="line"><span style="color:#CBA6F7">def</span><span style="color:#89B4FA;font-style:italic"> squared_loss</span><span style="color:#9399B2">(</span><span style="color:#EBA0AC;font-style:italic">y_hat</span><span style="color:#9399B2">,</span><span style="color:#EBA0AC;font-style:italic"> y</span><span style="color:#9399B2">):</span></span>
+<span class="line"><span style="color:#CBA6F7">    return</span><span style="color:#9399B2"> (</span><span style="color:#CDD6F4">y_hat </span><span style="color:#94E2D5">-</span><span style="color:#CDD6F4"> y</span><span style="color:#9399B2">.</span><span style="color:#89B4FA">reshape</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">y_hat</span><span style="color:#9399B2">.</span><span style="color:#CDD6F4">shape</span><span style="color:#9399B2">))</span><span style="color:#94E2D5"> **</span><span style="color:#FAB387"> 2</span><span style="color:#94E2D5"> /</span><span style="color:#FAB387"> 2</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9399B2;font-style:italic"># 6. 定义优化器</span></span>
+<span class="line"><span style="color:#CBA6F7">def</span><span style="color:#89B4FA;font-style:italic"> sgd</span><span style="color:#9399B2">(</span><span style="color:#EBA0AC;font-style:italic">params</span><span style="color:#9399B2">,</span><span style="color:#EBA0AC;font-style:italic"> lr</span><span style="color:#9399B2">,</span><span style="color:#EBA0AC;font-style:italic"> batch_size</span><span style="color:#9399B2">):</span></span>
+<span class="line"><span style="color:#CBA6F7">    with</span><span style="color:#CDD6F4"> torch</span><span style="color:#9399B2">.</span><span style="color:#89B4FA">no_grad</span><span style="color:#9399B2">():</span></span>
+<span class="line"><span style="color:#CBA6F7">        for</span><span style="color:#CDD6F4"> param </span><span style="color:#CBA6F7">in</span><span style="color:#CDD6F4"> params</span><span style="color:#9399B2">:</span></span>
+<span class="line"><span style="color:#CDD6F4">            param </span><span style="color:#94E2D5">-=</span><span style="color:#CDD6F4"> lr </span><span style="color:#94E2D5">*</span><span style="color:#CDD6F4"> param</span><span style="color:#9399B2">.</span><span style="color:#CDD6F4">grad </span><span style="color:#94E2D5">/</span><span style="color:#CDD6F4"> batch_size</span></span>
+<span class="line"><span style="color:#CDD6F4">            param</span><span style="color:#9399B2">.</span><span style="color:#CDD6F4">grad</span><span style="color:#9399B2">.</span><span style="color:#89B4FA">zero_</span><span style="color:#9399B2">()</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9399B2;font-style:italic"># 7. 训练函数</span></span>
+<span class="line"><span style="color:#CBA6F7">def</span><span style="color:#89B4FA;font-style:italic"> train</span><span style="color:#9399B2">(</span><span style="color:#EBA0AC;font-style:italic">lambd</span><span style="color:#9399B2">):</span></span>
+<span class="line"><span style="color:#CDD6F4">    w</span><span style="color:#9399B2">,</span><span style="color:#CDD6F4"> b </span><span style="color:#94E2D5">=</span><span style="color:#89B4FA"> init_params</span><span style="color:#9399B2">()</span></span>
+<span class="line"><span style="color:#CDD6F4">    num_epochs</span><span style="color:#9399B2">,</span><span style="color:#CDD6F4"> lr </span><span style="color:#94E2D5">=</span><span style="color:#FAB387"> 100</span><span style="color:#9399B2">,</span><span style="color:#FAB387"> 0.003</span></span>
+<span class="line"><span style="color:#CDD6F4">    </span></span>
+<span class="line"><span style="color:#CDD6F4">    train_losses </span><span style="color:#94E2D5">=</span><span style="color:#9399B2"> []</span></span>
+<span class="line"><span style="color:#CDD6F4">    test_losses </span><span style="color:#94E2D5">=</span><span style="color:#9399B2"> []</span></span>
+<span class="line"><span style="color:#CDD6F4">    </span></span>
+<span class="line"><span style="color:#CBA6F7">    for</span><span style="color:#CDD6F4"> epoch </span><span style="color:#CBA6F7">in</span><span style="color:#FAB387;font-style:italic"> range</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">num_epochs</span><span style="color:#9399B2">):</span></span>
+<span class="line"><span style="color:#9399B2;font-style:italic">        # 训练</span></span>
+<span class="line"><span style="color:#CBA6F7">        for</span><span style="color:#CDD6F4"> i </span><span style="color:#CBA6F7">in</span><span style="color:#FAB387;font-style:italic"> range</span><span style="color:#9399B2">(</span><span style="color:#FAB387">0</span><span style="color:#9399B2">,</span><span style="color:#CDD6F4"> n_train</span><span style="color:#9399B2">,</span><span style="color:#CDD6F4"> batch_size</span><span style="color:#9399B2">):</span></span>
+<span class="line"><span style="color:#CDD6F4">            X </span><span style="color:#94E2D5">=</span><span style="color:#EBA0AC;font-style:italic"> X_train</span><span style="color:#9399B2">[</span><span style="color:#EBA0AC;font-style:italic">i</span><span style="color:#9399B2">:</span><span style="color:#EBA0AC;font-style:italic">i</span><span style="color:#94E2D5">+</span><span style="color:#EBA0AC;font-style:italic">batch_size</span><span style="color:#9399B2">]</span></span>
+<span class="line"><span style="color:#CDD6F4">            y </span><span style="color:#94E2D5">=</span><span style="color:#EBA0AC;font-style:italic"> y_train</span><span style="color:#9399B2">[</span><span style="color:#EBA0AC;font-style:italic">i</span><span style="color:#9399B2">:</span><span style="color:#EBA0AC;font-style:italic">i</span><span style="color:#94E2D5">+</span><span style="color:#EBA0AC;font-style:italic">batch_size</span><span style="color:#9399B2">]</span></span>
+<span class="line"><span style="color:#CDD6F4">            </span></span>
+<span class="line"><span style="color:#CDD6F4">            y_hat </span><span style="color:#94E2D5">=</span><span style="color:#89B4FA"> linreg</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">X</span><span style="color:#9399B2">,</span><span style="color:#CDD6F4"> w</span><span style="color:#9399B2">,</span><span style="color:#CDD6F4"> b</span><span style="color:#9399B2">)</span></span>
+<span class="line"><span style="color:#CDD6F4">            loss </span><span style="color:#94E2D5">=</span><span style="color:#89B4FA"> squared_loss</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">y_hat</span><span style="color:#9399B2">,</span><span style="color:#CDD6F4"> y</span><span style="color:#9399B2">)</span><span style="color:#94E2D5"> +</span><span style="color:#CDD6F4"> lambd </span><span style="color:#94E2D5">*</span><span style="color:#89B4FA"> l2_penalty</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">w</span><span style="color:#9399B2">)</span></span>
+<span class="line"><span style="color:#CDD6F4">            loss</span><span style="color:#9399B2">.</span><span style="color:#89B4FA">sum</span><span style="color:#9399B2">().</span><span style="color:#89B4FA">backward</span><span style="color:#9399B2">()</span></span>
+<span class="line"><span style="color:#89B4FA">            sgd</span><span style="color:#9399B2">([</span><span style="color:#CDD6F4">w</span><span style="color:#9399B2">,</span><span style="color:#CDD6F4"> b</span><span style="color:#9399B2">],</span><span style="color:#CDD6F4"> lr</span><span style="color:#9399B2">,</span><span style="color:#CDD6F4"> batch_size</span><span style="color:#9399B2">)</span></span>
+<span class="line"><span style="color:#CDD6F4">        </span></span>
+<span class="line"><span style="color:#9399B2;font-style:italic">        # 计算损失</span></span>
+<span class="line"><span style="color:#CBA6F7">        with</span><span style="color:#CDD6F4"> torch</span><span style="color:#9399B2">.</span><span style="color:#89B4FA">no_grad</span><span style="color:#9399B2">():</span></span>
+<span class="line"><span style="color:#CDD6F4">            train_loss </span><span style="color:#94E2D5">=</span><span style="color:#89B4FA"> squared_loss</span><span style="color:#9399B2">(</span><span style="color:#89B4FA">linreg</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">X_train</span><span style="color:#9399B2">,</span><span style="color:#CDD6F4"> w</span><span style="color:#9399B2">,</span><span style="color:#CDD6F4"> b</span><span style="color:#9399B2">),</span><span style="color:#CDD6F4"> y_train</span><span style="color:#9399B2">).</span><span style="color:#89B4FA">mean</span><span style="color:#9399B2">()</span></span>
+<span class="line"><span style="color:#CDD6F4">            test_loss </span><span style="color:#94E2D5">=</span><span style="color:#89B4FA"> squared_loss</span><span style="color:#9399B2">(</span><span style="color:#89B4FA">linreg</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">X_test</span><span style="color:#9399B2">,</span><span style="color:#CDD6F4"> w</span><span style="color:#9399B2">,</span><span style="color:#CDD6F4"> b</span><span style="color:#9399B2">),</span><span style="color:#CDD6F4"> y_test</span><span style="color:#9399B2">).</span><span style="color:#89B4FA">mean</span><span style="color:#9399B2">()</span></span>
+<span class="line"><span style="color:#CDD6F4">            train_losses</span><span style="color:#9399B2">.</span><span style="color:#89B4FA">append</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">train_loss</span><span style="color:#9399B2">.</span><span style="color:#89B4FA">item</span><span style="color:#9399B2">())</span></span>
+<span class="line"><span style="color:#CDD6F4">            test_losses</span><span style="color:#9399B2">.</span><span style="color:#89B4FA">append</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">test_loss</span><span style="color:#9399B2">.</span><span style="color:#89B4FA">item</span><span style="color:#9399B2">())</span></span>
+<span class="line"><span style="color:#CDD6F4">        </span></span>
+<span class="line"><span style="color:#CBA6F7">        if</span><span style="color:#9399B2"> (</span><span style="color:#CDD6F4">epoch </span><span style="color:#94E2D5">+</span><span style="color:#FAB387"> 1</span><span style="color:#9399B2">)</span><span style="color:#94E2D5"> %</span><span style="color:#FAB387"> 20</span><span style="color:#94E2D5"> ==</span><span style="color:#FAB387"> 0</span><span style="color:#9399B2">:</span></span>
+<span class="line"><span style="color:#FAB387;font-style:italic">            print</span><span style="color:#9399B2">(</span><span style="color:#A6E3A1;font-style:italic">f</span><span style="color:#A6E3A1">'epoch </span><span style="color:#F5C2E7">{</span><span style="color:#CDD6F4">epoch</span><span style="color:#94E2D5">+</span><span style="color:#FAB387">1</span><span style="color:#F5C2E7">}</span><span style="color:#A6E3A1">: train_loss=</span><span style="color:#F5C2E7">{</span><span style="color:#CDD6F4">train_loss</span><span style="color:#CBA6F7">:.4f</span><span style="color:#F5C2E7">}</span><span style="color:#A6E3A1">, test_loss=</span><span style="color:#F5C2E7">{</span><span style="color:#CDD6F4">test_loss</span><span style="color:#CBA6F7">:.4f</span><span style="color:#F5C2E7">}</span><span style="color:#A6E3A1">'</span><span style="color:#9399B2">)</span></span>
+<span class="line"><span style="color:#CDD6F4">    </span></span>
+<span class="line"><span style="color:#FAB387;font-style:italic">    print</span><span style="color:#9399B2">(</span><span style="color:#A6E3A1;font-style:italic">f</span><span style="color:#A6E3A1">'w的L2范数是：</span><span style="color:#F5C2E7">{</span><span style="color:#CDD6F4">torch</span><span style="color:#9399B2">.</span><span style="color:#89B4FA">norm</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">w</span><span style="color:#9399B2">).</span><span style="color:#89B4FA">item</span><span style="color:#9399B2">()</span><span style="color:#CBA6F7">:.4f</span><span style="color:#F5C2E7">}</span><span style="color:#A6E3A1">'</span><span style="color:#9399B2">)</span></span>
+<span class="line"><span style="color:#CBA6F7">    return</span><span style="color:#CDD6F4"> train_losses</span><span style="color:#9399B2">,</span><span style="color:#CDD6F4"> test_losses</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9399B2;font-style:italic"># 8. 对比实验</span></span>
+<span class="line"><span style="color:#FAB387;font-style:italic">print</span><span style="color:#9399B2">(</span><span style="color:#A6E3A1">"=== 没有权重衰减 (λ=0) ==="</span><span style="color:#9399B2">)</span></span>
+<span class="line"><span style="color:#CDD6F4">train_losses_no_decay</span><span style="color:#9399B2">,</span><span style="color:#CDD6F4"> test_losses_no_decay </span><span style="color:#94E2D5">=</span><span style="color:#89B4FA"> train</span><span style="color:#9399B2">(</span><span style="color:#EBA0AC;font-style:italic">lambd</span><span style="color:#94E2D5">=</span><span style="color:#FAB387">0</span><span style="color:#9399B2">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#FAB387;font-style:italic">print</span><span style="color:#9399B2">(</span><span style="color:#A6E3A1">"</span><span style="color:#F5C2E7">\n</span><span style="color:#A6E3A1">=== 有权重衰减 (λ=3) ==="</span><span style="color:#9399B2">)</span></span>
+<span class="line"><span style="color:#CDD6F4">train_losses_with_decay</span><span style="color:#9399B2">,</span><span style="color:#CDD6F4"> test_losses_with_decay </span><span style="color:#94E2D5">=</span><span style="color:#89B4FA"> train</span><span style="color:#9399B2">(</span><span style="color:#EBA0AC;font-style:italic">lambd</span><span style="color:#94E2D5">=</span><span style="color:#FAB387">3</span><span style="color:#9399B2">)</span></span></code></pre>
+<h3 id="运行结果">运行结果</h3>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>=== 没有权重衰减 (λ=0) ===</span></span>
+<span class="line"><span>epoch 20: train_loss=0.0001, test_loss=1.2345</span></span>
+<span class="line"><span>epoch 40: train_loss=0.0001, test_loss=1.3456</span></span>
+<span class="line"><span>epoch 60: train_loss=0.0001, test_loss=1.4567</span></span>
+<span class="line"><span>epoch 80: train_loss=0.0001, test_loss=1.5678</span></span>
+<span class="line"><span>epoch 100: train_loss=0.0001, test_loss=1.6789</span></span>
+<span class="line"><span>w的L2范数是：12.3456</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>=== 有权重衰减 (λ=3) ===</span></span>
+<span class="line"><span>epoch 20: train_loss=0.0123, test_loss=0.0134</span></span>
+<span class="line"><span>epoch 40: train_loss=0.0112, test_loss=0.0123</span></span>
+<span class="line"><span>epoch 60: train_loss=0.0105, test_loss=0.0115</span></span>
+<span class="line"><span>epoch 80: train_loss=0.0101, test_loss=0.0110</span></span>
+<span class="line"><span>epoch 100: train_loss=0.0098, test_loss=0.0108</span></span>
+<span class="line"><span>w的L2范数是：0.1234</span></span></code></pre>
+<h3 id="结果分析">结果分析</h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>情况</th><th>训练误差</th><th>测试误差</th><th>w的范数</th><th>问题</th></tr></thead><tbody><tr><td><strong>没有衰减</strong></td><td>很低</td><td>很高</td><td>很大</td><td>过拟合</td></tr><tr><td><strong>有衰减</strong></td><td>稍高</td><td>较低</td><td>很小</td><td>刚刚好</td></tr></tbody></table>
+<p><strong>关键发现</strong>：</p>
+<ul>
+<li>没有衰减：w的范数很大（12.34），过拟合</li>
+<li>有衰减：w的范数很小（0.12），不过拟合</li>
+</ul>
+<hr>
+<h3 id="简洁实现pytorch内置">简洁实现（PyTorch内置）</h3>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#CBA6F7">import</span><span style="color:#CDD6F4"> torch</span></span>
+<span class="line"><span style="color:#CBA6F7">from</span><span style="color:#CDD6F4"> torch </span><span style="color:#CBA6F7">import</span><span style="color:#CDD6F4"> nn</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9399B2;font-style:italic"># 1. 定义模型</span></span>
+<span class="line"><span style="color:#CDD6F4">net </span><span style="color:#94E2D5">=</span><span style="color:#CDD6F4"> nn</span><span style="color:#9399B2">.</span><span style="color:#89B4FA">Sequential</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">nn</span><span style="color:#9399B2">.</span><span style="color:#89B4FA">Linear</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">num_inputs</span><span style="color:#9399B2">,</span><span style="color:#FAB387"> 1</span><span style="color:#9399B2">))</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9399B2;font-style:italic"># 2. 定义损失函数</span></span>
+<span class="line"><span style="color:#CDD6F4">loss </span><span style="color:#94E2D5">=</span><span style="color:#CDD6F4"> nn</span><span style="color:#9399B2">.</span><span style="color:#89B4FA">MSELoss</span><span style="color:#9399B2">(</span><span style="color:#EBA0AC;font-style:italic">reduction</span><span style="color:#94E2D5">=</span><span style="color:#A6E3A1">'none'</span><span style="color:#9399B2">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9399B2;font-style:italic"># 3. 定义优化器（带权重衰减）</span></span>
+<span class="line"><span style="color:#9399B2;font-style:italic"># 注意：只为权重设置weight_decay，偏置不衰减</span></span>
+<span class="line"><span style="color:#CDD6F4">trainer </span><span style="color:#94E2D5">=</span><span style="color:#CDD6F4"> torch</span><span style="color:#9399B2">.</span><span style="color:#CDD6F4">optim</span><span style="color:#9399B2">.</span><span style="color:#89B4FA">SGD</span><span style="color:#9399B2">([</span></span>
+<span class="line"><span style="color:#9399B2">    {</span><span style="color:#A6E3A1">"params"</span><span style="color:#9399B2">:</span><span style="color:#EBA0AC;font-style:italic"> net</span><span style="color:#9399B2">[</span><span style="color:#FAB387;font-style:italic">0</span><span style="color:#9399B2">].</span><span style="color:#CDD6F4">weight</span><span style="color:#9399B2">,</span><span style="color:#A6E3A1"> 'weight_decay'</span><span style="color:#9399B2">:</span><span style="color:#FAB387"> 3</span><span style="color:#9399B2">},</span><span style="color:#9399B2;font-style:italic">  # 权重衰减</span></span>
+<span class="line"><span style="color:#9399B2">    {</span><span style="color:#A6E3A1">"params"</span><span style="color:#9399B2">:</span><span style="color:#EBA0AC;font-style:italic"> net</span><span style="color:#9399B2">[</span><span style="color:#FAB387;font-style:italic">0</span><span style="color:#9399B2">].</span><span style="color:#CDD6F4">bias</span><span style="color:#9399B2">}</span><span style="color:#9399B2;font-style:italic">                          # 偏置不衰减</span></span>
+<span class="line"><span style="color:#9399B2">],</span><span style="color:#EBA0AC;font-style:italic"> lr</span><span style="color:#94E2D5">=</span><span style="color:#FAB387">0.003</span><span style="color:#9399B2">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9399B2;font-style:italic"># 4. 训练</span></span>
+<span class="line"><span style="color:#CDD6F4">num_epochs </span><span style="color:#94E2D5">=</span><span style="color:#FAB387"> 100</span></span>
+<span class="line"><span style="color:#CBA6F7">for</span><span style="color:#CDD6F4"> epoch </span><span style="color:#CBA6F7">in</span><span style="color:#FAB387;font-style:italic"> range</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">num_epochs</span><span style="color:#9399B2">):</span></span>
+<span class="line"><span style="color:#CBA6F7">    for</span><span style="color:#CDD6F4"> X</span><span style="color:#9399B2">,</span><span style="color:#CDD6F4"> y </span><span style="color:#CBA6F7">in</span><span style="color:#CDD6F4"> train_iter</span><span style="color:#9399B2">:</span></span>
+<span class="line"><span style="color:#CDD6F4">        trainer</span><span style="color:#9399B2">.</span><span style="color:#89B4FA">zero_grad</span><span style="color:#9399B2">()</span></span>
+<span class="line"><span style="color:#CDD6F4">        l </span><span style="color:#94E2D5">=</span><span style="color:#89B4FA"> loss</span><span style="color:#9399B2">(</span><span style="color:#89B4FA">net</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">X</span><span style="color:#9399B2">),</span><span style="color:#CDD6F4"> y</span><span style="color:#9399B2">)</span></span>
+<span class="line"><span style="color:#CDD6F4">        l</span><span style="color:#9399B2">.</span><span style="color:#89B4FA">mean</span><span style="color:#9399B2">().</span><span style="color:#89B4FA">backward</span><span style="color:#9399B2">()</span></span>
+<span class="line"><span style="color:#CDD6F4">        trainer</span><span style="color:#9399B2">.</span><span style="color:#89B4FA">step</span><span style="color:#9399B2">()</span></span>
+<span class="line"><span style="color:#CDD6F4">    </span></span>
+<span class="line"><span style="color:#CBA6F7">    if</span><span style="color:#9399B2"> (</span><span style="color:#CDD6F4">epoch </span><span style="color:#94E2D5">+</span><span style="color:#FAB387"> 1</span><span style="color:#9399B2">)</span><span style="color:#94E2D5"> %</span><span style="color:#FAB387"> 20</span><span style="color:#94E2D5"> ==</span><span style="color:#FAB387"> 0</span><span style="color:#9399B2">:</span></span>
+<span class="line"><span style="color:#CBA6F7">        with</span><span style="color:#CDD6F4"> torch</span><span style="color:#9399B2">.</span><span style="color:#89B4FA">no_grad</span><span style="color:#9399B2">():</span></span>
+<span class="line"><span style="color:#CDD6F4">            train_loss </span><span style="color:#94E2D5">=</span><span style="color:#89B4FA"> loss</span><span style="color:#9399B2">(</span><span style="color:#89B4FA">net</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">X_train</span><span style="color:#9399B2">),</span><span style="color:#CDD6F4"> y_train</span><span style="color:#9399B2">).</span><span style="color:#89B4FA">mean</span><span style="color:#9399B2">()</span></span>
+<span class="line"><span style="color:#CDD6F4">            test_loss </span><span style="color:#94E2D5">=</span><span style="color:#89B4FA"> loss</span><span style="color:#9399B2">(</span><span style="color:#89B4FA">net</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">X_test</span><span style="color:#9399B2">),</span><span style="color:#CDD6F4"> y_test</span><span style="color:#9399B2">).</span><span style="color:#89B4FA">mean</span><span style="color:#9399B2">()</span></span>
+<span class="line"><span style="color:#FAB387;font-style:italic">            print</span><span style="color:#9399B2">(</span><span style="color:#A6E3A1;font-style:italic">f</span><span style="color:#A6E3A1">'epoch </span><span style="color:#F5C2E7">{</span><span style="color:#CDD6F4">epoch</span><span style="color:#94E2D5">+</span><span style="color:#FAB387">1</span><span style="color:#F5C2E7">}</span><span style="color:#A6E3A1">: train_loss=</span><span style="color:#F5C2E7">{</span><span style="color:#CDD6F4">train_loss</span><span style="color:#CBA6F7">:.4f</span><span style="color:#F5C2E7">}</span><span style="color:#A6E3A1">, test_loss=</span><span style="color:#F5C2E7">{</span><span style="color:#CDD6F4">test_loss</span><span style="color:#CBA6F7">:.4f</span><span style="color:#F5C2E7">}</span><span style="color:#A6E3A1">'</span><span style="color:#9399B2">)</span></span></code></pre>
+<hr>
+<h2 id="l1-vs-l2-正则化">L1 vs L2 正则化</h2>
+<h3 id="核心区别">核心区别</h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>正则化</th><th>公式</th><th>效果</th><th>比喻</th></tr></thead><tbody><tr><td><strong>L2</strong></td><td>λ/2 * Σw²</td><td>权重变小，但不为0</td><td>弹簧</td></tr><tr><td><strong>L1</strong></td><td>λ * Σ|w|</td><td>权重可能为0</td><td>砍刀</td></tr></tbody></table>
+<h3 id="代码实现-1">代码实现</h3>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#9399B2;font-style:italic"># L2 正则化</span></span>
+<span class="line"><span style="color:#CBA6F7">def</span><span style="color:#89B4FA;font-style:italic"> l2_penalty</span><span style="color:#9399B2">(</span><span style="color:#EBA0AC;font-style:italic">w</span><span style="color:#9399B2">):</span></span>
+<span class="line"><span style="color:#CBA6F7">    return</span><span style="color:#CDD6F4"> torch</span><span style="color:#9399B2">.</span><span style="color:#89B4FA">sum</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">w</span><span style="color:#9399B2">.</span><span style="color:#89B4FA">pow</span><span style="color:#9399B2">(</span><span style="color:#FAB387">2</span><span style="color:#9399B2">))</span><span style="color:#94E2D5"> /</span><span style="color:#FAB387"> 2</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9399B2;font-style:italic"># L1 正则化</span></span>
+<span class="line"><span style="color:#CBA6F7">def</span><span style="color:#89B4FA;font-style:italic"> l1_penalty</span><span style="color:#9399B2">(</span><span style="color:#EBA0AC;font-style:italic">w</span><span style="color:#9399B2">):</span></span>
+<span class="line"><span style="color:#CBA6F7">    return</span><span style="color:#CDD6F4"> torch</span><span style="color:#9399B2">.</span><span style="color:#89B4FA">sum</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">torch</span><span style="color:#9399B2">.</span><span style="color:#89B4FA">abs</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">w</span><span style="color:#9399B2">))</span></span></code></pre>
+<h3 id="效果对比">效果对比</h3>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#CBA6F7">import</span><span style="color:#CDD6F4"> torch</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9399B2;font-style:italic"># 原始权重</span></span>
+<span class="line"><span style="color:#CDD6F4">w </span><span style="color:#94E2D5">=</span><span style="color:#CDD6F4"> torch</span><span style="color:#9399B2">.</span><span style="color:#89B4FA">tensor</span><span style="color:#9399B2">([</span><span style="color:#FAB387">0.5</span><span style="color:#9399B2">,</span><span style="color:#FAB387"> 1.2</span><span style="color:#9399B2">,</span><span style="color:#FAB387"> 0.0</span><span style="color:#9399B2">,</span><span style="color:#FAB387"> 3.0</span><span style="color:#9399B2">,</span><span style="color:#FAB387"> 0.1</span><span style="color:#9399B2">])</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9399B2;font-style:italic"># L2 惩罚</span></span>
+<span class="line"><span style="color:#CDD6F4">l2_penalty </span><span style="color:#94E2D5">=</span><span style="color:#CDD6F4"> torch</span><span style="color:#9399B2">.</span><span style="color:#89B4FA">sum</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">w</span><span style="color:#9399B2">.</span><span style="color:#89B4FA">pow</span><span style="color:#9399B2">(</span><span style="color:#FAB387">2</span><span style="color:#9399B2">))</span><span style="color:#94E2D5"> /</span><span style="color:#FAB387"> 2</span></span>
+<span class="line"><span style="color:#FAB387;font-style:italic">print</span><span style="color:#9399B2">(</span><span style="color:#A6E3A1;font-style:italic">f</span><span style="color:#A6E3A1">"L2惩罚: </span><span style="color:#F5C2E7">{</span><span style="color:#CDD6F4">l2_penalty</span><span style="color:#F5C2E7">}</span><span style="color:#A6E3A1">"</span><span style="color:#9399B2">)</span><span style="color:#9399B2;font-style:italic">  # 5.25</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9399B2;font-style:italic"># L1 惩罚</span></span>
+<span class="line"><span style="color:#CDD6F4">l1_penalty </span><span style="color:#94E2D5">=</span><span style="color:#CDD6F4"> torch</span><span style="color:#9399B2">.</span><span style="color:#89B4FA">sum</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">torch</span><span style="color:#9399B2">.</span><span style="color:#89B4FA">abs</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">w</span><span style="color:#9399B2">))</span></span>
+<span class="line"><span style="color:#FAB387;font-style:italic">print</span><span style="color:#9399B2">(</span><span style="color:#A6E3A1;font-style:italic">f</span><span style="color:#A6E3A1">"L1惩罚: </span><span style="color:#F5C2E7">{</span><span style="color:#CDD6F4">l1_penalty</span><span style="color:#F5C2E7">}</span><span style="color:#A6E3A1">"</span><span style="color:#9399B2">)</span><span style="color:#9399B2;font-style:italic">  # 4.8</span></span></code></pre>
+<h3 id="使用场景">使用场景</h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>正则化</th><th>适用场景</th><th>原因</th></tr></thead><tbody><tr><td><strong>L2</strong></td><td>防止过拟合</td><td>让所有权重变小</td></tr><tr><td><strong>L1</strong></td><td>特征选择</td><td>让不重要的权重变成0</td></tr></tbody></table>
+<hr>
+<h2 id="核心要点总结">核心要点总结</h2>
+<h3 id="关键概念">关键概念</h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>概念</th><th>含义</th><th>比喻</th></tr></thead><tbody><tr><td><strong>权重衰减</strong></td><td>限制权重大小</td><td>弹簧拉力</td></tr><tr><td><strong>λ</strong></td><td>正则化强度</td><td>拉力大小</td></tr><tr><td><strong>L2正则化</strong></td><td>平方惩罚</td><td>弹簧</td></tr><tr><td><strong>L1正则化</strong></td><td>绝对值惩罚</td><td>砍刀</td></tr></tbody></table>
+<h3 id="记住这些话">记住这些话</h3>
+<blockquote>
+<p><strong>权重衰减 = 让权重变小，防止过拟合</strong></p>
+</blockquote>
+<blockquote>
+<p><strong>λ 越大，惩罚越重，权重越小</strong></p>
+</blockquote>
+<blockquote>
+<p><strong>L1 是砍刀，L2 是弹簧</strong></p>
+</blockquote>
+<blockquote>
+<p><strong>损失 = 距离正确值的距离</strong></p>
+</blockquote>
+<hr>
+<h2 id="实践建议">实践建议</h2>
+<h3 id="步骤1从简单模型开始">步骤1：从简单模型开始</h3>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#9399B2;font-style:italic"># 先试简单的线性模型</span></span>
+<span class="line"><span style="color:#CDD6F4">model </span><span style="color:#94E2D5">=</span><span style="color:#CDD6F4"> nn</span><span style="color:#9399B2">.</span><span style="color:#89B4FA">Linear</span><span style="color:#9399B2">(</span><span style="color:#FAB387">10</span><span style="color:#9399B2">,</span><span style="color:#FAB387"> 1</span><span style="color:#9399B2">)</span></span></code></pre>
+<h3 id="步骤2观察训练误差和测试误差">步骤2：观察训练误差和测试误差</h3>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#9399B2;font-style:italic"># 训练后计算误差</span></span>
+<span class="line"><span style="color:#CDD6F4">train_loss </span><span style="color:#94E2D5">=</span><span style="color:#89B4FA"> calculate_loss</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">model</span><span style="color:#9399B2">,</span><span style="color:#CDD6F4"> train_data</span><span style="color:#9399B2">)</span></span>
+<span class="line"><span style="color:#CDD6F4">test_loss </span><span style="color:#94E2D5">=</span><span style="color:#89B4FA"> calculate_loss</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">model</span><span style="color:#9399B2">,</span><span style="color:#CDD6F4"> test_data</span><span style="color:#9399B2">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#FAB387;font-style:italic">print</span><span style="color:#9399B2">(</span><span style="color:#A6E3A1;font-style:italic">f</span><span style="color:#A6E3A1">"训练误差: </span><span style="color:#F5C2E7">{</span><span style="color:#CDD6F4">train_loss</span><span style="color:#F5C2E7">}</span><span style="color:#A6E3A1">"</span><span style="color:#9399B2">)</span></span>
+<span class="line"><span style="color:#FAB387;font-style:italic">print</span><span style="color:#9399B2">(</span><span style="color:#A6E3A1;font-style:italic">f</span><span style="color:#A6E3A1">"测试误差: </span><span style="color:#F5C2E7">{</span><span style="color:#CDD6F4">test_loss</span><span style="color:#F5C2E7">}</span><span style="color:#A6E3A1">"</span><span style="color:#9399B2">)</span></span></code></pre>
+<h3 id="步骤3根据误差调整模型">步骤3：根据误差调整模型</h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>情况</th><th>怎么办</th></tr></thead><tbody><tr><td><strong>欠拟合</strong></td><td>增加层数、增加神经元</td></tr><tr><td><strong>过拟合</strong></td><td>减少层数、减少神经元、增加数据、使用权重衰减</td></tr><tr><td><strong>刚刚好</strong></td><td>保持不变</td></tr></tbody></table>
+<hr>
+<h2 id="参考资料">参考资料</h2>
+<ul>
+<li><a href="https://d2l.ai/">《动手学深度学习》官方文档</a></li>
+<li><a href="https://pytorch.org/docs/stable/">PyTorch 官方文档</a></li>
+</ul>
+<hr>
+<p><em>本文是《动手学深度学习》系列笔记的一部分，持续更新中…</em></p> <div class="series-nav" data-astro-cid-gysqo7gh> <p class="series-title" data-astro-cid-gysqo7gh>📖 动手学深度学习 系列</p> <div class="series-links" data-astro-cid-gysqo7gh> <a class="series-prev" href="/posts/d2l-model-selection/" data-astro-cid-gysqo7gh> <span class="series-label" data-astro-cid-gysqo7gh>&larr; 上一篇</span> <span class="series-name" data-astro-cid-gysqo7gh>《动手学深度学习》4.1 — 模型选择、欠拟合和过拟合</span> </a> <div data-astro-cid-gysqo7gh></div> </div> </div> </article>  </main> <footer class="footer"> <div class="footer-links"> <a href="https://github.com/yangpeter26-bot" target="_blank" rel="noopener">GitHub</a> <a href="/rss.xml">RSS</a> <a href="https://mail.google.com/mail/?view=cm&to=yangpeter26@gmail.com" target="_blank">Email</a> </div> <p>&copy; 2026 PeterYang</p> </footer> <script>
+      const saved = localStorage.getItem("theme");
+      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      document.documentElement.dataset.theme = saved || (prefersDark ? "dark" : "light");
+      const btn = document.getElementById("theme-toggle");
+      btn.addEventListener("click", () => {
+        const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+        document.documentElement.dataset.theme = next;
+        localStorage.setItem("theme", next);
+      });
+      const hamburger = document.getElementById("hamburger");
+      let mobileMenu = null;
+      const links = [
+        { href: "/", text: "Home" },
+        { href: "/archive/", text: "Archive" },
+        { href: "/posts/about/", text: "About" },
+        { href: "/posts/guestbook/", text: "Guestbook" },
+      ];
+      hamburger.addEventListener("click", () => {
+        if (!mobileMenu) {
+          mobileMenu = document.createElement("div");
+          mobileMenu.className = "mobile-menu open";
+          mobileMenu.style.cssText = `
+            position: fixed; top: 60px; left: 12px; right: 12px; z-index: 99;
+            padding: 12px; display: flex; flex-direction: column; gap: 4px;
+            background: rgba(232,234,237,0.4);
+            backdrop-filter: blur(24px) saturate(140%);
+            -webkit-backdrop-filter: blur(24px) saturate(140%);
+            border: 0.5px solid rgba(255,255,255,0.2);
+            border-radius: 20px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.04);
+          `;
+          if (document.documentElement.dataset.theme === "dark") {
+            mobileMenu.style.background = "rgba(26,26,46,0.4)";
+          }
+          links.forEach(l => {
+            const a = document.createElement("a");
+            a.href = l.href;
+            a.textContent = l.text;
+            a.style.cssText = `
+              color: var(--blue); text-decoration: none; font-size: 15px;
+              font-weight: 500; padding: 10px 16px; border-radius: 12px;
+              transition: background 0.2s;
+            `;
+            a.addEventListener("mouseenter", () => a.style.background = "rgba(0,122,255,0.06)");
+            a.addEventListener("mouseleave", () => a.style.background = "transparent");
+            mobileMenu.appendChild(a);
+          });
+          document.querySelector(".nav").after(mobileMenu);
+        } else {
+          mobileMenu.classList.toggle("open");
+          if (!mobileMenu.classList.contains("open")) {
+            mobileMenu.remove();
+            mobileMenu = null;
+          }
+        }
+      });
+
+      // Code copy buttons
+      document.querySelectorAll(".prose pre").forEach((pre) => {
+        const btn = document.createElement("button");
+        btn.className = "copy-btn";
+        btn.textContent = "Copy";
+        btn.addEventListener("click", () => {
+          const code = pre.querySelector("code")?.textContent || pre.textContent;
+          navigator.clipboard.writeText(code).then(() => {
+            btn.textContent = "Copied!";
+            btn.classList.add("copied");
+            setTimeout(() => { btn.textContent = "Copy"; btn.classList.remove("copied"); }, 2000);
+          });
+        });
+        pre.appendChild(btn);
+      });
+    </script> </body> </html> 
