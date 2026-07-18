@@ -145,8 +145,10 @@ git add -A; git commit -m "更新"; git push
 每次上传后必须反馈结果：页数、错误数、耗时。例如：
 
 ```
-✅ 已上线 — 12 页 build 通过，0 错误，1.64s
+✅ 已上线 — 12 页 build 通过，0 错误，1.47s。
 ```
+
+**重要：build + push 成功后不要重复运行 build 做"验证"！** 一次就够了，反复跑 `npx astro build` 没有任何意义，只会浪费时间。如果 push 失败（网络问题），只重试 `git push`，不要重新 build。
 
 ## 注意事项
 
