@@ -56,15 +56,13 @@ curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash
 
 访问小米大模型 API 平台，注册账号。
 
-> **截图位置 A**：打开浏览器，访问小米大模型平台首页，在登录/注册页面截图。截图命名为 `hermes-01-register.png`。
+![小米大模型平台注册页面](/hermes-01-register.png)
 
 ### 第二步：创建 API Key
 
 登录后，进入"API 密钥管理"页面，点击"创建密钥"。
 
-> **截图位置 B**：在 API 密钥管理页面，点击创建按钮后，截图显示密钥的界面。截图命名为 `hermes-02-apikey.png`。
->
-> **重要**：API Key 只显示一次，复制保存好。
+![API 密钥管理页面](/hermes-02-apikey.png)
 
 ### 第三步：记录 API 信息
 
@@ -88,11 +86,11 @@ hermes setup
 
 这个命令会启动一个交互式向导，引导你完成配置。
 
-> **截图位置 C**：在终端中运行 `hermes setup`，截图向导的第一个界面。截图命名为 `hermes-03-setup.png`。
+终端中会显示一个交互式向导，依次询问你选择模型提供商、输入 API Key 等信息。
 
 向导会问你选择哪个模型提供商。选择 **Xiaomi MiMo**。
 
-> **截图位置 D**：在模型选择界面，选中 Xiaomi MiMo 的那一屏。截图命名为 `hermes-04-select-mimo.png`。
+在模型列表中用方向键选中 **Xiaomi MiMo**，按回车确认。
 
 然后输入你的 API Key。
 
@@ -139,7 +137,7 @@ XIAOMI_API_KEY=你的API Key
 hermes doctor
 ```
 
-> **截图位置 E**：运行 `hermes doctor` 后的输出界面，应该显示各项检查通过。截图命名为 `hermes-05-doctor.png`。
+会显示各项依赖和配置的检查结果。
 
 如果看到绿色的 ✓ 小米 MiMo 连接成功，说明配置正确。
 
@@ -155,7 +153,7 @@ hermes
 
 直接运行 `hermes` 就会进入交互式对话界面。
 
-> **截图位置 F**：启动 Hermes 后的主界面截图。截图命名为 `hermes-06-chat.png`。
+终端会显示 Hermes 的启动信息和输入提示符，你可以直接开始输入问题。
 
 ### 单次提问
 
@@ -200,7 +198,7 @@ hermes desktop
 hermes gui
 ```
 
-> **截图位置 G**：Hermes 桌面应用的主界面。截图命名为 `hermes-07-desktop.png`。
+桌面应用界面类似 ChatGPT，左侧是会话列表，右侧是对话区域。
 
 桌面应用的优势：
 
@@ -243,7 +241,7 @@ hermes skills install <技能ID>
 hermes skills list
 ```
 
-> **截图位置 H**：运行 `hermes skills browse` 后的技能浏览界面。截图命名为 `hermes-08-skills.png`。
+会显示社区共享的技能列表，涵盖代码审查、文档生成、数据分析等各种场景。
 
 ### 7.3 文件操作
 
