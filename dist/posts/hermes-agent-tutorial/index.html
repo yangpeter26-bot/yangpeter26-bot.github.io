@@ -1,17 +1,24 @@
-<!DOCTYPE html><html lang="zh-CN"> <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="description" content="从零开始安装 Hermes Agent 桌面应用，接入小米 MiMo 大模型 API，像 ChatGPT 一样使用，但能操作你的电脑。"><meta property="og:title" content="Hermes Agent 使用教程 —— 接入小米 MiMo 大模型 | PeterYang"><meta property="og:description" content="从零开始安装 Hermes Agent 桌面应用，接入小米 MiMo 大模型 API，像 ChatGPT 一样使用，但能操作你的电脑。"><meta property="og:image" content="/avatar.jpg"><meta property="og:type" content="website"><title>Hermes Agent 使用教程 —— 接入小米 MiMo 大模型 | PeterYang</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/_astro/archive.Dw7fWL3R.css">
+<!DOCTYPE html><html lang="zh-CN"> <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="description" content="从官网下载 Hermes Agent 桌面应用，接入小米 MiMo 大模型 API，像 ChatGPT 一样使用，但能操作你的电脑。"><meta property="og:title" content="Hermes Agent 使用教程 —— 接入小米 MiMo 大模型 | PeterYang"><meta property="og:description" content="从官网下载 Hermes Agent 桌面应用，接入小米 MiMo 大模型 API，像 ChatGPT 一样使用，但能操作你的电脑。"><meta property="og:image" content="/avatar.jpg"><meta property="og:type" content="website"><title>Hermes Agent 使用教程 —— 接入小米 MiMo 大模型 | PeterYang</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/_astro/archive.Dw7fWL3R.css">
 <style>.meta[data-astro-cid-gysqo7gh]{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:20px;font-size:14px;color:var(--text-tertiary)}.tag[data-astro-cid-gysqo7gh]{font-size:11px;padding:2px 9px;border-radius:9999px;background:#007aff1a;color:var(--blue);font-weight:540}.toc[data-astro-cid-gysqo7gh]{background:#00000005;border-radius:12px;padding:16px 20px;margin:20px 0 28px}html[data-theme=dark] .toc[data-astro-cid-gysqo7gh]{background:#ffffff08}.toc-title[data-astro-cid-gysqo7gh]{font-size:14px;font-weight:620;margin-bottom:8px;color:var(--text)}.toc[data-astro-cid-gysqo7gh] ul[data-astro-cid-gysqo7gh]{list-style:none;padding:0;margin:0}.toc[data-astro-cid-gysqo7gh] li[data-astro-cid-gysqo7gh]{margin:4px 0}.toc[data-astro-cid-gysqo7gh] a[data-astro-cid-gysqo7gh]{font-size:14px;color:var(--blue);text-decoration:none}.toc[data-astro-cid-gysqo7gh] a[data-astro-cid-gysqo7gh]:hover{opacity:.65}.toc-h3[data-astro-cid-gysqo7gh]{padding-left:16px}.series-nav[data-astro-cid-gysqo7gh]{margin-top:40px;padding-top:24px;border-top:.5px solid rgba(0,0,0,.06)}html[data-theme=dark] .series-nav[data-astro-cid-gysqo7gh]{border-top-color:#ffffff0f}.series-title[data-astro-cid-gysqo7gh]{font-size:14px;font-weight:620;color:var(--text);margin-bottom:12px}.series-links[data-astro-cid-gysqo7gh]{display:flex;gap:12px}.series-prev[data-astro-cid-gysqo7gh],.series-next[data-astro-cid-gysqo7gh]{flex:1;display:flex;flex-direction:column;gap:4px;padding:14px 16px;border-radius:12px;background:#00000005;text-decoration:none;transition:background .2s}html[data-theme=dark] .series-prev[data-astro-cid-gysqo7gh],html[data-theme=dark] .series-next[data-astro-cid-gysqo7gh]{background:#ffffff08}.series-prev[data-astro-cid-gysqo7gh]:hover,.series-next[data-astro-cid-gysqo7gh]:hover{background:#007aff0f}.series-label[data-astro-cid-gysqo7gh]{font-size:12px;color:var(--text-tertiary)}.series-name[data-astro-cid-gysqo7gh]{font-size:14px;font-weight:540;color:var(--blue);display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}.series-next[data-astro-cid-gysqo7gh]{text-align:right}@media(max-width:640px){.series-links[data-astro-cid-gysqo7gh]{flex-direction:column}}
-</style></head> <body> <div class="bg-ambient bg-ambient-1"></div> <div class="bg-ambient bg-ambient-2"></div> <div class="bg-ambient bg-ambient-3"></div> <nav class="nav"> <a href="/" class="nav-brand">PeterYang</a> <div class="nav-right"> <ul class="nav-links"> <li><a href="/">Home</a></li> <li><a href="/archive/">Archive</a></li> <li><a href="/posts/about/">About</a></li> <li><a href="/posts/guestbook/">Guestbook</a></li> </ul> <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme"> <svg class="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg> <svg class="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg> </button> <button class="hamburger" id="hamburger" aria-label="Menu">☰</button> </div> </nav> <main class="container">  <article class="prose liquid-glass" data-astro-cid-gysqo7gh> <a class="back-link" href="/" data-astro-cid-gysqo7gh>&larr; Back</a> <h1 data-astro-cid-gysqo7gh>Hermes Agent 使用教程 —— 接入小米 MiMo 大模型</h1> <div class="meta" data-astro-cid-gysqo7gh> <span class="date" data-astro-cid-gysqo7gh>2026-07-18</span> <span class="reading-time" data-astro-cid-gysqo7gh>· 2 min read</span> <span class="tag" data-astro-cid-gysqo7gh>Tools</span><span class="tag" data-astro-cid-gysqo7gh>AI</span><span class="tag" data-astro-cid-gysqo7gh>Hermes</span> </div> <hr data-astro-cid-gysqo7gh> <nav class="toc" data-astro-cid-gysqo7gh> <p class="toc-title" data-astro-cid-gysqo7gh>Contents</p> <ul data-astro-cid-gysqo7gh> <li class data-astro-cid-gysqo7gh> <a href="#前言" data-astro-cid-gysqo7gh>前言</a> </li><li class data-astro-cid-gysqo7gh> <a href="#一安装-hermes-agent" data-astro-cid-gysqo7gh>一、安装 Hermes Agent</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#第一步安装-python" data-astro-cid-gysqo7gh>第一步：安装 Python</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#第二步安装-hermes" data-astro-cid-gysqo7gh>第二步：安装 Hermes</a> </li><li class data-astro-cid-gysqo7gh> <a href="#二获取小米-mimo-api-key" data-astro-cid-gysqo7gh>二、获取小米 MiMo API Key</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#第一步注册小米大模型平台" data-astro-cid-gysqo7gh>第一步：注册小米大模型平台</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#第二步创建-api-key" data-astro-cid-gysqo7gh>第二步：创建 API Key</a> </li><li class data-astro-cid-gysqo7gh> <a href="#三配置-hermes桌面应用" data-astro-cid-gysqo7gh>三、配置 Hermes（桌面应用）</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#第一步启动桌面应用" data-astro-cid-gysqo7gh>第一步：启动桌面应用</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#第二步配置模型" data-astro-cid-gysqo7gh>第二步：配置模型</a> </li><li class data-astro-cid-gysqo7gh> <a href="#四开始使用" data-astro-cid-gysqo7gh>四、开始使用</a> </li><li class data-astro-cid-gysqo7gh> <a href="#五核心功能" data-astro-cid-gysqo7gh>五、核心功能</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#51-记忆" data-astro-cid-gysqo7gh>5.1 记忆</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#52-文件操作" data-astro-cid-gysqo7gh>5.2 文件操作</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#53-网页搜索" data-astro-cid-gysqo7gh>5.3 网页搜索</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#54-图片分析" data-astro-cid-gysqo7gh>5.4 图片分析</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#55-代码执行" data-astro-cid-gysqo7gh>5.5 代码执行</a> </li><li class data-astro-cid-gysqo7gh> <a href="#六常见问题" data-astro-cid-gysqo7gh>六、常见问题</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#q1提示-api-key-无效" data-astro-cid-gysqo7gh>Q1：提示 API Key 无效？</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#q2hermes-很慢" data-astro-cid-gysqo7gh>Q2：Hermes 很慢？</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#q3hermes-能做什么和不能做什么" data-astro-cid-gysqo7gh>Q3：Hermes 能做什么和不能做什么？</a> </li><li class data-astro-cid-gysqo7gh> <a href="#七总结" data-astro-cid-gysqo7gh>七、总结</a> </li> </ul> </nav> <h1 id="hermes-agent-使用教程--接入小米-mimo-大模型">Hermes Agent 使用教程 —— 接入小米 MiMo 大模型</h1>
+</style></head> <body> <div class="bg-ambient bg-ambient-1"></div> <div class="bg-ambient bg-ambient-2"></div> <div class="bg-ambient bg-ambient-3"></div> <nav class="nav"> <a href="/" class="nav-brand">PeterYang</a> <div class="nav-right"> <ul class="nav-links"> <li><a href="/">Home</a></li> <li><a href="/archive/">Archive</a></li> <li><a href="/posts/about/">About</a></li> <li><a href="/posts/guestbook/">Guestbook</a></li> </ul> <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme"> <svg class="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg> <svg class="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg> </button> <button class="hamburger" id="hamburger" aria-label="Menu">☰</button> </div> </nav> <main class="container">  <article class="prose liquid-glass" data-astro-cid-gysqo7gh> <a class="back-link" href="/" data-astro-cid-gysqo7gh>&larr; Back</a> <h1 data-astro-cid-gysqo7gh>Hermes Agent 使用教程 —— 接入小米 MiMo 大模型</h1> <div class="meta" data-astro-cid-gysqo7gh> <span class="date" data-astro-cid-gysqo7gh>2026-07-18</span> <span class="reading-time" data-astro-cid-gysqo7gh>· 2 min read</span> <span class="tag" data-astro-cid-gysqo7gh>Tools</span><span class="tag" data-astro-cid-gysqo7gh>AI</span><span class="tag" data-astro-cid-gysqo7gh>Hermes</span> </div> <hr data-astro-cid-gysqo7gh> <nav class="toc" data-astro-cid-gysqo7gh> <p class="toc-title" data-astro-cid-gysqo7gh>Contents</p> <ul data-astro-cid-gysqo7gh> <li class data-astro-cid-gysqo7gh> <a href="#前言" data-astro-cid-gysqo7gh>前言</a> </li><li class data-astro-cid-gysqo7gh> <a href="#一下载安装" data-astro-cid-gysqo7gh>一、下载安装</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#windows-用户" data-astro-cid-gysqo7gh>Windows 用户</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#macos-用户" data-astro-cid-gysqo7gh>macOS 用户</a> </li><li class data-astro-cid-gysqo7gh> <a href="#二获取小米-mimo-api-key" data-astro-cid-gysqo7gh>二、获取小米 MiMo API Key</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#第一步注册小米大模型平台" data-astro-cid-gysqo7gh>第一步：注册小米大模型平台</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#第二步创建-api-key" data-astro-cid-gysqo7gh>第二步：创建 API Key</a> </li><li class data-astro-cid-gysqo7gh> <a href="#三配置模型" data-astro-cid-gysqo7gh>三、配置模型</a> </li><li class data-astro-cid-gysqo7gh> <a href="#四开始使用" data-astro-cid-gysqo7gh>四、开始使用</a> </li><li class data-astro-cid-gysqo7gh> <a href="#五核心功能" data-astro-cid-gysqo7gh>五、核心功能</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#51-记忆" data-astro-cid-gysqo7gh>5.1 记忆</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#52-文件操作" data-astro-cid-gysqo7gh>5.2 文件操作</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#53-网页搜索" data-astro-cid-gysqo7gh>5.3 网页搜索</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#54-图片分析" data-astro-cid-gysqo7gh>5.4 图片分析</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#55-代码执行" data-astro-cid-gysqo7gh>5.5 代码执行</a> </li><li class data-astro-cid-gysqo7gh> <a href="#六常见问题" data-astro-cid-gysqo7gh>六、常见问题</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#q1提示-api-key-无效" data-astro-cid-gysqo7gh>Q1：提示 API Key 无效？</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#q2hermes-很慢" data-astro-cid-gysqo7gh>Q2：Hermes 很慢？</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#q3hermes-能做什么和不能做什么" data-astro-cid-gysqo7gh>Q3：Hermes 能做什么和不能做什么？</a> </li><li class data-astro-cid-gysqo7gh> <a href="#七总结" data-astro-cid-gysqo7gh>七、总结</a> </li> </ul> </nav> <h1 id="hermes-agent-使用教程--接入小米-mimo-大模型">Hermes Agent 使用教程 —— 接入小米 MiMo 大模型</h1>
 <h2 id="前言">前言</h2>
 <p>Hermes Agent 是 Nous Research 开源的 AI Agent 框架。和 ChatGPT、Claude 这些网页聊天工具不同，Hermes <strong>能直接操作你的电脑</strong>——读写文件、执行命令、搜索网页、分析图片，而不只是给你文字建议。</p>
-<p>Hermes 有一个原生桌面应用，界面和 ChatGPT 类似，小白也能轻松上手。本文教你怎么安装配置，接入小米 MiMo 大模型。</p>
+<p>Hermes 有原生桌面应用，界面和 ChatGPT 类似，小白也能轻松上手。</p>
 <hr>
-<h2 id="一安装-hermes-agent">一、安装 Hermes Agent</h2>
-<h3 id="第一步安装-python">第一步：安装 Python</h3>
-<p>Hermes 需要 Python 环境。去 <a href="https://python.org">python.org</a> 下载最新版 Python（3.10 以上），安装时<strong>记得勾选「Add Python to PATH」</strong>。</p>
-<h3 id="第二步安装-hermes">第二步：安装 Hermes</h3>
-<p>打开命令提示符（按 <code>Win+R</code>，输入 <code>cmd</code>，回车），执行：</p>
-<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#89B4FA;font-style:italic">pip</span><span style="color:#A6E3A1"> install</span><span style="color:#A6E3A1"> hermes-agent</span></span></code></pre>
-<p>等待安装完成即可。</p>
+<h2 id="一下载安装">一、下载安装</h2>
+<h3 id="windows-用户">Windows 用户</h3>
+<ol>
+<li>打开官网：<a href="https://hermes-agent.nousresearch.com">https://hermes-agent.nousresearch.com</a></li>
+<li>点击页面上的 <strong>「DOWNLOAD FOR WINDOWS」</strong> 按钮</li>
+<li>下载完成后双击安装包，按提示安装即可</li>
+</ol>
+<h3 id="macos-用户">macOS 用户</h3>
+<ol>
+<li>打开官网：<a href="https://hermes-agent.nousresearch.com">https://hermes-agent.nousresearch.com</a></li>
+<li>找到 Mac OS 区域，点击 <strong>「DOWNLOAD」</strong> 按钮</li>
+<li>下载完成后打开 <code>.dmg</code> 文件，把 Hermes 拖到 Applications 文件夹</li>
+</ol>
+<p>安装完成后，桌面会出现 Hermes 图标，双击即可启动。</p>
 <hr>
 <h2 id="二获取小米-mimo-api-key">二、获取小米 MiMo API Key</h2>
 <h3 id="第一步注册小米大模型平台">第一步：注册小米大模型平台</h3>
@@ -27,23 +34,35 @@
 <p><img src="/hermes-02-apikey.png" alt="API 密钥管理页面"></p>
 <p><strong>API Key 只显示一次，务必复制保存好。</strong></p>
 <hr>
-<h2 id="三配置-hermes桌面应用">三、配置 Hermes（桌面应用）</h2>
-<h3 id="第一步启动桌面应用">第一步：启动桌面应用</h3>
-<p>在命令提示符中输入：</p>
-<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#89B4FA;font-style:italic">hermes</span><span style="color:#A6E3A1"> desktop</span></span></code></pre>
-<p>Hermes 桌面应用会自动打开，界面类似 ChatGPT：左侧是会话列表，右侧是对话区域。</p>
-<h3 id="第二步配置模型">第二步：配置模型</h3>
-<p>在桌面应用中，点击顶部的<strong>模型选择器</strong>（通常显示当前模型名称），会弹出模型配置面板：</p>
-<ol>
-<li><strong>提供商</strong>选择 <code>xiaomi</code>（或 <code>custom</code>）</li>
-<li><strong>模型名</strong>填 <code>MiMo</code></li>
-<li><strong>API Key</strong> 粘贴你刚才复制的密钥</li>
-<li><strong>Base URL</strong> 填 <code>https://api.xiaomi.com/v1</code>（或平台提供的地址）</li>
-</ol>
+<h2 id="三配置模型">三、配置模型</h2>
+<p>打开 Hermes 桌面应用，点击顶部的<strong>模型选择器</strong>，在配置面板中填入：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>项目</th><th>填什么</th></tr></thead><tbody><tr><td>提供商</td><td><code>xiaomi</code>（或 <code>custom</code>）</td></tr><tr><td>模型名</td><td><code>MiMo</code></td></tr><tr><td>API Key</td><td>粘贴你刚才复制的密钥</td></tr><tr><td>Base URL</td><td><code>https://api.xiaomi.com/v1</code></td></tr></tbody></table>
 <p>保存后即可开始使用。</p>
-<blockquote>
-<p>如果桌面应用中找不到模型配置入口，也可以在命令提示符中执行 <code>hermes setup</code>，按向导选择 Xiaomi MiMo 并输入 API Key。</p>
-</blockquote>
 <hr>
 <h2 id="四开始使用">四、开始使用</h2>
 <p>在桌面应用的对话框中，直接输入问题即可，和 ChatGPT 一样：</p>
@@ -96,10 +115,10 @@
 <h2 id="七总结">七、总结</h2>
 <p>Hermes Agent + 小米 MiMo 的组合让你拥有一个能操作电脑的 AI 助手。核心流程：</p>
 <ol>
-<li><strong>安装</strong>：<code>pip install hermes-agent</code></li>
-<li><strong>启动</strong>：<code>hermes desktop</code> 打开桌面应用</li>
-<li><strong>配置</strong>：填入 MiMo API Key</li>
-<li><strong>使用</strong>：直接在对话框聊天</li>
+<li><strong>下载安装</strong>：去官网 <a href="https://hermes-agent.nousresearch.com">https://hermes-agent.nousresearch.com</a> 下载桌面应用</li>
+<li><strong>获取 API Key</strong>：在小米大模型平台创建密钥</li>
+<li><strong>配置模型</strong>：在桌面应用中填入 API Key</li>
+<li><strong>开始使用</strong>：直接在对话框聊天</li>
 </ol>
 <p>相比网页版聊天，Hermes 的优势是<strong>能动手</strong>——不只是告诉你怎么做，而是直接帮你做。</p>
 <hr>
