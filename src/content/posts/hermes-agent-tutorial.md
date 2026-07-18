@@ -56,6 +56,10 @@ curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash
 
 访问小米大模型 API 平台，注册账号。
 
+> **邀请福利**：通过邀请码注册，双方各得 ¥10 API 体验金 + 首单 9 折。
+> 邀请码：**WA8XGT**
+> 注册链接：https://platform.xiaomimimo.com?ref=WA8XGT（注册后自动填入，体验金 40 天有效）
+
 ![小米大模型平台注册页面](/hermes-01-register.png)
 
 ### 第二步：创建 API Key
