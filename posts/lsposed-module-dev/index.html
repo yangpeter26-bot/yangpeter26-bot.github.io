@@ -1,0 +1,714 @@
+<!DOCTYPE html><html lang="zh-CN"> <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="description" content="从零开始学习 LSPosed 模块开发：Jadx 逆向分析、Xposed Hook 原理、VIP 解锁实战，附完整代码。"><meta property="og:title" content="LSPosed 模块开发笔记 —— 以解锁 Guitar 吉他调音 VIP 为例 | PeterYang"><meta property="og:description" content="从零开始学习 LSPosed 模块开发：Jadx 逆向分析、Xposed Hook 原理、VIP 解锁实战，附完整代码。"><meta property="og:image" content="/avatar.jpg"><meta property="og:type" content="website"><title>LSPosed 模块开发笔记 —— 以解锁 Guitar 吉他调音 VIP 为例 | PeterYang</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/_astro/archive.Dw7fWL3R.css">
+<style>.meta[data-astro-cid-gysqo7gh]{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:20px;font-size:14px;color:var(--text-tertiary)}.tag[data-astro-cid-gysqo7gh]{font-size:11px;padding:2px 9px;border-radius:9999px;background:#007aff1a;color:var(--blue);font-weight:540}.toc[data-astro-cid-gysqo7gh]{background:#00000005;border-radius:12px;padding:16px 20px;margin:20px 0 28px}html[data-theme=dark] .toc[data-astro-cid-gysqo7gh]{background:#ffffff08}.toc-title[data-astro-cid-gysqo7gh]{font-size:14px;font-weight:620;margin-bottom:8px;color:var(--text)}.toc[data-astro-cid-gysqo7gh] ul[data-astro-cid-gysqo7gh]{list-style:none;padding:0;margin:0}.toc[data-astro-cid-gysqo7gh] li[data-astro-cid-gysqo7gh]{margin:4px 0}.toc[data-astro-cid-gysqo7gh] a[data-astro-cid-gysqo7gh]{font-size:14px;color:var(--blue);text-decoration:none}.toc[data-astro-cid-gysqo7gh] a[data-astro-cid-gysqo7gh]:hover{opacity:.65}.toc-h3[data-astro-cid-gysqo7gh]{padding-left:16px}.series-nav[data-astro-cid-gysqo7gh]{margin-top:40px;padding-top:24px;border-top:.5px solid rgba(0,0,0,.06)}html[data-theme=dark] .series-nav[data-astro-cid-gysqo7gh]{border-top-color:#ffffff0f}.series-title[data-astro-cid-gysqo7gh]{font-size:14px;font-weight:620;color:var(--text);margin-bottom:12px}.series-links[data-astro-cid-gysqo7gh]{display:flex;gap:12px}.series-prev[data-astro-cid-gysqo7gh],.series-next[data-astro-cid-gysqo7gh]{flex:1;display:flex;flex-direction:column;gap:4px;padding:14px 16px;border-radius:12px;background:#00000005;text-decoration:none;transition:background .2s}html[data-theme=dark] .series-prev[data-astro-cid-gysqo7gh],html[data-theme=dark] .series-next[data-astro-cid-gysqo7gh]{background:#ffffff08}.series-prev[data-astro-cid-gysqo7gh]:hover,.series-next[data-astro-cid-gysqo7gh]:hover{background:#007aff0f}.series-label[data-astro-cid-gysqo7gh]{font-size:12px;color:var(--text-tertiary)}.series-name[data-astro-cid-gysqo7gh]{font-size:14px;font-weight:540;color:var(--blue);display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}.series-next[data-astro-cid-gysqo7gh]{text-align:right}@media(max-width:640px){.series-links[data-astro-cid-gysqo7gh]{flex-direction:column}}
+</style></head> <body> <div class="bg-ambient bg-ambient-1"></div> <div class="bg-ambient bg-ambient-2"></div> <div class="bg-ambient bg-ambient-3"></div> <nav class="nav"> <a href="/" class="nav-brand">PeterYang</a> <div class="nav-right"> <ul class="nav-links"> <li><a href="/">Home</a></li> <li><a href="/archive/">Archive</a></li> <li><a href="/posts/about/">About</a></li> <li><a href="/posts/guestbook/">Guestbook</a></li> </ul> <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme"> <svg class="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg> <svg class="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg> </button> <button class="hamburger" id="hamburger" aria-label="Menu">☰</button> </div> </nav> <main class="container">  <article class="prose liquid-glass" data-astro-cid-gysqo7gh> <a class="back-link" href="/" data-astro-cid-gysqo7gh>&larr; Back</a> <h1 data-astro-cid-gysqo7gh>LSPosed 模块开发笔记 —— 以解锁 Guitar 吉他调音 VIP 为例</h1> <div class="meta" data-astro-cid-gysqo7gh> <span class="date" data-astro-cid-gysqo7gh>2026-07-21</span> <span class="reading-time" data-astro-cid-gysqo7gh>· 9 min read</span> <span class="tag" data-astro-cid-gysqo7gh>Android</span><span class="tag" data-astro-cid-gysqo7gh>LSPosed</span><span class="tag" data-astro-cid-gysqo7gh>逆向</span> </div> <hr data-astro-cid-gysqo7gh> <nav class="toc" data-astro-cid-gysqo7gh> <p class="toc-title" data-astro-cid-gysqo7gh>Contents</p> <ul data-astro-cid-gysqo7gh> <li class data-astro-cid-gysqo7gh> <a href="#一项目背景" data-astro-cid-gysqo7gh>一、项目背景</a> </li><li class data-astro-cid-gysqo7gh> <a href="#二环境准备" data-astro-cid-gysqo7gh>二、环境准备</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#21-安装-android-studio" data-astro-cid-gysqo7gh>2.1 安装 Android Studio</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#22-配置国内镜像重要" data-astro-cid-gysqo7gh>2.2 配置国内镜像（重要！）</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#23-安装-jadx反编译工具" data-astro-cid-gysqo7gh>2.3 安装 Jadx（反编译工具）</a> </li><li class data-astro-cid-gysqo7gh> <a href="#三分析目标-apk" data-astro-cid-gysqo7gh>三、分析目标 APK</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#31-获取包名" data-astro-cid-gysqo7gh>3.1 获取包名</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#32-提取-dex-文件" data-astro-cid-gysqo7gh>3.2 提取 DEX 文件</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#33-搜索-vip-相关字符串" data-astro-cid-gysqo7gh>3.3 搜索 VIP 相关字符串</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#34-找到-vip-相关类" data-astro-cid-gysqo7gh>3.4 找到 VIP 相关类</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#35-用-dexdump-分析方法调用" data-astro-cid-gysqo7gh>3.5 用 dexdump 分析方法调用</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#36-分析调用逻辑" data-astro-cid-gysqo7gh>3.6 分析调用逻辑</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#37-找到服务器响应类" data-astro-cid-gysqo7gh>3.7 找到服务器响应类</a> </li><li class data-astro-cid-gysqo7gh> <a href="#四创建-lsposed-模块项目" data-astro-cid-gysqo7gh>四、创建 LSPosed 模块项目</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#41-项目结构" data-astro-cid-gysqo7gh>4.1 项目结构</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#42-根-buildgradle" data-astro-cid-gysqo7gh>4.2 根 build.gradle</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#43-appbuildgradle" data-astro-cid-gysqo7gh>4.3 app/build.gradle</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#44-androidmanifestxml" data-astro-cid-gysqo7gh>4.4 AndroidManifest.xml</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#45-xposed_init" data-astro-cid-gysqo7gh>4.5 xposed_init</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#46-arraysxml作用域配置" data-astro-cid-gysqo7gh>4.6 arrays.xml（作用域配置）</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#47-stringsxml" data-astro-cid-gysqo7gh>4.7 strings.xml</a> </li><li class data-astro-cid-gysqo7gh> <a href="#五核心-hook-代码" data-astro-cid-gysqo7gh>五、核心 Hook 代码</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#51-viphookjava-完整代码" data-astro-cid-gysqo7gh>5.1 VipHook.java 完整代码</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#52-代码逐行解释" data-astro-cid-gysqo7gh>5.2 代码逐行解释</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#53-xposed-api-核心概念" data-astro-cid-gysqo7gh>5.3 Xposed API 核心概念</a> </li><li class data-astro-cid-gysqo7gh> <a href="#六编译与安装" data-astro-cid-gysqo7gh>六、编译与安装</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#61-设置-java_home" data-astro-cid-gysqo7gh>6.1 设置 JAVA_HOME</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#62-编译" data-astro-cid-gysqo7gh>6.2 编译</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#63-安装到手机" data-astro-cid-gysqo7gh>6.3 安装到手机</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#64-验证-hook-是否生效" data-astro-cid-gysqo7gh>6.4 验证 Hook 是否生效</a> </li><li class data-astro-cid-gysqo7gh> <a href="#七常见问题" data-astro-cid-gysqo7gh>七、常见问题</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#q1-编译报错-could-not-resolve-comandroidtoolsbuildgradle" data-astro-cid-gysqo7gh>Q1: 编译报错 “Could not resolve com.android.tools.build:gradle”</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#q2-编译报错-resource-mipmapic_launcher-not-found" data-astro-cid-gysqo7gh>Q2: 编译报错 “resource mipmap/ic_launcher not found”</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#q3-gradle-下载超时" data-astro-cid-gysqo7gh>Q3: Gradle 下载超时</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#q4-maven-依赖下载失败" data-astro-cid-gysqo7gh>Q4: Maven 依赖下载失败</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#q5-hook-不生效" data-astro-cid-gysqo7gh>Q5: Hook 不生效</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#q6-app-闪退" data-astro-cid-gysqo7gh>Q6: App 闪退</a> </li><li class data-astro-cid-gysqo7gh> <a href="#八lsposed-模块开发通用流程" data-astro-cid-gysqo7gh>八、LSPosed 模块开发通用流程</a> </li><li class data-astro-cid-gysqo7gh> <a href="#九xposed-api-速查表" data-astro-cid-gysqo7gh>九、Xposed API 速查表</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#hook-方法-1" data-astro-cid-gysqo7gh>Hook 方法</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#hook-构造方法" data-astro-cid-gysqo7gh>Hook 构造方法</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#获取修改字段" data-astro-cid-gysqo7gh>获取/修改字段</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#调用原方法" data-astro-cid-gysqo7gh>调用原方法</a> </li><li class data-astro-cid-gysqo7gh> <a href="#十参考资料" data-astro-cid-gysqo7gh>十、参考资料</a> </li> </ul> </nav> <h1 id="lsposed-模块开发笔记--以解锁-guitar吉他调音-vip-为例">LSPosed 模块开发笔记 —— 以解锁 Guitar吉他调音 VIP 为例</h1>
+<h2 id="一项目背景">一、项目背景</h2>
+<p>目标 App：Guitar吉他调音（<code>com.rr.guitartuner</code>，版本 1.4.5）<br>
+目的：解锁 VIP 高级功能<br>
+工具：LSPosed 框架 + Android Studio + Jadx</p>
+<hr>
+<h2 id="二环境准备">二、环境准备</h2>
+<h3 id="21-安装-android-studio">2.1 安装 Android Studio</h3>
+<p>下载地址：<a href="https://developer.android.com/studio">https://developer.android.com/studio</a></p>
+<p>安装到 E 盘，SDK 也建议放 E 盘（省 C 盘空间）：</p>
+<ul>
+<li>Android Studio 路径：<code>E:\Android\Android Studio</code></li>
+<li>SDK 路径：<code>E:\Android\sdk</code></li>
+</ul>
+<h3 id="22-配置国内镜像重要">2.2 配置国内镜像（重要！）</h3>
+<p>国内下载 Gradle 和 Maven 依赖很慢，必须配镜像。</p>
+<h4 id="gradle-下载镜像">Gradle 下载镜像</h4>
+<p>修改 <code>gradle/wrapper/gradle-wrapper.properties</code>：</p>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="properties"><code><span class="line"><span style="color:#89B4FA">distributionUrl</span><span style="color:#94E2D5">=</span><span style="color:#CDD6F4">https\://mirrors.cloud.tencent.com/gradle/gradle-8.9-bin.zip</span></span></code></pre>
+<h4 id="maven-仓库镜像">Maven 仓库镜像</h4>
+<p>修改 <code>settings.gradle</code>：</p>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="groovy"><code><span class="line"><span style="color:#CDD6F4">pluginManagement {</span></span>
+<span class="line"><span style="color:#CDD6F4">    repositories {</span></span>
+<span class="line"><span style="color:#CDD6F4">        maven { url </span><span style="color:#A6E3A1">'https://maven.aliyun.com/repository/gradle-plugin'</span><span style="color:#CDD6F4"> }</span></span>
+<span class="line"><span style="color:#CDD6F4">        maven { url </span><span style="color:#A6E3A1">'https://maven.aliyun.com/repository/google'</span><span style="color:#CDD6F4"> }</span></span>
+<span class="line"><span style="color:#CDD6F4">        maven { url </span><span style="color:#A6E3A1">'https://maven.aliyun.com/repository/central'</span><span style="color:#CDD6F4"> }</span></span>
+<span class="line"><span style="color:#CDD6F4">        google</span><span style="color:#9399B2">()</span></span>
+<span class="line"><span style="color:#CDD6F4">        mavenCentral</span><span style="color:#9399B2">()</span></span>
+<span class="line"><span style="color:#CDD6F4">        gradlePluginPortal</span><span style="color:#9399B2">()</span></span>
+<span class="line"><span style="color:#CDD6F4">    }</span></span>
+<span class="line"><span style="color:#CDD6F4">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#CDD6F4">dependencyResolutionManagement {</span></span>
+<span class="line"><span style="color:#CDD6F4">    repositoriesMode</span><span style="color:#94E2D5">.</span><span style="color:#CDD6F4">set</span><span style="color:#9399B2">(</span><span style="color:#CBA6F7">RepositoriesMode</span><span style="color:#94E2D5">.</span><span style="color:#CDD6F4">FAIL_ON_PROJECT_REPOS</span><span style="color:#9399B2">)</span></span>
+<span class="line"><span style="color:#CDD6F4">    repositories {</span></span>
+<span class="line"><span style="color:#CDD6F4">        maven { url </span><span style="color:#A6E3A1">'https://maven.aliyun.com/repository/google'</span><span style="color:#CDD6F4"> }</span></span>
+<span class="line"><span style="color:#CDD6F4">        maven { url </span><span style="color:#A6E3A1">'https://maven.aliyun.com/repository/central'</span><span style="color:#CDD6F4"> }</span></span>
+<span class="line"><span style="color:#CDD6F4">        maven { url </span><span style="color:#A6E3A1">'https://maven.aliyun.com/repository/public'</span><span style="color:#CDD6F4"> }</span></span>
+<span class="line"><span style="color:#CDD6F4">        maven { url </span><span style="color:#A6E3A1">'https://api.xposed.info/'</span><span style="color:#CDD6F4"> }</span></span>
+<span class="line"><span style="color:#CDD6F4">        google</span><span style="color:#9399B2">()</span></span>
+<span class="line"><span style="color:#CDD6F4">        mavenCentral</span><span style="color:#9399B2">()</span></span>
+<span class="line"><span style="color:#CDD6F4">    }</span></span>
+<span class="line"><span style="color:#CDD6F4">}</span></span></code></pre>
+<h3 id="23-安装-jadx反编译工具">2.3 安装 Jadx（反编译工具）</h3>
+<p>下载地址：<a href="https://github.com/skylot/releases">https://github.com/skylot/releases</a></p>
+<p>选择 <code>jadx-gui-1.5.6-with-jre-win.zip</code>（自带 Java 运行环境，不用额外装）。</p>
+<p>解压到 <code>E:\tools\jadx\</code>，双击 <code>bin\jadx-gui.bat</code> 即可使用。</p>
+<hr>
+<h2 id="三分析目标-apk">三、分析目标 APK</h2>
+<h3 id="31-获取包名">3.1 获取包名</h3>
+<p>用 Android SDK 自带的 aapt 工具：</p>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#9399B2;font-style:italic"># 复制 APK 到无中文路径</span></span>
+<span class="line"><span style="color:#89B4FA;font-style:italic">cp</span><span style="color:#A6E3A1"> "Guitar吉他调音_1.4.5.apk"</span><span style="color:#A6E3A1"> guitar.apk</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9399B2;font-style:italic"># 获取包名</span></span>
+<span class="line"><span style="color:#89B4FA;font-style:italic">aapt</span><span style="color:#A6E3A1"> dump</span><span style="color:#A6E3A1"> badging</span><span style="color:#A6E3A1"> guitar.apk</span><span style="color:#94E2D5"> |</span><span style="color:#89B4FA;font-style:italic"> head</span><span style="color:#A6E3A1"> -1</span></span></code></pre>
+<p>输出：</p>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>package: name='com.rr.guitartuner' versionCode='10' versionName='1.4.5'</span></span></code></pre>
+<p><strong>包名：<code>com.rr.guitartuner</code></strong></p>
+<h3 id="32-提取-dex-文件">3.2 提取 DEX 文件</h3>
+<p>APK 本质是 ZIP 压缩包，里面包含编译后的代码（classes.dex）：</p>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#89B4FA;font-style:italic">mkdir</span><span style="color:#A6E3A1"> apk_extracted</span></span>
+<span class="line"><span style="color:#89B4FA;font-style:italic">unzip</span><span style="color:#A6E3A1"> guitar.apk</span><span style="color:#A6E3A1"> classes</span><span style="color:#CDD6F4">*</span><span style="color:#A6E3A1">.dex</span><span style="color:#A6E3A1"> -d</span><span style="color:#A6E3A1"> apk_extracted/</span></span></code></pre>
+<p>这个 APK 有两个 DEX 文件：</p>
+<ul>
+<li><code>classes.dex</code>（8MB）</li>
+<li><code>classes2.dex</code>（6MB）</li>
+</ul>
+<h3 id="33-搜索-vip-相关字符串">3.3 搜索 VIP 相关字符串</h3>
+<p>用 <code>strings</code> 命令在 DEX 文件中搜索关键词：</p>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#89B4FA;font-style:italic">strings</span><span style="color:#A6E3A1"> classes2.dex</span><span style="color:#94E2D5"> |</span><span style="color:#89B4FA;font-style:italic"> grep</span><span style="color:#A6E3A1"> -i</span><span style="color:#A6E3A1"> -E</span><span style="color:#A6E3A1"> "vip|premium|isVip|getVip|setVip"</span></span></code></pre>
+<p>找到的关键信息：</p>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>isVip                    → 检查是否是 VIP</span></span>
+<span class="line"><span>getVipLevel              → 获取 VIP 等级</span></span>
+<span class="line"><span>getVipValue              → 获取 VIP 值</span></span>
+<span class="line"><span>getFreeVip               → 获取免费 VIP 状态</span></span>
+<span class="line"><span>setVipLevel              → 设置 VIP 等级</span></span>
+<span class="line"><span>setVipValue              → 设置 VIP 值</span></span>
+<span class="line"><span>setFreeVip               → 设置免费 VIP 状态</span></span>
+<span class="line"><span>VipInfo(vipLevel=        → VIP 信息类</span></span></code></pre>
+<h3 id="34-找到-vip-相关类">3.4 找到 VIP 相关类</h3>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#89B4FA;font-style:italic">strings</span><span style="color:#A6E3A1"> classes2.dex</span><span style="color:#94E2D5"> |</span><span style="color:#89B4FA;font-style:italic"> grep</span><span style="color:#A6E3A1"> "Lcom/rr/guitartuner/vip/"</span></span></code></pre>
+<p>找到的类：</p>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>Lcom/rr/guitartuner/vip/O000OoO;          → VIP 管理类（混淆后）</span></span>
+<span class="line"><span>Lcom/rr/guitartuner/vip/OO;               → 另一个 VIP 类</span></span>
+<span class="line"><span>Lcom/rr/guitartuner/vip/OoooOO0;          → 另一个 VIP 类</span></span>
+<span class="line"><span>Lcom/rr/guitartuner/vip/VipActivity;      → VIP 购买页面</span></span>
+<span class="line"><span>Lcom/rr/guitartuner/vip/FirstVipActivity; → 首次 VIP 页面</span></span>
+<span class="line"><span>Lcom/rr/guitartuner/vip/UserActivity;     → 用户页面</span></span>
+<span class="line"><span>Lcom/rr/guitartuner/vip/LoginActivity;    → 登录页面</span></span></code></pre>
+<h3 id="35-用-dexdump-分析方法调用">3.5 用 dexdump 分析方法调用</h3>
+<p>Android SDK 自带的 dexdump 工具可以查看 DEX 文件的详细结构：</p>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#9399B2;font-style:italic"># 找到 VIP 检查方法</span></span>
+<span class="line"><span style="color:#89B4FA;font-style:italic">dexdump</span><span style="color:#A6E3A1"> -d</span><span style="color:#A6E3A1"> classes2.dex</span><span style="color:#94E2D5"> |</span><span style="color:#89B4FA;font-style:italic"> grep</span><span style="color:#A6E3A1"> "O000OoO;.O00:"</span></span></code></pre>
+<p>输出显示这个方法被调用了 <strong>31 次</strong>，说明它是核心 VIP 检查方法。</p>
+<p>进一步分析方法签名：</p>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>Lcom/rr/guitartuner/vip/O000OoO;.O00:(Landroid/content/Context;)Z</span></span></code></pre>
+<p>解读：</p>
+<ul>
+<li>类名：<code>com.rr.guitartuner.vip.O000OoO</code></li>
+<li>方法名：<code>O00</code></li>
+<li>参数：<code>android.content.Context</code></li>
+<li>返回值：<code>Z</code>（boolean，true=VIP，false=非VIP）</li>
+</ul>
+<h3 id="36-分析调用逻辑">3.6 分析调用逻辑</h3>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#89B4FA;font-style:italic">dexdump</span><span style="color:#A6E3A1"> -d</span><span style="color:#A6E3A1"> classes2.dex</span><span style="color:#94E2D5"> |</span><span style="color:#89B4FA;font-style:italic"> grep</span><span style="color:#A6E3A1"> -A20</span><span style="color:#A6E3A1"> "O000OoO;.O00:"</span><span style="color:#94E2D5"> |</span><span style="color:#89B4FA;font-style:italic"> head</span><span style="color:#A6E3A1"> -30</span></span></code></pre>
+<p>关键代码逻辑：</p>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>invoke-static {v0}, Lcom/rr/guitartuner/vip/O000OoO;.O00:(Context;)Z</span></span>
+<span class="line"><span>move-result v0</span></span>
+<span class="line"><span>if-eqz v0, 0015        ← 如果返回 false，跳转到非 VIP 逻辑</span></span>
+<span class="line"><span>→ 进入 HomeActivity    ← 如果返回 true，进入主页面</span></span></code></pre>
+<p>翻译成人话：</p>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>if (O000OoO.O00(context) == true) {</span></span>
+<span class="line"><span>    进入主页面（VIP 用户）</span></span>
+<span class="line"><span>} else {</span></span>
+<span class="line"><span>    跳转到 VIP 购买页面（非 VIP 用户）</span></span>
+<span class="line"><span>}</span></span></code></pre>
+<h3 id="37-找到服务器响应类">3.7 找到服务器响应类</h3>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#89B4FA;font-style:italic">strings</span><span style="color:#A6E3A1"> classes2.dex</span><span style="color:#94E2D5"> |</span><span style="color:#89B4FA;font-style:italic"> grep</span><span style="color:#A6E3A1"> -E</span><span style="color:#A6E3A1"> "vipLevel|vipValue|freeVip"</span><span style="color:#94E2D5"> |</span><span style="color:#89B4FA;font-style:italic"> grep</span><span style="color:#A6E3A1"> "Lcom/rr"</span></span></code></pre>
+<p>找到两个服务器响应类：</p>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>Lcom/rr/cloud_tencent/response/LoginResponse;   → 登录响应，包含 vipLevel</span></span>
+<span class="line"><span>Lcom/rr/cloud_tencent/response/CommitResponse;  → 提交响应，包含 vipValue 和 freeVip</span></span></code></pre>
+<p>这些类从服务器获取 VIP 信息，App 用这些信息判断用户是否是 VIP。</p>
+<hr>
+<h2 id="四创建-lsposed-模块项目">四、创建 LSPosed 模块项目</h2>
+<h3 id="41-项目结构">4.1 项目结构</h3>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>GuitarVipHook/</span></span>
+<span class="line"><span>├── build.gradle                    ← 根构建文件</span></span>
+<span class="line"><span>├── settings.gradle                 ← 项目设置（含镜像配置）</span></span>
+<span class="line"><span>├── gradle/wrapper/</span></span>
+<span class="line"><span>│   ├── gradle-wrapper.jar          ← Gradle 包装器</span></span>
+<span class="line"><span>│   └── gradle-wrapper.properties   ← Gradle 版本配置</span></span>
+<span class="line"><span>├── gradlew                         ← Linux 构建脚本</span></span>
+<span class="line"><span>├── gradlew.bat                     ← Windows 构建脚本</span></span>
+<span class="line"><span>└── app/</span></span>
+<span class="line"><span>    ├── build.gradle                ← 应用构建文件</span></span>
+<span class="line"><span>    └── src/main/</span></span>
+<span class="line"><span>        ├── AndroidManifest.xml     ← 清单文件</span></span>
+<span class="line"><span>        ├── assets/</span></span>
+<span class="line"><span>        │   └── xposed_init         ← LSPosed 入口配置</span></span>
+<span class="line"><span>        ├── java/com/hook/guitarvip/</span></span>
+<span class="line"><span>        │   └── VipHook.java        ← 核心 Hook 代码</span></span>
+<span class="line"><span>        └── res/values/</span></span>
+<span class="line"><span>            ├── arrays.xml          ← 作用域配置</span></span>
+<span class="line"><span>            └── strings.xml         ← 字符串资源</span></span></code></pre>
+<h3 id="42-根-buildgradle">4.2 根 build.gradle</h3>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="groovy"><code><span class="line"><span style="color:#CDD6F4">plugins {</span></span>
+<span class="line"><span style="color:#CDD6F4">    id </span><span style="color:#A6E3A1">'com.android.application'</span><span style="color:#CDD6F4"> version </span><span style="color:#A6E3A1">'8.7.0'</span><span style="color:#CDD6F4"> apply </span><span style="color:#F38BA8">false</span></span>
+<span class="line"><span style="color:#CDD6F4">}</span></span></code></pre>
+<h3 id="43-appbuildgradle">4.3 app/build.gradle</h3>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="groovy"><code><span class="line"><span style="color:#CDD6F4">plugins {</span></span>
+<span class="line"><span style="color:#CDD6F4">    id </span><span style="color:#A6E3A1">'com.android.application'</span></span>
+<span class="line"><span style="color:#CDD6F4">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#CDD6F4">android {</span></span>
+<span class="line"><span style="color:#CDD6F4">    namespace </span><span style="color:#A6E3A1">'com.hook.guitarvip'</span></span>
+<span class="line"><span style="color:#CDD6F4">    compileSdk </span><span style="color:#FAB387">35</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#CDD6F4">    defaultConfig {</span></span>
+<span class="line"><span style="color:#CDD6F4">        applicationId </span><span style="color:#A6E3A1">"com.hook.guitarvip"</span></span>
+<span class="line"><span style="color:#CDD6F4">        minSdk </span><span style="color:#FAB387">28</span></span>
+<span class="line"><span style="color:#CDD6F4">        targetSdk </span><span style="color:#FAB387">35</span></span>
+<span class="line"><span style="color:#CDD6F4">        versionCode </span><span style="color:#FAB387">1</span></span>
+<span class="line"><span style="color:#CDD6F4">        versionName </span><span style="color:#A6E3A1">"1.0"</span></span>
+<span class="line"><span style="color:#CDD6F4">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#CDD6F4">    buildTypes {</span></span>
+<span class="line"><span style="color:#CDD6F4">        release {</span></span>
+<span class="line"><span style="color:#CDD6F4">            minifyEnabled </span><span style="color:#F38BA8">false</span></span>
+<span class="line"><span style="color:#CDD6F4">            proguardFiles getDefaultProguardFile</span><span style="color:#9399B2">(</span><span style="color:#A6E3A1">'proguard-android-optimize.txt'</span><span style="color:#9399B2">)</span><span style="color:#CDD6F4">, </span><span style="color:#A6E3A1">'proguard-rules.pro'</span></span>
+<span class="line"><span style="color:#CDD6F4">        }</span></span>
+<span class="line"><span style="color:#CDD6F4">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9399B2;font-style:italic">    // 自定义 APK 文件名</span></span>
+<span class="line"><span style="color:#CDD6F4">    applicationVariants</span><span style="color:#94E2D5">.</span><span style="color:#CDD6F4">configureEach { </span><span style="color:#EBA0AC;font-style:italic">variant</span><span style="color:#94E2D5"> -></span></span>
+<span class="line"><span style="color:#CDD6F4">        variant</span><span style="color:#94E2D5">.</span><span style="color:#CDD6F4">outputs</span><span style="color:#94E2D5">.</span><span style="color:#CDD6F4">configureEach {</span></span>
+<span class="line"><span style="color:#CDD6F4">            outputFileName </span><span style="color:#94E2D5">=</span><span style="color:#A6E3A1"> "吉他Pro解锁_v</span><span style="color:#9399B2">${</span><span style="color:#CDD6F4">versionName</span><span style="color:#9399B2">}</span><span style="color:#A6E3A1">.apk"</span></span>
+<span class="line"><span style="color:#CDD6F4">        }</span></span>
+<span class="line"><span style="color:#CDD6F4">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#CDD6F4">    compileOptions {</span></span>
+<span class="line"><span style="color:#CDD6F4">        sourceCompatibility </span><span style="color:#CBA6F7">JavaVersion</span><span style="color:#94E2D5">.</span><span style="color:#CDD6F4">VERSION_17</span></span>
+<span class="line"><span style="color:#CDD6F4">        targetCompatibility </span><span style="color:#CBA6F7">JavaVersion</span><span style="color:#94E2D5">.</span><span style="color:#CDD6F4">VERSION_17</span></span>
+<span class="line"><span style="color:#CDD6F4">    }</span></span>
+<span class="line"><span style="color:#CDD6F4">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#CDD6F4">dependencies {</span></span>
+<span class="line"><span style="color:#9399B2;font-style:italic">    // Xposed API，compileOnly 表示只在编译时需要，不会打包进 APK</span></span>
+<span class="line"><span style="color:#CDD6F4">    compileOnly </span><span style="color:#A6E3A1">'de.robv.android.xposed:api:82'</span></span>
+<span class="line"><span style="color:#CDD6F4">    compileOnly </span><span style="color:#A6E3A1">'de.robv.android.xposed:api:82:sources'</span></span>
+<span class="line"><span style="color:#CDD6F4">}</span></span></code></pre>
+<p><strong>关键点：</strong></p>
+<ul>
+<li><code>compileOnly</code> 而不是 <code>implementation</code>，因为 Xposed API 在设备上由 LSPosed 框架提供</li>
+<li><code>minSdk 28</code>：最低支持 Android 9</li>
+<li><code>compileSdk 35</code>：使用最新的 Android 15 SDK 编译</li>
+</ul>
+<h3 id="44-androidmanifestxml">4.4 AndroidManifest.xml</h3>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="xml"><code><span class="line"><span style="color:#94E2D5">&#x3C;?</span><span style="color:#89B4FA">xml</span><span style="color:#F9E2AF"> version</span><span style="color:#CDD6F4">=</span><span style="color:#A6E3A1">"1.0"</span><span style="color:#F9E2AF"> encoding</span><span style="color:#CDD6F4">=</span><span style="color:#A6E3A1">"utf-8"</span><span style="color:#94E2D5">?></span></span>
+<span class="line"><span style="color:#94E2D5">&#x3C;</span><span style="color:#89B4FA">manifest</span><span style="color:#F9E2AF"> xmlns</span><span style="color:#9399B2">:</span><span style="color:#F9E2AF">android</span><span style="color:#CDD6F4">=</span><span style="color:#A6E3A1">"http://schemas.android.com/apk/res/android"</span><span style="color:#94E2D5">></span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#94E2D5">    &#x3C;</span><span style="color:#89B4FA">application</span></span>
+<span class="line"><span style="color:#F9E2AF">        android</span><span style="color:#9399B2">:</span><span style="color:#F9E2AF">label</span><span style="color:#CDD6F4">=</span><span style="color:#A6E3A1">"@string/app_name"</span></span>
+<span class="line"><span style="color:#F9E2AF">        android</span><span style="color:#9399B2">:</span><span style="color:#F9E2AF">theme</span><span style="color:#CDD6F4">=</span><span style="color:#A6E3A1">"@android:style/Theme.Material.Light"</span><span style="color:#94E2D5">></span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9399B2;font-style:italic">        &#x3C;!-- LSPosed 模块元数据 --></span></span>
+<span class="line"><span style="color:#94E2D5">        &#x3C;</span><span style="color:#89B4FA">meta-data</span></span>
+<span class="line"><span style="color:#F9E2AF">            android</span><span style="color:#9399B2">:</span><span style="color:#F9E2AF">name</span><span style="color:#CDD6F4">=</span><span style="color:#A6E3A1">"xposedmodule"</span></span>
+<span class="line"><span style="color:#F9E2AF">            android</span><span style="color:#9399B2">:</span><span style="color:#F9E2AF">value</span><span style="color:#CDD6F4">=</span><span style="color:#A6E3A1">"true"</span><span style="color:#94E2D5"> /></span></span>
+<span class="line"><span style="color:#94E2D5">        &#x3C;</span><span style="color:#89B4FA">meta-data</span></span>
+<span class="line"><span style="color:#F9E2AF">            android</span><span style="color:#9399B2">:</span><span style="color:#F9E2AF">name</span><span style="color:#CDD6F4">=</span><span style="color:#A6E3A1">"xposeddescription"</span></span>
+<span class="line"><span style="color:#F9E2AF">            android</span><span style="color:#9399B2">:</span><span style="color:#F9E2AF">value</span><span style="color:#CDD6F4">=</span><span style="color:#A6E3A1">"解锁 Guitar吉他调音 VIP 功能"</span><span style="color:#94E2D5"> /></span></span>
+<span class="line"><span style="color:#94E2D5">        &#x3C;</span><span style="color:#89B4FA">meta-data</span></span>
+<span class="line"><span style="color:#F9E2AF">            android</span><span style="color:#9399B2">:</span><span style="color:#F9E2AF">name</span><span style="color:#CDD6F4">=</span><span style="color:#A6E3A1">"xposedminversion"</span></span>
+<span class="line"><span style="color:#F9E2AF">            android</span><span style="color:#9399B2">:</span><span style="color:#F9E2AF">value</span><span style="color:#CDD6F4">=</span><span style="color:#A6E3A1">"93"</span><span style="color:#94E2D5"> /></span></span>
+<span class="line"><span style="color:#94E2D5">        &#x3C;</span><span style="color:#89B4FA">meta-data</span></span>
+<span class="line"><span style="color:#F9E2AF">            android</span><span style="color:#9399B2">:</span><span style="color:#F9E2AF">name</span><span style="color:#CDD6F4">=</span><span style="color:#A6E3A1">"xposedscope"</span></span>
+<span class="line"><span style="color:#F9E2AF">            android</span><span style="color:#9399B2">:</span><span style="color:#F9E2AF">resource</span><span style="color:#CDD6F4">=</span><span style="color:#A6E3A1">"@array/xposed_scope"</span><span style="color:#94E2D5"> /></span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#94E2D5">    &#x3C;/</span><span style="color:#89B4FA">application</span><span style="color:#94E2D5">></span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#94E2D5">&#x3C;/</span><span style="color:#89B4FA">manifest</span><span style="color:#94E2D5">></span></span></code></pre>
+<p><strong>关键点：</strong></p>
+<ul>
+<li><code>xposedmodule = true</code>：告诉 LSPosed 这是一个 Xposed 模块</li>
+<li><code>xposedminversion = 93</code>：最低需要 LSPosed 版本 93</li>
+<li><code>xposedscope</code>：指定模块的作用域（对哪些 App 生效）</li>
+</ul>
+<h3 id="45-xposed_init">4.5 xposed_init</h3>
+<p>文件路径：<code>app/src/main/assets/xposed_init</code></p>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>com.hook.guitarvip.VipHook</span></span></code></pre>
+<p>这个文件告诉 LSPosed 框架，模块启动时要加载哪个类。LSPosed 会读取这个文件，找到对应的类，调用它的 <code>handleLoadPackage</code> 方法。</p>
+<h3 id="46-arraysxml作用域配置">4.6 arrays.xml（作用域配置）</h3>
+<p>文件路径：<code>app/src/main/res/values/arrays.xml</code></p>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="xml"><code><span class="line"><span style="color:#94E2D5">&#x3C;?</span><span style="color:#89B4FA">xml</span><span style="color:#F9E2AF"> version</span><span style="color:#CDD6F4">=</span><span style="color:#A6E3A1">"1.0"</span><span style="color:#F9E2AF"> encoding</span><span style="color:#CDD6F4">=</span><span style="color:#A6E3A1">"utf-8"</span><span style="color:#94E2D5">?></span></span>
+<span class="line"><span style="color:#94E2D5">&#x3C;</span><span style="color:#89B4FA">resources</span><span style="color:#94E2D5">></span></span>
+<span class="line"><span style="color:#94E2D5">    &#x3C;</span><span style="color:#89B4FA">string-array</span><span style="color:#F9E2AF"> name</span><span style="color:#CDD6F4">=</span><span style="color:#A6E3A1">"xposed_scope"</span><span style="color:#94E2D5">></span></span>
+<span class="line"><span style="color:#94E2D5">        &#x3C;</span><span style="color:#89B4FA">item</span><span style="color:#94E2D5">></span><span style="color:#CDD6F4">com.rr.guitartuner</span><span style="color:#94E2D5">&#x3C;/</span><span style="color:#89B4FA">item</span><span style="color:#94E2D5">></span></span>
+<span class="line"><span style="color:#94E2D5">    &#x3C;/</span><span style="color:#89B4FA">string-array</span><span style="color:#94E2D5">></span></span>
+<span class="line"><span style="color:#94E2D5">&#x3C;/</span><span style="color:#89B4FA">resources</span><span style="color:#94E2D5">></span></span></code></pre>
+<p>这里指定了模块只对 <code>com.rr.guitartuner</code>（Guitar吉他调音）生效。</p>
+<h3 id="47-stringsxml">4.7 strings.xml</h3>
+<p>文件路径：<code>app/src/main/res/values/strings.xml</code></p>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="xml"><code><span class="line"><span style="color:#94E2D5">&#x3C;?</span><span style="color:#89B4FA">xml</span><span style="color:#F9E2AF"> version</span><span style="color:#CDD6F4">=</span><span style="color:#A6E3A1">"1.0"</span><span style="color:#F9E2AF"> encoding</span><span style="color:#CDD6F4">=</span><span style="color:#A6E3A1">"utf-8"</span><span style="color:#94E2D5">?></span></span>
+<span class="line"><span style="color:#94E2D5">&#x3C;</span><span style="color:#89B4FA">resources</span><span style="color:#94E2D5">></span></span>
+<span class="line"><span style="color:#94E2D5">    &#x3C;</span><span style="color:#89B4FA">string</span><span style="color:#F9E2AF"> name</span><span style="color:#CDD6F4">=</span><span style="color:#A6E3A1">"app_name"</span><span style="color:#94E2D5">></span><span style="color:#CDD6F4">吉他Pro解锁</span><span style="color:#94E2D5">&#x3C;/</span><span style="color:#89B4FA">string</span><span style="color:#94E2D5">></span></span>
+<span class="line"><span style="color:#94E2D5">&#x3C;/</span><span style="color:#89B4FA">resources</span><span style="color:#94E2D5">></span></span></code></pre>
+<p>这是模块在手机上显示的名字。</p>
+<hr>
+<h2 id="五核心-hook-代码">五、核心 Hook 代码</h2>
+<h3 id="51-viphookjava-完整代码">5.1 VipHook.java 完整代码</h3>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="java"><code><span class="line"><span style="color:#CBA6F7">package</span><span style="color:#CBA6F7"> com</span><span style="color:#9399B2">.</span><span style="color:#CBA6F7">hook</span><span style="color:#9399B2">.</span><span style="color:#CBA6F7">guitarvip</span><span style="color:#9399B2">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#CBA6F7">import</span><span style="color:#CDD6F4"> de</span><span style="color:#9399B2">.</span><span style="color:#CDD6F4">robv</span><span style="color:#9399B2">.</span><span style="color:#CDD6F4">android</span><span style="color:#9399B2">.</span><span style="color:#CDD6F4">xposed</span><span style="color:#9399B2">.</span><span style="color:#CDD6F4">IXposedHookLoadPackage</span><span style="color:#9399B2">;</span></span>
+<span class="line"><span style="color:#CBA6F7">import</span><span style="color:#CDD6F4"> de</span><span style="color:#9399B2">.</span><span style="color:#CDD6F4">robv</span><span style="color:#9399B2">.</span><span style="color:#CDD6F4">android</span><span style="color:#9399B2">.</span><span style="color:#CDD6F4">xposed</span><span style="color:#9399B2">.</span><span style="color:#CDD6F4">XC_MethodReplacement</span><span style="color:#9399B2">;</span></span>
+<span class="line"><span style="color:#CBA6F7">import</span><span style="color:#CDD6F4"> de</span><span style="color:#9399B2">.</span><span style="color:#CDD6F4">robv</span><span style="color:#9399B2">.</span><span style="color:#CDD6F4">android</span><span style="color:#9399B2">.</span><span style="color:#CDD6F4">xposed</span><span style="color:#9399B2">.</span><span style="color:#CDD6F4">XposedBridge</span><span style="color:#9399B2">;</span></span>
+<span class="line"><span style="color:#CBA6F7">import</span><span style="color:#CDD6F4"> de</span><span style="color:#9399B2">.</span><span style="color:#CDD6F4">robv</span><span style="color:#9399B2">.</span><span style="color:#CDD6F4">android</span><span style="color:#9399B2">.</span><span style="color:#CDD6F4">xposed</span><span style="color:#9399B2">.</span><span style="color:#CDD6F4">XposedHelpers</span><span style="color:#9399B2">;</span></span>
+<span class="line"><span style="color:#CBA6F7">import</span><span style="color:#CDD6F4"> de</span><span style="color:#9399B2">.</span><span style="color:#CDD6F4">robv</span><span style="color:#9399B2">.</span><span style="color:#CDD6F4">android</span><span style="color:#9399B2">.</span><span style="color:#CDD6F4">xposed</span><span style="color:#9399B2">.</span><span style="color:#CDD6F4">callbacks</span><span style="color:#9399B2">.</span><span style="color:#CDD6F4">XC_LoadPackage</span><span style="color:#9399B2">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#CBA6F7">public</span><span style="color:#CBA6F7"> class</span><span style="color:#F9E2AF;font-style:italic"> VipHook</span><span style="color:#CBA6F7"> implements</span><span style="color:#F9E2AF;font-style:italic"> IXposedHookLoadPackage</span><span style="color:#9399B2"> {</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9399B2;font-style:italic">    // 目标 App 的包名</span></span>
+<span class="line"><span style="color:#CBA6F7">    private</span><span style="color:#CBA6F7"> static</span><span style="color:#CBA6F7"> final</span><span style="color:#CBA6F7"> String</span><span style="color:#CDD6F4"> TARGET_PACKAGE </span><span style="color:#94E2D5">=</span><span style="color:#A6E3A1"> "com.rr.guitartuner"</span><span style="color:#9399B2">;</span></span>
+<span class="line"><span style="color:#9399B2;font-style:italic">    // VIP 管理类（混淆后的类名）</span></span>
+<span class="line"><span style="color:#CBA6F7">    private</span><span style="color:#CBA6F7"> static</span><span style="color:#CBA6F7"> final</span><span style="color:#CBA6F7"> String</span><span style="color:#CDD6F4"> VIP_CLASS </span><span style="color:#94E2D5">=</span><span style="color:#A6E3A1"> "com.rr.guitartuner.vip.O000OoO"</span><span style="color:#9399B2">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#FAB387">    @Override</span></span>
+<span class="line"><span style="color:#CBA6F7">    public</span><span style="color:#CBA6F7"> void</span><span style="color:#89B4FA;font-style:italic"> handleLoadPackage</span><span style="color:#9399B2">(</span><span style="color:#CBA6F7">XC_LoadPackage</span><span style="color:#9399B2">.</span><span style="color:#CBA6F7">LoadPackageParam</span><span style="color:#EBA0AC;font-style:italic"> lpparam</span><span style="color:#9399B2">)</span><span style="color:#CBA6F7"> throws</span><span style="color:#CBA6F7"> Throwable</span><span style="color:#9399B2"> {</span></span>
+<span class="line"><span style="color:#9399B2;font-style:italic">        // 只对目标 App 生效，避免影响其他 App</span></span>
+<span class="line"><span style="color:#CBA6F7">        if</span><span style="color:#9399B2"> (</span><span style="color:#94E2D5">!</span><span style="color:#CDD6F4">lpparam</span><span style="color:#9399B2">.</span><span style="color:#CDD6F4">packageName</span><span style="color:#9399B2">.</span><span style="color:#89B4FA;font-style:italic">equals</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">TARGET_PACKAGE</span><span style="color:#9399B2">))</span><span style="color:#9399B2"> {</span></span>
+<span class="line"><span style="color:#CBA6F7">            return</span><span style="color:#9399B2">;</span></span>
+<span class="line"><span style="color:#9399B2">        }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#CDD6F4">        XposedBridge</span><span style="color:#9399B2">.</span><span style="color:#89B4FA;font-style:italic">log</span><span style="color:#9399B2">(</span><span style="color:#A6E3A1">"GuitarVipHook: 已加载，开始 hook VIP 模块"</span><span style="color:#9399B2">);</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#CBA6F7">        try</span><span style="color:#9399B2"> {</span></span>
+<span class="line"><span style="color:#9399B2;font-style:italic">            // 获取 VIP 管理类</span></span>
+<span class="line"><span style="color:#CBA6F7">            Class</span><span style="color:#9399B2">&#x3C;</span><span style="color:#CBA6F7">?</span><span style="color:#9399B2">></span><span style="color:#CDD6F4"> vipClass </span><span style="color:#94E2D5">=</span><span style="color:#CDD6F4"> XposedHelpers</span><span style="color:#9399B2">.</span><span style="color:#89B4FA;font-style:italic">findClass</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">VIP_CLASS</span><span style="color:#9399B2">,</span><span style="color:#CDD6F4"> lpparam</span><span style="color:#9399B2">.</span><span style="color:#CDD6F4">classLoader</span><span style="color:#9399B2">);</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9399B2;font-style:italic">            // ========== 1. Hook isVip 检查 ==========</span></span>
+<span class="line"><span style="color:#9399B2;font-style:italic">            // 原方法：O000OoO.O00(Context) → 返回 boolean</span></span>
+<span class="line"><span style="color:#9399B2;font-style:italic">            // 改为：始终返回 true</span></span>
+<span class="line"><span style="color:#CDD6F4">            XposedHelpers</span><span style="color:#9399B2">.</span><span style="color:#89B4FA;font-style:italic">findAndHookMethod</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">vipClass</span><span style="color:#9399B2">,</span><span style="color:#A6E3A1"> "O00"</span><span style="color:#9399B2">,</span></span>
+<span class="line"><span style="color:#CDD6F4">                android</span><span style="color:#9399B2">.</span><span style="color:#CDD6F4">content</span><span style="color:#9399B2">.</span><span style="color:#CDD6F4">Context</span><span style="color:#9399B2">.</span><span style="color:#CDD6F4">class</span><span style="color:#9399B2">,</span></span>
+<span class="line"><span style="color:#CBA6F7">                new</span><span style="color:#89B4FA;font-style:italic"> XC_MethodReplacement</span><span style="color:#9399B2">()</span><span style="color:#9399B2"> {</span></span>
+<span class="line"><span style="color:#FAB387">                    @Override</span></span>
+<span class="line"><span style="color:#CBA6F7">                    protected</span><span style="color:#CBA6F7"> Object</span><span style="color:#89B4FA;font-style:italic"> replaceHookedMethod</span><span style="color:#9399B2">(</span><span style="color:#CBA6F7">MethodHookParam</span><span style="color:#EBA0AC;font-style:italic"> param</span><span style="color:#9399B2">)</span><span style="color:#9399B2"> {</span></span>
+<span class="line"><span style="color:#CBA6F7">                        return</span><span style="color:#F38BA8"> true</span><span style="color:#9399B2">;</span><span style="color:#9399B2;font-style:italic">  // 强制返回 true = VIP</span></span>
+<span class="line"><span style="color:#9399B2">                    }</span></span>
+<span class="line"><span style="color:#9399B2">                }</span></span>
+<span class="line"><span style="color:#9399B2">            );</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9399B2;font-style:italic">            // ========== 2. Hook getVipLevel ==========</span></span>
+<span class="line"><span style="color:#9399B2;font-style:italic">            // 原方法：OOO0(Context) → 返回 String</span></span>
+<span class="line"><span style="color:#9399B2;font-style:italic">            // 改为：返回 "99"（最高等级）</span></span>
+<span class="line"><span style="color:#CDD6F4">            XposedHelpers</span><span style="color:#9399B2">.</span><span style="color:#89B4FA;font-style:italic">findAndHookMethod</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">vipClass</span><span style="color:#9399B2">,</span><span style="color:#A6E3A1"> "OOO0"</span><span style="color:#9399B2">,</span></span>
+<span class="line"><span style="color:#CDD6F4">                android</span><span style="color:#9399B2">.</span><span style="color:#CDD6F4">content</span><span style="color:#9399B2">.</span><span style="color:#CDD6F4">Context</span><span style="color:#9399B2">.</span><span style="color:#CDD6F4">class</span><span style="color:#9399B2">,</span></span>
+<span class="line"><span style="color:#CBA6F7">                new</span><span style="color:#89B4FA;font-style:italic"> XC_MethodReplacement</span><span style="color:#9399B2">()</span><span style="color:#9399B2"> {</span></span>
+<span class="line"><span style="color:#FAB387">                    @Override</span></span>
+<span class="line"><span style="color:#CBA6F7">                    protected</span><span style="color:#CBA6F7"> Object</span><span style="color:#89B4FA;font-style:italic"> replaceHookedMethod</span><span style="color:#9399B2">(</span><span style="color:#CBA6F7">MethodHookParam</span><span style="color:#EBA0AC;font-style:italic"> param</span><span style="color:#9399B2">)</span><span style="color:#9399B2"> {</span></span>
+<span class="line"><span style="color:#CBA6F7">                        return</span><span style="color:#A6E3A1"> "99"</span><span style="color:#9399B2">;</span></span>
+<span class="line"><span style="color:#9399B2">                    }</span></span>
+<span class="line"><span style="color:#9399B2">                }</span></span>
+<span class="line"><span style="color:#9399B2">            );</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9399B2;font-style:italic">            // ========== 3. Hook setVipLevel ==========</span></span>
+<span class="line"><span style="color:#9399B2;font-style:italic">            // 防止 App 覆盖我们设置的 VIP 等级</span></span>
+<span class="line"><span style="color:#CBA6F7">            try</span><span style="color:#9399B2"> {</span></span>
+<span class="line"><span style="color:#CDD6F4">                XposedHelpers</span><span style="color:#9399B2">.</span><span style="color:#89B4FA;font-style:italic">findAndHookMethod</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">vipClass</span><span style="color:#9399B2">,</span><span style="color:#A6E3A1"> "OO"</span><span style="color:#9399B2">,</span></span>
+<span class="line"><span style="color:#CDD6F4">                    android</span><span style="color:#9399B2">.</span><span style="color:#CDD6F4">content</span><span style="color:#9399B2">.</span><span style="color:#CDD6F4">Context</span><span style="color:#9399B2">.</span><span style="color:#CDD6F4">class</span><span style="color:#9399B2">,</span><span style="color:#CDD6F4"> int</span><span style="color:#9399B2">.</span><span style="color:#CDD6F4">class</span><span style="color:#9399B2">,</span></span>
+<span class="line"><span style="color:#CBA6F7">                    new</span><span style="color:#89B4FA;font-style:italic"> XC_MethodReplacement</span><span style="color:#9399B2">()</span><span style="color:#9399B2"> {</span></span>
+<span class="line"><span style="color:#FAB387">                        @Override</span></span>
+<span class="line"><span style="color:#CBA6F7">                        protected</span><span style="color:#CBA6F7"> Object</span><span style="color:#89B4FA;font-style:italic"> replaceHookedMethod</span><span style="color:#9399B2">(</span><span style="color:#CBA6F7">MethodHookParam</span><span style="color:#EBA0AC;font-style:italic"> param</span><span style="color:#9399B2">)</span><span style="color:#9399B2"> {</span></span>
+<span class="line"><span style="color:#CBA6F7">                            return</span><span style="color:#F38BA8"> null</span><span style="color:#9399B2">;</span><span style="color:#9399B2;font-style:italic">  // 什么都不做</span></span>
+<span class="line"><span style="color:#9399B2">                        }</span></span>
+<span class="line"><span style="color:#9399B2">                    }</span></span>
+<span class="line"><span style="color:#9399B2">                );</span></span>
+<span class="line"><span style="color:#9399B2">            }</span><span style="color:#CBA6F7"> catch</span><span style="color:#9399B2"> (</span><span style="color:#CBA6F7">Throwable</span><span style="color:#EBA0AC;font-style:italic"> ignored</span><span style="color:#9399B2">)</span><span style="color:#9399B2"> {}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9399B2;font-style:italic">            // ========== 4. Hook setVipValue ==========</span></span>
+<span class="line"><span style="color:#CBA6F7">            try</span><span style="color:#9399B2"> {</span></span>
+<span class="line"><span style="color:#CDD6F4">                XposedHelpers</span><span style="color:#9399B2">.</span><span style="color:#89B4FA;font-style:italic">findAndHookMethod</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">vipClass</span><span style="color:#9399B2">,</span><span style="color:#A6E3A1"> "oo0O0Oo0OOoo0"</span><span style="color:#9399B2">,</span></span>
+<span class="line"><span style="color:#CDD6F4">                    android</span><span style="color:#9399B2">.</span><span style="color:#CDD6F4">content</span><span style="color:#9399B2">.</span><span style="color:#CDD6F4">Context</span><span style="color:#9399B2">.</span><span style="color:#CDD6F4">class</span><span style="color:#9399B2">,</span><span style="color:#CDD6F4"> int</span><span style="color:#9399B2">.</span><span style="color:#CDD6F4">class</span><span style="color:#9399B2">,</span></span>
+<span class="line"><span style="color:#CBA6F7">                    new</span><span style="color:#89B4FA;font-style:italic"> XC_MethodReplacement</span><span style="color:#9399B2">()</span><span style="color:#9399B2"> {</span></span>
+<span class="line"><span style="color:#FAB387">                        @Override</span></span>
+<span class="line"><span style="color:#CBA6F7">                        protected</span><span style="color:#CBA6F7"> Object</span><span style="color:#89B4FA;font-style:italic"> replaceHookedMethod</span><span style="color:#9399B2">(</span><span style="color:#CBA6F7">MethodHookParam</span><span style="color:#EBA0AC;font-style:italic"> param</span><span style="color:#9399B2">)</span><span style="color:#9399B2"> {</span></span>
+<span class="line"><span style="color:#CBA6F7">                            return</span><span style="color:#F38BA8"> null</span><span style="color:#9399B2">;</span></span>
+<span class="line"><span style="color:#9399B2">                        }</span></span>
+<span class="line"><span style="color:#9399B2">                    }</span></span>
+<span class="line"><span style="color:#9399B2">                );</span></span>
+<span class="line"><span style="color:#9399B2">            }</span><span style="color:#CBA6F7"> catch</span><span style="color:#9399B2"> (</span><span style="color:#CBA6F7">Throwable</span><span style="color:#EBA0AC;font-style:italic"> ignored</span><span style="color:#9399B2">)</span><span style="color:#9399B2"> {}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9399B2;font-style:italic">            // ========== 5. Hook setFreeVip ==========</span></span>
+<span class="line"><span style="color:#CBA6F7">            try</span><span style="color:#9399B2"> {</span></span>
+<span class="line"><span style="color:#CDD6F4">                XposedHelpers</span><span style="color:#9399B2">.</span><span style="color:#89B4FA;font-style:italic">findAndHookMethod</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">vipClass</span><span style="color:#9399B2">,</span><span style="color:#A6E3A1"> "O0ooO"</span><span style="color:#9399B2">,</span></span>
+<span class="line"><span style="color:#CDD6F4">                    android</span><span style="color:#9399B2">.</span><span style="color:#CDD6F4">content</span><span style="color:#9399B2">.</span><span style="color:#CDD6F4">Context</span><span style="color:#9399B2">.</span><span style="color:#CDD6F4">class</span><span style="color:#9399B2">,</span><span style="color:#CDD6F4"> String</span><span style="color:#9399B2">.</span><span style="color:#CDD6F4">class</span><span style="color:#9399B2">,</span></span>
+<span class="line"><span style="color:#CBA6F7">                    new</span><span style="color:#89B4FA;font-style:italic"> XC_MethodReplacement</span><span style="color:#9399B2">()</span><span style="color:#9399B2"> {</span></span>
+<span class="line"><span style="color:#FAB387">                        @Override</span></span>
+<span class="line"><span style="color:#CBA6F7">                        protected</span><span style="color:#CBA6F7"> Object</span><span style="color:#89B4FA;font-style:italic"> replaceHookedMethod</span><span style="color:#9399B2">(</span><span style="color:#CBA6F7">MethodHookParam</span><span style="color:#EBA0AC;font-style:italic"> param</span><span style="color:#9399B2">)</span><span style="color:#9399B2"> {</span></span>
+<span class="line"><span style="color:#CBA6F7">                            return</span><span style="color:#F38BA8"> null</span><span style="color:#9399B2">;</span></span>
+<span class="line"><span style="color:#9399B2">                        }</span></span>
+<span class="line"><span style="color:#9399B2">                    }</span></span>
+<span class="line"><span style="color:#9399B2">                );</span></span>
+<span class="line"><span style="color:#9399B2">            }</span><span style="color:#CBA6F7"> catch</span><span style="color:#9399B2"> (</span><span style="color:#CBA6F7">Throwable</span><span style="color:#EBA0AC;font-style:italic"> ignored</span><span style="color:#9399B2">)</span><span style="color:#9399B2"> {}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9399B2;font-style:italic">            // ========== 6. Hook 其他 setter ==========</span></span>
+<span class="line"><span style="color:#CBA6F7">            try</span><span style="color:#9399B2"> {</span></span>
+<span class="line"><span style="color:#CDD6F4">                XposedHelpers</span><span style="color:#9399B2">.</span><span style="color:#89B4FA;font-style:italic">findAndHookMethod</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">vipClass</span><span style="color:#9399B2">,</span><span style="color:#A6E3A1"> "OoooOO0"</span><span style="color:#9399B2">,</span></span>
+<span class="line"><span style="color:#CDD6F4">                    android</span><span style="color:#9399B2">.</span><span style="color:#CDD6F4">content</span><span style="color:#9399B2">.</span><span style="color:#CDD6F4">Context</span><span style="color:#9399B2">.</span><span style="color:#CDD6F4">class</span><span style="color:#9399B2">,</span><span style="color:#CDD6F4"> String</span><span style="color:#9399B2">.</span><span style="color:#CDD6F4">class</span><span style="color:#9399B2">,</span></span>
+<span class="line"><span style="color:#CBA6F7">                    new</span><span style="color:#89B4FA;font-style:italic"> XC_MethodReplacement</span><span style="color:#9399B2">()</span><span style="color:#9399B2"> {</span></span>
+<span class="line"><span style="color:#FAB387">                        @Override</span></span>
+<span class="line"><span style="color:#CBA6F7">                        protected</span><span style="color:#CBA6F7"> Object</span><span style="color:#89B4FA;font-style:italic"> replaceHookedMethod</span><span style="color:#9399B2">(</span><span style="color:#CBA6F7">MethodHookParam</span><span style="color:#EBA0AC;font-style:italic"> param</span><span style="color:#9399B2">)</span><span style="color:#9399B2"> {</span></span>
+<span class="line"><span style="color:#CBA6F7">                            return</span><span style="color:#F38BA8"> null</span><span style="color:#9399B2">;</span></span>
+<span class="line"><span style="color:#9399B2">                        }</span></span>
+<span class="line"><span style="color:#9399B2">                    }</span></span>
+<span class="line"><span style="color:#9399B2">                );</span></span>
+<span class="line"><span style="color:#9399B2">            }</span><span style="color:#CBA6F7"> catch</span><span style="color:#9399B2"> (</span><span style="color:#CBA6F7">Throwable</span><span style="color:#EBA0AC;font-style:italic"> ignored</span><span style="color:#9399B2">)</span><span style="color:#9399B2"> {}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9399B2;font-style:italic">            // ========== 7. Hook LoginResponse.vipLevel ==========</span></span>
+<span class="line"><span style="color:#9399B2;font-style:italic">            // 服务器返回的登录响应中的 VIP 等级</span></span>
+<span class="line"><span style="color:#CBA6F7">            try</span><span style="color:#9399B2"> {</span></span>
+<span class="line"><span style="color:#CDD6F4">                XposedHelpers</span><span style="color:#9399B2">.</span><span style="color:#89B4FA;font-style:italic">findAndHookMethod</span><span style="color:#9399B2">(</span></span>
+<span class="line"><span style="color:#A6E3A1">                    "com.rr.cloud_tencent.response.LoginResponse"</span><span style="color:#9399B2">,</span></span>
+<span class="line"><span style="color:#CDD6F4">                    lpparam</span><span style="color:#9399B2">.</span><span style="color:#CDD6F4">classLoader</span><span style="color:#9399B2">,</span><span style="color:#A6E3A1"> "getVipLevel"</span><span style="color:#9399B2">,</span></span>
+<span class="line"><span style="color:#CBA6F7">                    new</span><span style="color:#89B4FA;font-style:italic"> XC_MethodReplacement</span><span style="color:#9399B2">()</span><span style="color:#9399B2"> {</span></span>
+<span class="line"><span style="color:#FAB387">                        @Override</span></span>
+<span class="line"><span style="color:#CBA6F7">                        protected</span><span style="color:#CBA6F7"> Object</span><span style="color:#89B4FA;font-style:italic"> replaceHookedMethod</span><span style="color:#9399B2">(</span><span style="color:#CBA6F7">MethodHookParam</span><span style="color:#EBA0AC;font-style:italic"> param</span><span style="color:#9399B2">)</span><span style="color:#9399B2"> {</span></span>
+<span class="line"><span style="color:#CBA6F7">                            return</span><span style="color:#FAB387"> 99</span><span style="color:#9399B2">;</span></span>
+<span class="line"><span style="color:#9399B2">                        }</span></span>
+<span class="line"><span style="color:#9399B2">                    }</span></span>
+<span class="line"><span style="color:#9399B2">                );</span></span>
+<span class="line"><span style="color:#9399B2">            }</span><span style="color:#CBA6F7"> catch</span><span style="color:#9399B2"> (</span><span style="color:#CBA6F7">Throwable</span><span style="color:#EBA0AC;font-style:italic"> ignored</span><span style="color:#9399B2">)</span><span style="color:#9399B2"> {}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9399B2;font-style:italic">            // ========== 8. Hook CommitResponse ==========</span></span>
+<span class="line"><span style="color:#9399B2;font-style:italic">            // 服务器返回的提交响应中的 VIP 信息</span></span>
+<span class="line"><span style="color:#CBA6F7">            try</span><span style="color:#9399B2"> {</span></span>
+<span class="line"><span style="color:#CBA6F7">                Class</span><span style="color:#9399B2">&#x3C;</span><span style="color:#CBA6F7">?</span><span style="color:#9399B2">></span><span style="color:#CDD6F4"> commitResp </span><span style="color:#94E2D5">=</span><span style="color:#CDD6F4"> XposedHelpers</span><span style="color:#9399B2">.</span><span style="color:#89B4FA;font-style:italic">findClass</span><span style="color:#9399B2">(</span></span>
+<span class="line"><span style="color:#A6E3A1">                    "com.rr.cloud_tencent.response.CommitResponse"</span><span style="color:#9399B2">,</span><span style="color:#CDD6F4"> lpparam</span><span style="color:#9399B2">.</span><span style="color:#CDD6F4">classLoader</span><span style="color:#9399B2">);</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#CDD6F4">                XposedHelpers</span><span style="color:#9399B2">.</span><span style="color:#89B4FA;font-style:italic">findAndHookMethod</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">commitResp</span><span style="color:#9399B2">,</span><span style="color:#A6E3A1"> "getVipValue"</span><span style="color:#9399B2">,</span></span>
+<span class="line"><span style="color:#CBA6F7">                    new</span><span style="color:#89B4FA;font-style:italic"> XC_MethodReplacement</span><span style="color:#9399B2">()</span><span style="color:#9399B2"> {</span></span>
+<span class="line"><span style="color:#FAB387">                        @Override</span></span>
+<span class="line"><span style="color:#CBA6F7">                        protected</span><span style="color:#CBA6F7"> Object</span><span style="color:#89B4FA;font-style:italic"> replaceHookedMethod</span><span style="color:#9399B2">(</span><span style="color:#CBA6F7">MethodHookParam</span><span style="color:#EBA0AC;font-style:italic"> param</span><span style="color:#9399B2">)</span><span style="color:#9399B2"> {</span></span>
+<span class="line"><span style="color:#CBA6F7">                            return</span><span style="color:#FAB387"> 99</span><span style="color:#9399B2">;</span></span>
+<span class="line"><span style="color:#9399B2">                        }</span></span>
+<span class="line"><span style="color:#9399B2">                    }</span></span>
+<span class="line"><span style="color:#9399B2">                );</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#CDD6F4">                XposedHelpers</span><span style="color:#9399B2">.</span><span style="color:#89B4FA;font-style:italic">findAndHookMethod</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">commitResp</span><span style="color:#9399B2">,</span><span style="color:#A6E3A1"> "getFreeVip"</span><span style="color:#9399B2">,</span></span>
+<span class="line"><span style="color:#CBA6F7">                    new</span><span style="color:#89B4FA;font-style:italic"> XC_MethodReplacement</span><span style="color:#9399B2">()</span><span style="color:#9399B2"> {</span></span>
+<span class="line"><span style="color:#FAB387">                        @Override</span></span>
+<span class="line"><span style="color:#CBA6F7">                        protected</span><span style="color:#CBA6F7"> Object</span><span style="color:#89B4FA;font-style:italic"> replaceHookedMethod</span><span style="color:#9399B2">(</span><span style="color:#CBA6F7">MethodHookParam</span><span style="color:#EBA0AC;font-style:italic"> param</span><span style="color:#9399B2">)</span><span style="color:#9399B2"> {</span></span>
+<span class="line"><span style="color:#CBA6F7">                            return</span><span style="color:#FAB387"> 99</span><span style="color:#9399B2">;</span></span>
+<span class="line"><span style="color:#9399B2">                        }</span></span>
+<span class="line"><span style="color:#9399B2">                    }</span></span>
+<span class="line"><span style="color:#9399B2">                );</span></span>
+<span class="line"><span style="color:#9399B2">            }</span><span style="color:#CBA6F7"> catch</span><span style="color:#9399B2"> (</span><span style="color:#CBA6F7">Throwable</span><span style="color:#EBA0AC;font-style:italic"> ignored</span><span style="color:#9399B2">)</span><span style="color:#9399B2"> {}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#CDD6F4">            XposedBridge</span><span style="color:#9399B2">.</span><span style="color:#89B4FA;font-style:italic">log</span><span style="color:#9399B2">(</span><span style="color:#A6E3A1">"GuitarVipHook: 全部 Hook 完成！VIP 已解锁"</span><span style="color:#9399B2">);</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9399B2">        }</span><span style="color:#CBA6F7"> catch</span><span style="color:#9399B2"> (</span><span style="color:#CBA6F7">Throwable</span><span style="color:#EBA0AC;font-style:italic"> t</span><span style="color:#9399B2">)</span><span style="color:#9399B2"> {</span></span>
+<span class="line"><span style="color:#CDD6F4">            XposedBridge</span><span style="color:#9399B2">.</span><span style="color:#89B4FA;font-style:italic">log</span><span style="color:#9399B2">(</span><span style="color:#A6E3A1">"GuitarVipHook: Hook 失败 - "</span><span style="color:#94E2D5"> +</span><span style="color:#CDD6F4"> t</span><span style="color:#9399B2">.</span><span style="color:#89B4FA;font-style:italic">getMessage</span><span style="color:#9399B2">());</span></span>
+<span class="line"><span style="color:#CDD6F4">            t</span><span style="color:#9399B2">.</span><span style="color:#89B4FA;font-style:italic">printStackTrace</span><span style="color:#9399B2">();</span></span>
+<span class="line"><span style="color:#9399B2">        }</span></span>
+<span class="line"><span style="color:#9399B2">    }</span></span>
+<span class="line"><span style="color:#9399B2">}</span></span></code></pre>
+<h3 id="52-代码逐行解释">5.2 代码逐行解释</h3>
+<h4 id="类定义">类定义</h4>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="java"><code><span class="line"><span style="color:#CBA6F7">public</span><span style="color:#CBA6F7"> class</span><span style="color:#F9E2AF;font-style:italic"> VipHook</span><span style="color:#CBA6F7"> implements</span><span style="color:#F9E2AF;font-style:italic"> IXposedHookLoadPackage</span><span style="color:#9399B2"> {</span></span></code></pre>
+<ul>
+<li>实现 <code>IXposedHookLoadPackage</code> 接口</li>
+<li>LSPosed 框架会在每个 App 启动时调用 <code>handleLoadPackage</code> 方法</li>
+</ul>
+<h4 id="包名过滤">包名过滤</h4>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="java"><code><span class="line"><span style="color:#CBA6F7">if</span><span style="color:#9399B2"> (</span><span style="color:#94E2D5">!</span><span style="color:#CDD6F4">lpparam</span><span style="color:#9399B2">.</span><span style="color:#CDD6F4">packageName</span><span style="color:#9399B2">.</span><span style="color:#89B4FA;font-style:italic">equals</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">TARGET_PACKAGE</span><span style="color:#9399B2">))</span><span style="color:#9399B2"> {</span></span>
+<span class="line"><span style="color:#CBA6F7">    return</span><span style="color:#9399B2">;</span></span>
+<span class="line"><span style="color:#9399B2">}</span></span></code></pre>
+<ul>
+<li><code>lpparam.packageName</code> 是当前启动的 App 的包名</li>
+<li>如果不是目标 App，直接返回，不做任何 hook</li>
+<li>这样可以避免影响其他 App</li>
+</ul>
+<h4 id="获取类引用">获取类引用</h4>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="java"><code><span class="line"><span style="color:#CBA6F7">Class</span><span style="color:#9399B2">&#x3C;</span><span style="color:#CBA6F7">?</span><span style="color:#9399B2">></span><span style="color:#CDD6F4"> vipClass </span><span style="color:#94E2D5">=</span><span style="color:#CDD6F4"> XposedHelpers</span><span style="color:#9399B2">.</span><span style="color:#89B4FA;font-style:italic">findClass</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">VIP_CLASS</span><span style="color:#9399B2">,</span><span style="color:#CDD6F4"> lpparam</span><span style="color:#9399B2">.</span><span style="color:#CDD6F4">classLoader</span><span style="color:#9399B2">);</span></span></code></pre>
+<ul>
+<li><code>findClass</code> 通过类名字符串获取 Class 对象</li>
+<li><code>lpparam.classLoader</code> 是目标 App 的类加载器</li>
+<li>因为类名是混淆后的（O000OoO），所以用字符串</li>
+</ul>
+<h4 id="hook-方法">Hook 方法</h4>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="java"><code><span class="line"><span style="color:#CDD6F4">XposedHelpers</span><span style="color:#9399B2">.</span><span style="color:#89B4FA;font-style:italic">findAndHookMethod</span><span style="color:#9399B2">(</span></span>
+<span class="line"><span style="color:#CDD6F4">    vipClass</span><span style="color:#9399B2">,</span><span style="color:#9399B2;font-style:italic">                    // 要 hook 的类</span></span>
+<span class="line"><span style="color:#A6E3A1">    "O00"</span><span style="color:#9399B2">,</span><span style="color:#9399B2;font-style:italic">                       // 要 hook 的方法名</span></span>
+<span class="line"><span style="color:#CDD6F4">    android</span><span style="color:#9399B2">.</span><span style="color:#CDD6F4">content</span><span style="color:#9399B2">.</span><span style="color:#CDD6F4">Context</span><span style="color:#9399B2">.</span><span style="color:#CDD6F4">class</span><span style="color:#9399B2">,</span><span style="color:#9399B2;font-style:italic">  // 方法参数类型</span></span>
+<span class="line"><span style="color:#CBA6F7">    new</span><span style="color:#89B4FA;font-style:italic"> XC_MethodReplacement</span><span style="color:#9399B2">()</span><span style="color:#9399B2"> {</span><span style="color:#9399B2;font-style:italic">    // 替换方法的实现</span></span>
+<span class="line"><span style="color:#FAB387">        @Override</span></span>
+<span class="line"><span style="color:#CBA6F7">        protected</span><span style="color:#CBA6F7"> Object</span><span style="color:#89B4FA;font-style:italic"> replaceHookedMethod</span><span style="color:#9399B2">(</span><span style="color:#CBA6F7">MethodHookParam</span><span style="color:#EBA0AC;font-style:italic"> param</span><span style="color:#9399B2">)</span><span style="color:#9399B2"> {</span></span>
+<span class="line"><span style="color:#CBA6F7">            return</span><span style="color:#F38BA8"> true</span><span style="color:#9399B2">;</span><span style="color:#9399B2;font-style:italic">  // 返回值</span></span>
+<span class="line"><span style="color:#9399B2">        }</span></span>
+<span class="line"><span style="color:#9399B2">    }</span></span>
+<span class="line"><span style="color:#9399B2">);</span></span></code></pre>
+<p><strong>参数说明：</strong></p>
+<ul>
+<li>第 1 个参数：Class 对象或类名字符串</li>
+<li>第 2 个参数：方法名</li>
+<li>第 3 个参数起：方法的参数类型（按顺序）</li>
+<li>最后一个参数：Hook 回调</li>
+</ul>
+<p><strong>XC_MethodReplacement 的作用：</strong></p>
+<ul>
+<li>完全替换原方法的实现</li>
+<li>原方法的代码不会被执行</li>
+<li><code>replaceHookedMethod</code> 的返回值就是原方法的返回值</li>
+</ul>
+<h4 id="try-catch-包裹">try-catch 包裹</h4>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="java"><code><span class="line"><span style="color:#CBA6F7">try</span><span style="color:#9399B2"> {</span></span>
+<span class="line"><span style="color:#CDD6F4">    XposedHelpers</span><span style="color:#9399B2">.</span><span style="color:#89B4FA;font-style:italic">findAndHookMethod</span><span style="color:#9399B2">(...);</span></span>
+<span class="line"><span style="color:#9399B2">}</span><span style="color:#CBA6F7"> catch</span><span style="color:#9399B2"> (</span><span style="color:#CBA6F7">Throwable</span><span style="color:#EBA0AC;font-style:italic"> ignored</span><span style="color:#9399B2">)</span><span style="color:#9399B2"> {}</span></span></code></pre>
+<ul>
+<li>用 try-catch 包裹每个 hook</li>
+<li>如果某个方法不存在（比如 App 版本不同），不会导致整个模块崩溃</li>
+<li><code>ignored</code> 表示我们故意忽略这个异常</li>
+</ul>
+<h3 id="53-xposed-api-核心概念">5.3 Xposed API 核心概念</h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>概念</th><th>说明</th></tr></thead><tbody><tr><td><code>IXposedHookLoadPackage</code></td><td>接口，实现它来 hook App</td></tr><tr><td><code>handleLoadPackage</code></td><td>每个 App 启动时被调用</td></tr><tr><td><code>XposedHelpers.findAndHookMethod</code></td><td>查找并 hook 指定方法</td></tr><tr><td><code>XC_MethodReplacement</code></td><td>完全替换原方法</td></tr><tr><td><code>XC_MethodHook</code></td><td>在原方法前后插入代码（不替换）</td></tr><tr><td><code>XposedBridge.log</code></td><td>写日志，可在 LSPosed 中查看</td></tr><tr><td><code>lpparam.classLoader</code></td><td>目标 App 的类加载器</td></tr><tr><td><code>lpparam.packageName</code></td><td>当前 App 的包名</td></tr></tbody></table>
+<hr>
+<h2 id="六编译与安装">六、编译与安装</h2>
+<h3 id="61-设置-java_home">6.1 设置 JAVA_HOME</h3>
+<p>Android Gradle Plugin 需要 Java 11+，在终端设置：</p>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="powershell"><code><span class="line"><span style="color:#CDD6F4">$env:JAVA_HOME </span><span style="color:#94E2D5">=</span><span style="color:#A6E3A1"> "C:\Program Files\Java\jdk-17"</span></span></code></pre>
+<h3 id="62-编译">6.2 编译</h3>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="powershell"><code><span class="line"><span style="color:#CDD6F4">cd E:\Android\GuitarVipHook</span></span>
+<span class="line"><span style="color:#CDD6F4">.\</span><span style="color:#89B4FA;font-style:italic">gradlew.bat</span><span style="color:#CDD6F4"> build</span></span></code></pre>
+<p>编译成功后，APK 在：</p>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>E:\Android\GuitarVipHook\app\build\outputs\apk\debug\吉他Pro解锁_v1.0.apk</span></span></code></pre>
+<h3 id="63-安装到手机">6.3 安装到手机</h3>
+<ol>
+<li>把 APK 传到手机（数据线、LocalSend、微信等）</li>
+<li>在手机上点击安装（允许未知来源）</li>
+<li>打开 LSPosed → 模块 → 找到「吉他Pro解锁」</li>
+<li>勾选「Guitar吉他调音」作为作用域</li>
+<li>强制关闭目标 App，重新打开</li>
+</ol>
+<h3 id="64-验证-hook-是否生效">6.4 验证 Hook 是否生效</h3>
+<p>打开 LSPosed → 日志，搜索 <code>GuitarVipHook</code>，如果看到：</p>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>GuitarVipHook: 已加载，开始 hook VIP 模块</span></span>
+<span class="line"><span>GuitarVipHook: 全部 Hook 完成！VIP 已解锁</span></span></code></pre>
+<p>说明 hook 成功。</p>
+<hr>
+<h2 id="七常见问题">七、常见问题</h2>
+<h3 id="q1-编译报错-could-not-resolve-comandroidtoolsbuildgradle">Q1: 编译报错 “Could not resolve com.android.tools.build:gradle”</h3>
+<p><strong>原因：</strong> Java 版本太低<br>
+<strong>解决：</strong> 设置 JAVA_HOME 为 Java 17</p>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="powershell"><code><span class="line"><span style="color:#CDD6F4">$env:JAVA_HOME </span><span style="color:#94E2D5">=</span><span style="color:#A6E3A1"> "C:\Program Files\Java\jdk-17"</span></span></code></pre>
+<h3 id="q2-编译报错-resource-mipmapic_launcher-not-found">Q2: 编译报错 “resource mipmap/ic_launcher not found”</h3>
+<p><strong>原因：</strong> 缺少启动图标<br>
+<strong>解决：</strong> 在 AndroidManifest.xml 中删除 <code>android:icon</code> 属性，或添加图标文件</p>
+<h3 id="q3-gradle-下载超时">Q3: Gradle 下载超时</h3>
+<p><strong>原因：</strong> 国内访问 Gradle 服务器慢<br>
+<strong>解决：</strong> 修改 <code>gradle-wrapper.properties</code> 使用腾讯镜像</p>
+<h3 id="q4-maven-依赖下载失败">Q4: Maven 依赖下载失败</h3>
+<p><strong>原因：</strong> 国内访问 Maven Central/Google 慢<br>
+<strong>解决：</strong> 在 <code>settings.gradle</code> 中配置阿里云镜像</p>
+<h3 id="q5-hook-不生效">Q5: Hook 不生效</h3>
+<p><strong>可能原因：</strong></p>
+<ol>
+<li>作用域没有勾选目标 App</li>
+<li>没有重启目标 App</li>
+<li>类名或方法名不正确（App 版本不同）</li>
+<li>LSPosed 没有激活</li>
+</ol>
+<p><strong>排查方法：</strong></p>
+<ol>
+<li>查看 LSPosed 日志</li>
+<li>用 Jadx 重新分析 APK，确认类名和方法名</li>
+</ol>
+<h3 id="q6-app-闪退">Q6: App 闪退</h3>
+<p><strong>原因：</strong> hook 了错误的方法，导致 App 崩溃<br>
+<strong>解决：</strong></p>
+<ol>
+<li>减少 hook 的方法数量，只保留核心的 <code>O00</code> hook</li>
+<li>确保每个 hook 都有 try-catch 包裹</li>
+</ol>
+<hr>
+<h2 id="八lsposed-模块开发通用流程">八、LSPosed 模块开发通用流程</h2>
+<ol>
+<li><strong>获取包名</strong>：<code>aapt dump badging xxx.apk</code></li>
+<li><strong>反编译 APK</strong>：用 Jadx 打开 APK，搜索关键词</li>
+<li><strong>找到目标方法</strong>：搜索 <code>isVip</code>、<code>isPremium</code>、<code>checkLicense</code> 等</li>
+<li><strong>分析方法签名</strong>：类名、方法名、参数类型、返回值</li>
+<li><strong>创建 Android 项目</strong>：配置 LSPosed 依赖</li>
+<li><strong>编写 Hook 代码</strong>：用 <code>findAndHookMethod</code> hook 目标方法</li>
+<li><strong>编译安装</strong>：<code>gradlew build</code>，安装 APK</li>
+<li><strong>配置作用域</strong>：在 LSPosed 中勾选目标 App</li>
+<li><strong>测试验证</strong>：重启 App，查看效果</li>
+</ol>
+<hr>
+<h2 id="九xposed-api-速查表">九、Xposed API 速查表</h2>
+<h3 id="hook-方法-1">Hook 方法</h3>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="java"><code><span class="line"><span style="color:#9399B2;font-style:italic">// 替换方法（不执行原方法）</span></span>
+<span class="line"><span style="color:#CDD6F4">XposedHelpers</span><span style="color:#9399B2">.</span><span style="color:#89B4FA;font-style:italic">findAndHookMethod</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">clazz</span><span style="color:#9399B2">,</span><span style="color:#CDD6F4"> methodName</span><span style="color:#9399B2">,</span><span style="color:#CDD6F4"> paramTypes</span><span style="color:#9399B2">...,</span><span style="color:#CBA6F7"> new</span><span style="color:#89B4FA;font-style:italic"> XC_MethodReplacement</span><span style="color:#9399B2">()</span><span style="color:#9399B2"> {</span></span>
+<span class="line"><span style="color:#FAB387">    @Override</span></span>
+<span class="line"><span style="color:#CBA6F7">    protected</span><span style="color:#CBA6F7"> Object</span><span style="color:#89B4FA;font-style:italic"> replaceHookedMethod</span><span style="color:#9399B2">(</span><span style="color:#CBA6F7">MethodHookParam</span><span style="color:#EBA0AC;font-style:italic"> param</span><span style="color:#9399B2">)</span><span style="color:#9399B2"> {</span></span>
+<span class="line"><span style="color:#CBA6F7">        return</span><span style="color:#CDD6F4"> newValue</span><span style="color:#9399B2">;</span><span style="color:#9399B2;font-style:italic">  // 返回新值</span></span>
+<span class="line"><span style="color:#9399B2">    }</span></span>
+<span class="line"><span style="color:#9399B2">});</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9399B2;font-style:italic">// 在方法执行前插入代码</span></span>
+<span class="line"><span style="color:#CDD6F4">XposedHelpers</span><span style="color:#9399B2">.</span><span style="color:#89B4FA;font-style:italic">findAndHookMethod</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">clazz</span><span style="color:#9399B2">,</span><span style="color:#CDD6F4"> methodName</span><span style="color:#9399B2">,</span><span style="color:#CDD6F4"> paramTypes</span><span style="color:#9399B2">...,</span><span style="color:#CBA6F7"> new</span><span style="color:#89B4FA;font-style:italic"> XC_MethodHook</span><span style="color:#9399B2">()</span><span style="color:#9399B2"> {</span></span>
+<span class="line"><span style="color:#FAB387">    @Override</span></span>
+<span class="line"><span style="color:#CBA6F7">    protected</span><span style="color:#CBA6F7"> void</span><span style="color:#89B4FA;font-style:italic"> beforeHookedMethod</span><span style="color:#9399B2">(</span><span style="color:#CBA6F7">MethodHookParam</span><span style="color:#EBA0AC;font-style:italic"> param</span><span style="color:#9399B2">)</span><span style="color:#9399B2"> {</span></span>
+<span class="line"><span style="color:#9399B2;font-style:italic">        // 修改参数</span></span>
+<span class="line"><span style="color:#CDD6F4">        param</span><span style="color:#9399B2">.</span><span style="color:#CDD6F4">args</span><span style="color:#9399B2">[</span><span style="color:#FAB387">0</span><span style="color:#9399B2">]</span><span style="color:#94E2D5"> =</span><span style="color:#CDD6F4"> newValue</span><span style="color:#9399B2">;</span></span>
+<span class="line"><span style="color:#9399B2">    }</span></span>
+<span class="line"><span style="color:#9399B2">});</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9399B2;font-style:italic">// 在方法执行后插入代码</span></span>
+<span class="line"><span style="color:#CDD6F4">XposedHelpers</span><span style="color:#9399B2">.</span><span style="color:#89B4FA;font-style:italic">findAndHookMethod</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">clazz</span><span style="color:#9399B2">,</span><span style="color:#CDD6F4"> methodName</span><span style="color:#9399B2">,</span><span style="color:#CDD6F4"> paramTypes</span><span style="color:#9399B2">...,</span><span style="color:#CBA6F7"> new</span><span style="color:#89B4FA;font-style:italic"> XC_MethodHook</span><span style="color:#9399B2">()</span><span style="color:#9399B2"> {</span></span>
+<span class="line"><span style="color:#FAB387">    @Override</span></span>
+<span class="line"><span style="color:#CBA6F7">    protected</span><span style="color:#CBA6F7"> void</span><span style="color:#89B4FA;font-style:italic"> afterHookedMethod</span><span style="color:#9399B2">(</span><span style="color:#CBA6F7">MethodHookParam</span><span style="color:#EBA0AC;font-style:italic"> param</span><span style="color:#9399B2">)</span><span style="color:#9399B2"> {</span></span>
+<span class="line"><span style="color:#9399B2;font-style:italic">        // 修改返回值</span></span>
+<span class="line"><span style="color:#CDD6F4">        param</span><span style="color:#9399B2">.</span><span style="color:#89B4FA;font-style:italic">setResult</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">newValue</span><span style="color:#9399B2">);</span></span>
+<span class="line"><span style="color:#9399B2">    }</span></span>
+<span class="line"><span style="color:#9399B2">});</span></span></code></pre>
+<h3 id="hook-构造方法">Hook 构造方法</h3>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="java"><code><span class="line"><span style="color:#CDD6F4">XposedHelpers</span><span style="color:#9399B2">.</span><span style="color:#89B4FA;font-style:italic">findAndHookConstructor</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">clazz</span><span style="color:#9399B2">,</span><span style="color:#CDD6F4"> paramTypes</span><span style="color:#9399B2">...,</span><span style="color:#CBA6F7"> new</span><span style="color:#89B4FA;font-style:italic"> XC_MethodHook</span><span style="color:#9399B2">()</span><span style="color:#9399B2"> {</span></span>
+<span class="line"><span style="color:#FAB387">    @Override</span></span>
+<span class="line"><span style="color:#CBA6F7">    protected</span><span style="color:#CBA6F7"> void</span><span style="color:#89B4FA;font-style:italic"> afterHookedMethod</span><span style="color:#9399B2">(</span><span style="color:#CBA6F7">MethodHookParam</span><span style="color:#EBA0AC;font-style:italic"> param</span><span style="color:#9399B2">)</span><span style="color:#9399B2"> {</span></span>
+<span class="line"><span style="color:#9399B2;font-style:italic">        // 构造方法执行后的操作</span></span>
+<span class="line"><span style="color:#9399B2">    }</span></span>
+<span class="line"><span style="color:#9399B2">});</span></span></code></pre>
+<h3 id="获取修改字段">获取/修改字段</h3>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="java"><code><span class="line"><span style="color:#9399B2;font-style:italic">// 获取字段值</span></span>
+<span class="line"><span style="color:#CBA6F7">Object</span><span style="color:#CDD6F4"> value </span><span style="color:#94E2D5">=</span><span style="color:#CDD6F4"> XposedHelpers</span><span style="color:#9399B2">.</span><span style="color:#89B4FA;font-style:italic">getObjectField</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">obj</span><span style="color:#9399B2">,</span><span style="color:#A6E3A1"> "fieldName"</span><span style="color:#9399B2">);</span></span>
+<span class="line"><span style="color:#CBA6F7">int</span><span style="color:#CDD6F4"> intValue </span><span style="color:#94E2D5">=</span><span style="color:#CDD6F4"> XposedHelpers</span><span style="color:#9399B2">.</span><span style="color:#89B4FA;font-style:italic">getIntField</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">obj</span><span style="color:#9399B2">,</span><span style="color:#A6E3A1"> "fieldName"</span><span style="color:#9399B2">);</span></span>
+<span class="line"><span style="color:#CBA6F7">boolean</span><span style="color:#CDD6F4"> boolValue </span><span style="color:#94E2D5">=</span><span style="color:#CDD6F4"> XposedHelpers</span><span style="color:#9399B2">.</span><span style="color:#89B4FA;font-style:italic">getBooleanField</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">obj</span><span style="color:#9399B2">,</span><span style="color:#A6E3A1"> "fieldName"</span><span style="color:#9399B2">);</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9399B2;font-style:italic">// 修改字段值</span></span>
+<span class="line"><span style="color:#CDD6F4">XposedHelpers</span><span style="color:#9399B2">.</span><span style="color:#89B4FA;font-style:italic">setObjectField</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">obj</span><span style="color:#9399B2">,</span><span style="color:#A6E3A1"> "fieldName"</span><span style="color:#9399B2">,</span><span style="color:#CDD6F4"> newValue</span><span style="color:#9399B2">);</span></span>
+<span class="line"><span style="color:#CDD6F4">XposedHelpers</span><span style="color:#9399B2">.</span><span style="color:#89B4FA;font-style:italic">setIntField</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">obj</span><span style="color:#9399B2">,</span><span style="color:#A6E3A1"> "fieldName"</span><span style="color:#9399B2">,</span><span style="color:#FAB387"> 99</span><span style="color:#9399B2">);</span></span>
+<span class="line"><span style="color:#CDD6F4">XposedHelpers</span><span style="color:#9399B2">.</span><span style="color:#89B4FA;font-style:italic">setBooleanField</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">obj</span><span style="color:#9399B2">,</span><span style="color:#A6E3A1"> "fieldName"</span><span style="color:#9399B2">,</span><span style="color:#F38BA8"> true</span><span style="color:#9399B2">);</span></span></code></pre>
+<h3 id="调用原方法">调用原方法</h3>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="java"><code><span class="line"><span style="color:#9399B2;font-style:italic">// 在 beforeHookedMethod 中调用原方法</span></span>
+<span class="line"><span style="color:#CBA6F7">Object</span><span style="color:#CDD6F4"> result </span><span style="color:#94E2D5">=</span><span style="color:#CDD6F4"> XposedBridge</span><span style="color:#9399B2">.</span><span style="color:#89B4FA;font-style:italic">invokeOriginalMethod</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">param</span><span style="color:#9399B2">.</span><span style="color:#CDD6F4">method</span><span style="color:#9399B2">,</span><span style="color:#CDD6F4"> param</span><span style="color:#9399B2">.</span><span style="color:#CDD6F4">thisObject</span><span style="color:#9399B2">,</span><span style="color:#CDD6F4"> param</span><span style="color:#9399B2">.</span><span style="color:#CDD6F4">args</span><span style="color:#9399B2">);</span></span></code></pre>
+<hr>
+<h2 id="十参考资料">十、参考资料</h2>
+<ul>
+<li>LSPosed 官方文档：<a href="https://lsposed.org/">https://lsposed.org/</a></li>
+<li>Xposed API 文档：<a href="https://api.xposed.info/">https://api.xposed.info/</a></li>
+<li>Jadx GitHub：<a href="https://github.com/skylot/jadx">https://github.com/skylot/jadx</a></li>
+<li>Android Studio 下载：<a href="https://developer.android.com/studio">https://developer.android.com/studio</a></li>
+<li>阿里云 Maven 镜像：<a href="https://maven.aliyun.com/">https://maven.aliyun.com/</a></li>
+<li>腾讯云 Gradle 镜像：<a href="https://mirrors.cloud.tencent.com/gradle/">https://mirrors.cloud.tencent.com/gradle/</a></li>
+</ul>
+<hr>
+<p><em>笔记完成时间：2026年7月21日</em><br>
+<em>项目路径：E:\Android\GuitarVipHook</em><br>
+<em>APK 路径：E:\Android\GuitarVipHook\app\build\outputs\apk\debug\吉他Pro解锁_v1.0.apk</em></p>  </article>  </main> <footer class="footer"> <div class="footer-links"> <a href="https://github.com/yangpeter26-bot" target="_blank" rel="noopener">GitHub</a> <a href="/rss.xml">RSS</a> <a href="https://mail.google.com/mail/?view=cm&to=yangpeter26@gmail.com" target="_blank">Email</a> </div> <p>&copy; 2026 PeterYang</p> </footer> <script>
+      const saved = localStorage.getItem("theme");
+      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      document.documentElement.dataset.theme = saved || (prefersDark ? "dark" : "light");
+      const btn = document.getElementById("theme-toggle");
+      btn.addEventListener("click", () => {
+        const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+        document.documentElement.dataset.theme = next;
+        localStorage.setItem("theme", next);
+      });
+      const hamburger = document.getElementById("hamburger");
+      let mobileMenu = null;
+      const links = [
+        { href: "/", text: "Home" },
+        { href: "/archive/", text: "Archive" },
+        { href: "/posts/about/", text: "About" },
+        { href: "/posts/guestbook/", text: "Guestbook" },
+      ];
+      hamburger.addEventListener("click", () => {
+        if (!mobileMenu) {
+          mobileMenu = document.createElement("div");
+          mobileMenu.className = "mobile-menu open";
+          mobileMenu.style.cssText = `
+            position: fixed; top: 60px; left: 12px; right: 12px; z-index: 99;
+            padding: 12px; display: flex; flex-direction: column; gap: 4px;
+            background: rgba(232,234,237,0.4);
+            backdrop-filter: blur(24px) saturate(140%);
+            -webkit-backdrop-filter: blur(24px) saturate(140%);
+            border: 0.5px solid rgba(255,255,255,0.2);
+            border-radius: 20px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.04);
+          `;
+          if (document.documentElement.dataset.theme === "dark") {
+            mobileMenu.style.background = "rgba(26,26,46,0.4)";
+          }
+          links.forEach(l => {
+            const a = document.createElement("a");
+            a.href = l.href;
+            a.textContent = l.text;
+            a.style.cssText = `
+              color: var(--blue); text-decoration: none; font-size: 15px;
+              font-weight: 500; padding: 10px 16px; border-radius: 12px;
+              transition: background 0.2s;
+            `;
+            a.addEventListener("mouseenter", () => a.style.background = "rgba(0,122,255,0.06)");
+            a.addEventListener("mouseleave", () => a.style.background = "transparent");
+            mobileMenu.appendChild(a);
+          });
+          document.querySelector(".nav").after(mobileMenu);
+        } else {
+          mobileMenu.classList.toggle("open");
+          if (!mobileMenu.classList.contains("open")) {
+            mobileMenu.remove();
+            mobileMenu = null;
+          }
+        }
+      });
+
+      // Code copy buttons
+      document.querySelectorAll(".prose pre").forEach((pre) => {
+        const btn = document.createElement("button");
+        btn.className = "copy-btn";
+        btn.textContent = "Copy";
+        btn.addEventListener("click", () => {
+          const code = pre.querySelector("code")?.textContent || pre.textContent;
+          navigator.clipboard.writeText(code).then(() => {
+            btn.textContent = "Copied!";
+            btn.classList.add("copied");
+            setTimeout(() => { btn.textContent = "Copy"; btn.classList.remove("copied"); }, 2000);
+          });
+        });
+        pre.appendChild(btn);
+      });
+    </script> </body> </html> 
