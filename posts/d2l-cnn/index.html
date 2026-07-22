@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="zh-CN"> <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="description" content="卷积神经网络入门：为什么不用全连接层处理图片，卷积运算原理，特征图，填充与步幅，池化层。"><meta property="og:title" content="《动手学深度学习》6.1 — 卷积神经网络（CNN） | PeterYang"><meta property="og:description" content="卷积神经网络入门：为什么不用全连接层处理图片，卷积运算原理，特征图，填充与步幅，池化层。"><meta property="og:image" content="/avatar.jpg"><meta property="og:type" content="website"><title>《动手学深度学习》6.1 — 卷积神经网络（CNN） | PeterYang</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/_astro/archive.Dw7fWL3R.css">
 <style>.meta[data-astro-cid-gysqo7gh]{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:20px;font-size:14px;color:var(--text-tertiary)}.tag[data-astro-cid-gysqo7gh]{font-size:11px;padding:2px 9px;border-radius:9999px;background:#007aff1a;color:var(--blue);font-weight:540}.toc[data-astro-cid-gysqo7gh]{background:#00000005;border-radius:12px;padding:16px 20px;margin:20px 0 28px}html[data-theme=dark] .toc[data-astro-cid-gysqo7gh]{background:#ffffff08}.toc-title[data-astro-cid-gysqo7gh]{font-size:14px;font-weight:620;margin-bottom:8px;color:var(--text)}.toc[data-astro-cid-gysqo7gh] ul[data-astro-cid-gysqo7gh]{list-style:none;padding:0;margin:0}.toc[data-astro-cid-gysqo7gh] li[data-astro-cid-gysqo7gh]{margin:4px 0}.toc[data-astro-cid-gysqo7gh] a[data-astro-cid-gysqo7gh]{font-size:14px;color:var(--blue);text-decoration:none}.toc[data-astro-cid-gysqo7gh] a[data-astro-cid-gysqo7gh]:hover{opacity:.65}.toc-h3[data-astro-cid-gysqo7gh]{padding-left:16px}.series-nav[data-astro-cid-gysqo7gh]{margin-top:40px;padding-top:24px;border-top:.5px solid rgba(0,0,0,.06)}html[data-theme=dark] .series-nav[data-astro-cid-gysqo7gh]{border-top-color:#ffffff0f}.series-title[data-astro-cid-gysqo7gh]{font-size:14px;font-weight:620;color:var(--text);margin-bottom:12px}.series-links[data-astro-cid-gysqo7gh]{display:flex;gap:12px}.series-prev[data-astro-cid-gysqo7gh],.series-next[data-astro-cid-gysqo7gh]{flex:1;display:flex;flex-direction:column;gap:4px;padding:14px 16px;border-radius:12px;background:#00000005;text-decoration:none;transition:background .2s}html[data-theme=dark] .series-prev[data-astro-cid-gysqo7gh],html[data-theme=dark] .series-next[data-astro-cid-gysqo7gh]{background:#ffffff08}.series-prev[data-astro-cid-gysqo7gh]:hover,.series-next[data-astro-cid-gysqo7gh]:hover{background:#007aff0f}.series-label[data-astro-cid-gysqo7gh]{font-size:12px;color:var(--text-tertiary)}.series-name[data-astro-cid-gysqo7gh]{font-size:14px;font-weight:540;color:var(--blue);display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}.series-next[data-astro-cid-gysqo7gh]{text-align:right}@media(max-width:640px){.series-links[data-astro-cid-gysqo7gh]{flex-direction:column}}
-</style></head> <body> <div class="bg-ambient bg-ambient-1"></div> <div class="bg-ambient bg-ambient-2"></div> <div class="bg-ambient bg-ambient-3"></div> <nav class="nav"> <a href="/" class="nav-brand">PeterYang</a> <div class="nav-right"> <ul class="nav-links"> <li><a href="/">Home</a></li> <li><a href="/archive/">Archive</a></li> <li><a href="/posts/about/">About</a></li> <li><a href="/posts/guestbook/">Guestbook</a></li> </ul> <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme"> <svg class="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg> <svg class="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg> </button> <button class="hamburger" id="hamburger" aria-label="Menu">☰</button> </div> </nav> <main class="container">  <article class="prose liquid-glass" data-astro-cid-gysqo7gh> <a class="back-link" href="/" data-astro-cid-gysqo7gh>&larr; Back</a> <h1 data-astro-cid-gysqo7gh>《动手学深度学习》6.1 — 卷积神经网络（CNN）</h1> <div class="meta" data-astro-cid-gysqo7gh> <span class="date" data-astro-cid-gysqo7gh>2026-07-22</span> <span class="reading-time" data-astro-cid-gysqo7gh>· 1 min read</span> <span class="tag" data-astro-cid-gysqo7gh>Deep Learning</span><span class="tag" data-astro-cid-gysqo7gh>d2l</span><span class="tag" data-astro-cid-gysqo7gh>CNN</span> </div> <hr data-astro-cid-gysqo7gh> <nav class="toc" data-astro-cid-gysqo7gh> <p class="toc-title" data-astro-cid-gysqo7gh>Contents</p> <ul data-astro-cid-gysqo7gh> <li class data-astro-cid-gysqo7gh> <a href="#是什么" data-astro-cid-gysqo7gh>是什么</a> </li><li class data-astro-cid-gysqo7gh> <a href="#为什么不用全连接层" data-astro-cid-gysqo7gh>为什么不用全连接层</a> </li><li class data-astro-cid-gysqo7gh> <a href="#cnn的三个核心组件" data-astro-cid-gysqo7gh>CNN的三个核心组件</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#1-卷积层提取特征" data-astro-cid-gysqo7gh>1. 卷积层（提取特征）</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#2-池化层压缩信息" data-astro-cid-gysqo7gh>2. 池化层（压缩信息）</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#3-全连接层做决定" data-astro-cid-gysqo7gh>3. 全连接层（做决定）</a> </li><li class data-astro-cid-gysqo7gh> <a href="#lenet结构第一个cnn模型" data-astro-cid-gysqo7gh>LeNet结构（第一个CNN模型）</a> </li><li class data-astro-cid-gysqo7gh> <a href="#关键概念" data-astro-cid-gysqo7gh>关键概念</a> </li><li class data-astro-cid-gysqo7gh> <a href="#一句话总结" data-astro-cid-gysqo7gh>一句话总结</a> </li> </ul> </nav> <h1 id="卷积神经网络cnn">卷积神经网络（CNN）</h1>
+</style></head> <body> <div class="bg-ambient bg-ambient-1"></div> <div class="bg-ambient bg-ambient-2"></div> <div class="bg-ambient bg-ambient-3"></div> <nav class="nav"> <a href="/" class="nav-brand">PeterYang</a> <div class="nav-right"> <ul class="nav-links"> <li><a href="/">Home</a></li> <li><a href="/archive/">Archive</a></li> <li><a href="/posts/about/">About</a></li> <li><a href="/posts/guestbook/">Guestbook</a></li> </ul> <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme"> <svg class="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg> <svg class="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg> </button> <button class="hamburger" id="hamburger" aria-label="Menu">☰</button> </div> </nav> <main class="container">  <article class="prose liquid-glass" data-astro-cid-gysqo7gh> <a class="back-link" href="/" data-astro-cid-gysqo7gh>&larr; Back</a> <h1 data-astro-cid-gysqo7gh>《动手学深度学习》6.1 — 卷积神经网络（CNN）</h1> <div class="meta" data-astro-cid-gysqo7gh> <span class="date" data-astro-cid-gysqo7gh>2026-07-22</span> <span class="reading-time" data-astro-cid-gysqo7gh>· 2 min read</span> <span class="tag" data-astro-cid-gysqo7gh>Deep Learning</span><span class="tag" data-astro-cid-gysqo7gh>d2l</span><span class="tag" data-astro-cid-gysqo7gh>CNN</span> </div> <hr data-astro-cid-gysqo7gh> <nav class="toc" data-astro-cid-gysqo7gh> <p class="toc-title" data-astro-cid-gysqo7gh>Contents</p> <ul data-astro-cid-gysqo7gh> <li class data-astro-cid-gysqo7gh> <a href="#是什么" data-astro-cid-gysqo7gh>是什么</a> </li><li class data-astro-cid-gysqo7gh> <a href="#为什么不用全连接层" data-astro-cid-gysqo7gh>为什么不用全连接层</a> </li><li class data-astro-cid-gysqo7gh> <a href="#cnn的三个核心组件" data-astro-cid-gysqo7gh>CNN的三个核心组件</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#1-卷积层提取特征" data-astro-cid-gysqo7gh>1. 卷积层（提取特征）</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#2-池化层压缩信息" data-astro-cid-gysqo7gh>2. 池化层（压缩信息）</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#3-全连接层做决定" data-astro-cid-gysqo7gh>3. 全连接层（做决定）</a> </li><li class data-astro-cid-gysqo7gh> <a href="#lenet结构第一个cnn模型" data-astro-cid-gysqo7gh>LeNet结构（第一个CNN模型）</a> </li><li class data-astro-cid-gysqo7gh> <a href="#关键概念" data-astro-cid-gysqo7gh>关键概念</a> </li><li class data-astro-cid-gysqo7gh> <a href="#一句话总结" data-astro-cid-gysqo7gh>一句话总结</a> </li><li class data-astro-cid-gysqo7gh> <a href="#卷积核核心问题汇总" data-astro-cid-gysqo7gh>卷积核核心问题汇总</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#问题-1卷积核是怎么得来的" data-astro-cid-gysqo7gh>问题 1：卷积核是怎么得来的？</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#问题-2卷积核的参数是固定的吗" data-astro-cid-gysqo7gh>问题 2：卷积核的参数是固定的吗？</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#问题-3一个卷积核为什么只能检测一种特征" data-astro-cid-gysqo7gh>问题 3：一个卷积核为什么只能检测一种特征？</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#问题-4具体是怎么实现只认一种的数值示例" data-astro-cid-gysqo7gh>问题 4：具体是怎么实现”只认一种”的？（数值示例）</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#问题-5训练之前卷积核知道自己的分工吗" data-astro-cid-gysqo7gh>问题 5：训练之前，卷积核知道自己的分工吗？</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#问题-6一个卷积层怎么检测多种特征" data-astro-cid-gysqo7gh>问题 6：一个卷积层怎么检测多种特征？</a> </li><li class="toc-h3" data-astro-cid-gysqo7gh> <a href="#一句话终极总结" data-astro-cid-gysqo7gh>一句话终极总结</a> </li> </ul> </nav> <h1 id="卷积神经网络cnn">卷积神经网络（CNN）</h1>
 <h2 id="是什么">是什么</h2>
 <p>专门用来处理图片的神经网络。</p>
 <h2 id="为什么不用全连接层">为什么不用全连接层</h2>
@@ -66,7 +66,151 @@
 
 <table><thead><tr><th>概念</th><th>说明</th></tr></thead><tbody><tr><td>卷积核</td><td>小方块（3×3），在图片上滑动提取特征</td></tr><tr><td>填充(Padding)</td><td>在图片边缘填0，防止图片越来越小</td></tr><tr><td>步幅(Stride)</td><td>卷积核每次跳着走，让图片快速变小</td></tr><tr><td>通道</td><td>多个卷积核 → 多个输出 → 提取多种特征</td></tr><tr><td>感受野</td><td>网络越深，每个神经元看到的区域越大</td></tr></tbody></table>
 <h2 id="一句话总结">一句话总结</h2>
-<p>CNN = 用小放大镜看局部（卷积）+ 压缩信息（池化）+ 最终判断（全连接）</p> <div class="series-nav" data-astro-cid-gysqo7gh> <p class="series-title" data-astro-cid-gysqo7gh>📖 动手学深度学习 系列</p> <div class="series-links" data-astro-cid-gysqo7gh> <a class="series-prev" href="/posts/d2l-dropout/" data-astro-cid-gysqo7gh> <span class="series-label" data-astro-cid-gysqo7gh>&larr; 上一篇</span> <span class="series-name" data-astro-cid-gysqo7gh>《动手学深度学习》4.6 — 暂退法（Dropout）</span> </a> <div data-astro-cid-gysqo7gh></div> </div> </div> </article>  </main> <footer class="footer"> <div class="footer-links"> <a href="https://github.com/yangpeter26-bot" target="_blank" rel="noopener">GitHub</a> <a href="/rss.xml">RSS</a> <a href="https://mail.google.com/mail/?view=cm&to=yangpeter26@gmail.com" target="_blank">Email</a> </div> <p>&copy; 2026 PeterYang</p> </footer> <script>
+<p>CNN = 用小放大镜看局部（卷积）+ 压缩信息（池化）+ 最终判断（全连接）</p>
+<hr>
+<h2 id="卷积核核心问题汇总">卷积核核心问题汇总</h2>
+<h3 id="问题-1卷积核是怎么得来的">问题 1：卷积核是怎么得来的？</h3>
+<p><strong>卷积核不是人工设计的，而是通过反向传播和梯度下降，从训练数据中”学习”出来的。</strong></p>
+<ul>
+<li>初始状态：随机小数（如 Xavier/Kaiming 初始化）</li>
+<li>训练过程：前向传播 → 计算损失 → 反向传播求梯度 → 更新权重</li>
+<li>最终状态：参数收敛，固化成能识别特定特征的滤波器</li>
+</ul>
+<blockquote>
+<p>比喻：卷积核像一块”橡皮泥”，初始是随机形状，训练数据是”模具”，梯度下降是”按压的手”，最终被压成能匹配特定特征的形状。</p>
+</blockquote>
+<h3 id="问题-2卷积核的参数是固定的吗">问题 2：卷积核的参数是固定的吗？</h3>
+<p><strong>分阶段看——训练时变化，推理时固定。</strong></p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>阶段</th><th>参数状态</th><th>说明</th></tr></thead><tbody><tr><td>训练阶段</td><td>动态变化</td><td>每批数据都通过梯度下降更新参数</td></tr><tr><td>推理阶段</td><td>完全固定</td><td>参数冻结，用同一套模板处理所有输入</td></tr></tbody></table>
+<blockquote>
+<p>比喻：像流水线上的模具——制作过程需要反复打磨（训练），一旦做好就固定不变（推理）。</p>
+</blockquote>
+<h3 id="问题-3一个卷积核为什么只能检测一种特征">问题 3：一个卷积核为什么只能检测一种特征？</h3>
+<p><strong>卷积核的本质是一个”固定的模板匹配器”。</strong></p>
+<ul>
+<li>数学本质：<strong>点积运算 = 相似度度量</strong></li>
+<li>卷积核 = 高维空间（如 3×3=9 维）中的<strong>一个固定方向向量</strong></li>
+<li>输入局部窗口 = 同一个空间中的另一个向量</li>
+<li>只有当两个向量方向一致时，点积结果才大（激活强）；方向偏离越远，响应越小</li>
+</ul>
+<blockquote>
+<p>一个核只有一个”方向”，所以只能匹配一种特征。</p>
+</blockquote>
+<h3 id="问题-4具体是怎么实现只认一种的数值示例">问题 4：具体是怎么实现”只认一种”的？（数值示例）</h3>
+<p>用一个检测<strong>垂直边缘</strong>的 3×3 卷积核：</p>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>-1   0   1</span></span>
+<span class="line"><span>-1   0   1</span></span>
+<span class="line"><span>-1   0   1</span></span></code></pre>
+<p>在图片上滑动时：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>输入局部图案</th><th>点积结果</th><th>结论</th></tr></thead><tbody><tr><td>左亮右暗（匹配）</td><td>绝对值很大</td><td>检测到竖边</td></tr><tr><td>均匀灰色（无关）</td><td>约等于 0</td><td>无反应</td></tr><tr><td>右亮左暗（相反）</td><td>绝对值很大但符号相反</td><td>检测到（取绝对值或 ReLU 后）</td></tr></tbody></table>
+<h3 id="问题-5训练之前卷积核知道自己的分工吗">问题 5：训练之前，卷积核知道自己的分工吗？</h3>
+<p><strong>完全不知道！训练前所有核都是”废物”，随机且毫无分工。</strong></p>
+<p>那为什么训练后会形成分工？</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>原因</th><th>说明</th></tr></thead><tbody><tr><td>随机初始化的蝴蝶效应</td><td>不同核初始值不同 → 梯度不同 → 被推向不同方向</td></tr><tr><td>数据多样性逼迫分工</td><td>若所有核都检测同一种特征，其他特征无人响应 → Loss 高 → 被迫分化</td></tr><tr><td>局部最优</td><td>不同核掉进损失函数空间里的不同”坑”，各自安家</td></tr></tbody></table>
+<blockquote>
+<p>比喻：不是提前规划了”你负责竖线”，而是”随机出生 + 后天环境（数据）+ 生存压力（Loss）“共同逼迫它们<strong>自发分化</strong>。</p>
+</blockquote>
+<h3 id="问题-6一个卷积层怎么检测多种特征">问题 6：一个卷积层怎么检测多种特征？</h3>
+<p><strong>靠”多通道”堆叠——每个卷积层不只有一个核，而是有几十上百个。</strong></p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>卷积层</th><th>卷积核数量</th><th>每个核检测的特征</th></tr></thead><tbody><tr><td>浅层</td><td>64 个</td><td>64 种边缘/颜色/纹理方向</td></tr><tr><td>中层</td><td>256 个</td><td>256 种复杂纹理组合</td></tr><tr><td>深层</td><td>512 个</td><td>512 种高级语义部件</td></tr></tbody></table>
+<blockquote>
+<p>比喻：一个卷积层就像一支有 64 个不同”专家”的团队，每个专家只负责看一种特征，合在一起就能读懂完整画面。</p>
+</blockquote>
+<h3 id="一句话终极总结">一句话终极总结</h3>
+<blockquote>
+<p><strong>卷积核 = 随机出生的”白纸”，在训练中被梯度下降和 Loss 压力逼成了各自分工的”固定模板”，一个核只有一个方向，所以只能检测一种特征；一个层有几十上百个核，所以能覆盖多种特征。</strong></p>
+</blockquote> <div class="series-nav" data-astro-cid-gysqo7gh> <p class="series-title" data-astro-cid-gysqo7gh>📖 动手学深度学习 系列</p> <div class="series-links" data-astro-cid-gysqo7gh> <a class="series-prev" href="/posts/d2l-dropout/" data-astro-cid-gysqo7gh> <span class="series-label" data-astro-cid-gysqo7gh>&larr; 上一篇</span> <span class="series-name" data-astro-cid-gysqo7gh>《动手学深度学习》4.6 — 暂退法（Dropout）</span> </a> <div data-astro-cid-gysqo7gh></div> </div> </div> </article>  </main> <footer class="footer"> <div class="footer-links"> <a href="https://github.com/yangpeter26-bot" target="_blank" rel="noopener">GitHub</a> <a href="/rss.xml">RSS</a> <a href="https://mail.google.com/mail/?view=cm&to=yangpeter26@gmail.com" target="_blank">Email</a> </div> <p>&copy; 2026 PeterYang</p> </footer> <script>
       const saved = localStorage.getItem("theme");
       const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
       document.documentElement.dataset.theme = saved || (prefersDark ? "dark" : "light");
