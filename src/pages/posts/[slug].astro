@@ -1,26 +1,33 @@
 ---
-import { getCollection, render } from "astro:content";
+import { render } from "astro:content";
+import type { GetStaticPaths } from "astro";
 import Layout from "../../layouts/Layout.astro";
+import { compareSeriesPosts, getPublishedPosts, type Post } from "../../lib/posts";
+import { getReadingTimeMinutes } from "../../lib/reading-time";
 
-export async function getStaticPaths() {
-  const posts = await getCollection("posts", ({ data }) => !data.draft);
+export const getStaticPaths = (async () => {
+  const posts = await getPublishedPosts();
   return posts.map((post) => ({ params: { slug: post.id }, props: { post, posts } }));
+}) satisfies GetStaticPaths;
+
+interface Props {
+  post: Post;
+  posts: Post[];
 }
 
 const { post, posts } = Astro.props;
 const { Content, headings } = await render(post);
 
-const readingTime = Math.max(1, Math.ceil(post.body.split(/\s+/).length / 200));
+const readingTime = getReadingTimeMinutes(post.body);
 const toc = headings.filter((h) => h.depth === 2 || h.depth === 3);
 
 // Series navigation
-let seriesPosts = [];
-let prev = null;
-let next = null;
+let prev: Post | null = null;
+let next: Post | null = null;
 if (post.data.series) {
-  seriesPosts = posts
+  const seriesPosts = posts
     .filter((p) => p.data.series === post.data.series)
-    .sort((a, b) => (a.data.seriesOrder || 0) - (b.data.seriesOrder || 0));
+    .sort(compareSeriesPosts);
   const idx = seriesPosts.findIndex((p) => p.id === post.id);
   prev = idx > 0 ? seriesPosts[idx - 1] : null;
   next = idx < seriesPosts.length - 1 ? seriesPosts[idx + 1] : null;

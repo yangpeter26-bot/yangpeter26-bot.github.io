@@ -1,4 +1,8 @@
-node_modules/
-.reasonix/
-.agents/
-.github/
+/node_modules/
+/.astro/
+/dist/
+/.reasonix/
+/.agents/
+/.hermes/
+/.deploy-backups/
+/.maintenance-backups/

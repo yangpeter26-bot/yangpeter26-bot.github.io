@@ -1,0 +1,29 @@
+<!-- Run before styles and content so the saved theme is applied on first paint. -->
+<script is:inline>
+  (() => {
+    let saved = null;
+    try {
+      saved = window.localStorage.getItem('theme');
+    } catch {
+      // Storage may be blocked; the system preference still works.
+    }
+    const theme = saved === 'dark' || saved === 'light'
+      ? saved
+      : window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    document.documentElement.dataset.theme = theme;
+    document.documentElement.classList.add('js');
+
+    // Set the client configuration before the asynchronous Giscus script runs.
+    const updateGiscusScripts = () => {
+      document.querySelectorAll('script[src="https://giscus.app/client.js"]').forEach((script) => {
+        script.setAttribute('data-theme', document.documentElement.dataset.theme || theme);
+      });
+    };
+    const observer = new MutationObserver(updateGiscusScripts);
+    observer.observe(document.documentElement, { childList: true, subtree: true });
+    document.addEventListener('DOMContentLoaded', () => {
+      updateGiscusScripts();
+      observer.disconnect();
+    }, { once: true });
+  })();
+</script>

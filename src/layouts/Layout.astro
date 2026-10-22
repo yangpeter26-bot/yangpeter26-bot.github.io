@@ -1,346 +1,51 @@
 ---
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import ThemeInit from '../components/ThemeInit.astro';
+import '../styles/global.css';
+
 export interface Props {
   title: string;
   description?: string;
 }
-const { title, description } = Astro.props;
-const ogImage = "/avatar.jpg";
+
+const { title, description = "PeterYang's tech blog" } = Astro.props;
+const siteUrl = Astro.site ?? Astro.url;
+const canonicalUrl = new URL(Astro.url.pathname, siteUrl);
+const ogImage = new URL('/avatar.jpg', siteUrl);
 ---
 <!doctype html>
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content={description || "PeterYang's tech blog"} />
+    <ThemeInit />
+    <meta name="description" content={description} />
     <meta property="og:title" content={`${title} | PeterYang`} />
-    <meta property="og:description" content={description || "PeterYang's tech blog"} />
-    <meta property="og:image" content={ogImage} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={ogImage.href} />
+    <meta property="og:url" content={canonicalUrl.href} />
     <meta property="og:type" content="website" />
     <title>{title} | PeterYang</title>
+    <link rel="canonical" href={canonicalUrl.href} />
+    <link rel="alternate" type="application/rss+xml" title="PeterYang RSS" href={new URL('/rss.xml', siteUrl).href} />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet" />
-    <style is:global>
-      :root {
-        --blue: #007AFF;
-        --purple: #AF52DE;
-        --green: #34C759;
-        --pink: #FF375F;
-        --bg: #E8EAED;
-        --glass-tint: rgba(255,255,255,0.08);
-        --glass-border: rgba(255,255,255,0.3);
-        --glass-shadow: 0 4px 24px rgba(0,0,0,0.06);
-        --text: #000000;
-        --text-secondary: #3C3C43;
-        --text-tertiary: #8E8E93;
-        --code-bg: #1e1e2e;
-        --code-text: #cdd6f4;
-        --radius: 20px;
-        --radius-lg: 26px;
-        --radius-full: 9999px;
-      }
-      html[data-theme="dark"] {
-        --bg: #1a1a2e;
-        --glass-tint: rgba(255,255,255,0.05);
-        --glass-border: rgba(255,255,255,0.1);
-        --glass-shadow: 0 4px 24px rgba(0,0,0,0.2);
-        --text: #e0e0e0;
-        --text-secondary: #b0b0b0;
-        --text-tertiary: #707070;
-      }
-      *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-      body {
-        font-family: "Inter", "Noto Sans SC", -apple-system, sans-serif;
-        background: var(--bg);
-        color: var(--text);
-        min-height: 100vh;
-        line-height: 1.5;
-        overflow-x: hidden;
-        -webkit-font-smoothing: antialiased;
-      }
-      .bg-ambient {
-        position: fixed; border-radius: 50%; pointer-events: none; z-index: 0;
-        filter: blur(80px); opacity: 0.5;
-        animation: drift 20s ease-in-out infinite;
-      }
-      .bg-ambient-1 { width: 500px; height: 500px; background: #90B0D8; top: -120px; right: -80px; }
-      .bg-ambient-2 { width: 400px; height: 400px; background: #A0C0D8; bottom: -100px; left: -60px; animation-delay: -10s; }
-      .bg-ambient-3 { width: 350px; height: 350px; background: #C0B8D0; top: 45%; left: 55%; animation-delay: -16s; }
-      html[data-theme="dark"] .bg-ambient-1 { background: #2a3a5e; }
-      html[data-theme="dark"] .bg-ambient-2 { background: #3a2a4e; }
-      html[data-theme="dark"] .bg-ambient-3 { background: #2a4a3e; }
-      @keyframes drift {
-        0%, 100% { transform: translate(0, 0); }
-        33% { transform: translate(20px, -24px); }
-        66% { transform: translate(-14px, 16px); }
-      }
-      .liquid-glass {
-        position: relative; overflow: hidden;
-        border-radius: var(--radius);
-        background: var(--glass-tint);
-        backdrop-filter: blur(20px) saturate(140%) brightness(1.05);
-        -webkit-backdrop-filter: blur(20px) saturate(140%) brightness(1.05);
-        border: 0.5px solid var(--glass-border);
-        box-shadow: var(--glass-shadow), inset 1px 1px 0 rgba(255,255,255,0.25), inset -1px -1px 0 rgba(255,255,255,0.04);
-        transition: all 0.30s cubic-bezier(0.22, 1, 0.36, 1);
-      }
-      .liquid-glass:hover {
-        background: rgba(255,255,255,0.14);
-        box-shadow: 0 6px 28px rgba(0,0,0,0.08), inset 1px 1px 0 rgba(255,255,255,0.35), inset -1px -1px 0 rgba(255,255,255,0.06);
-      }
-      html[data-theme="dark"] .liquid-glass:hover { background: rgba(255,255,255,0.08); }
-      .liquid-glass::after {
-        content: ""; position: absolute; inset: 0; border-radius: inherit;
-        background: linear-gradient(150deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.04) 30%, transparent 50%);
-        pointer-events: none;
-      }
-      .liquid-glass > * { position: relative; z-index: 1; }
-      .nav {
-        position: sticky; top: 12px; z-index: 100;
-        display: flex; align-items: center; justify-content: space-between;
-        gap: 12px; padding: 0; margin: 12px 24px 0;
-      }
-      .nav-brand {
-        font-size: 18px; font-weight: 640; letter-spacing: -0.02em;
-        color: var(--text); text-decoration: none;
-        padding: 10px 22px;
-        background: rgba(232,234,237,0.4);
-        backdrop-filter: blur(24px) saturate(140%);
-        -webkit-backdrop-filter: blur(24px) saturate(140%);
-        border: 0.5px solid rgba(255,255,255,0.2);
-        border-radius: var(--radius);
-        box-shadow: 0 4px 24px rgba(0,0,0,0.04);
-      }
-      html[data-theme="dark"] .nav-brand { background: rgba(26,26,46,0.4); }
-      .nav-right {
-        display: flex; align-items: center; gap: 8px;
-        padding: 8px 12px;
-        background: rgba(232,234,237,0.4);
-        backdrop-filter: blur(24px) saturate(140%);
-        -webkit-backdrop-filter: blur(24px) saturate(140%);
-        border: 0.5px solid rgba(255,255,255,0.2);
-        border-radius: var(--radius);
-        box-shadow: 0 4px 24px rgba(0,0,0,0.04);
-      }
-      html[data-theme="dark"] .nav-right { background: rgba(26,26,46,0.4); }
-      .nav-links { display: flex; gap: 22px; list-style: none; }
-      .nav-links a { color: var(--blue); text-decoration: none; font-size: 15px; font-weight: 500; transition: opacity 0.15s; }
-      .nav-links a:hover { opacity: 0.65; }
-      .theme-toggle {
-        background: none; border: none; cursor: pointer;
-        width: 36px; height: 36px; padding: 0;
-        border-radius: 50%; transition: background 0.2s;
-        display: flex; align-items: center; justify-content: center;
-      }
-      .theme-toggle:hover { background: rgba(0,0,0,0.05); }
-      html[data-theme="dark"] .theme-toggle:hover { background: rgba(255,255,255,0.05); }
-      .theme-toggle svg {
-        width: 18px; height: 18px; stroke: var(--text);
-        fill: none; stroke-width: 2; stroke-linecap: round;
-        transition: transform 0.3s ease;
-      }
-      .theme-toggle:hover svg { transform: rotate(15deg); }
-      .icon-sun { display: none; }
-      html[data-theme="dark"] .icon-moon { display: none; }
-      html[data-theme="dark"] .icon-sun { display: block; }
-      .hamburger {
-        display: none; background: none; border: none; cursor: pointer;
-        font-size: 22px; padding: 4px 8px; color: var(--text);
-      }
-      .container { position: relative; z-index: 1; max-width: 800px; margin: 0 auto; padding: 0 24px; }
-      .hero { margin-top: 72px; margin-bottom: 52px; text-align: center; }
-      .avatar { display: block; width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(150deg, #AF52DE, #007AFF, #34C759); padding: 3px; margin: 0 auto 24px; box-shadow: 0 0 0 5px rgba(175,82,222,0.06), 0 6px 28px rgba(0,122,255,0.10); }
-      .avatar-inner { width: 100%; height: 100%; border-radius: 50%; background: #fff; overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 38px; }
-      .avatar-inner img { width: 100%; height: 100%; object-fit: cover; }
-      .hero h1 { font-size: 36px; font-weight: 700; letter-spacing: -0.03em; margin-bottom: 6px; }
-      .hero .tagline { color: var(--text-secondary); font-size: 16px; font-weight: 460; margin-bottom: 14px; }
-      .hero .bio { color: var(--text-tertiary); font-size: 14px; max-width: 420px; margin: 0 auto; line-height: 1.65; }
-      .card { display: block; text-decoration: none; color: inherit; padding: 22px 26px; margin-bottom: 12px; will-change: transform; transition: all 0.2s ease; }
-      .card:hover {
-        background: rgba(255,255,255,0.16);
-        box-shadow: 0 8px 32px rgba(0,0,0,0.10);
-        border-color: rgba(255,255,255,0.4);
-        transform: scale(1.005);
-      }
-      .card-meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 6px; }
-      .card-date { font-size: 13px; color: var(--text-tertiary); }
-      .card-tag { font-size: 11px; padding: 2px 9px; border-radius: var(--radius-full); background: rgba(0,122,255,0.1); color: var(--blue); font-weight: 540; }
-      .card-tag.accent { background: rgba(175,82,222,0.1); color: var(--purple); }
-      .card-title { font-size: 19px; font-weight: 620; letter-spacing: -0.02em; margin-bottom: 4px; }
-      .card-excerpt { font-size: 14px; color: var(--text-tertiary); line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-      .card-footer { display: flex; align-items: center; gap: 18px; margin-top: 10px; font-size: 13px; color: #C7C7CC; font-weight: 500; }
-      .prose { padding: 34px 30px; margin-top: 44px; margin-bottom: 80px; }
-      .prose h1 { font-size: 30px; font-weight: 700; letter-spacing: -0.03em; margin-bottom: 6px; }
-      .prose .date { color: var(--text-tertiary); font-size: 14px; margin-bottom: 22px; }
-      .prose h2 { font-size: 22px; font-weight: 640; margin-top: 36px; margin-bottom: 14px; scroll-margin-top: 80px; }
-      .prose h3 { font-size: 18px; font-weight: 600; margin-top: 28px; margin-bottom: 10px; scroll-margin-top: 80px; }
-      .prose p { font-size: 16px; line-height: 1.75; color: var(--text-secondary); margin-bottom: 16px; }
-      .prose strong { color: var(--text); font-weight: 620; }
-      .prose a { color: var(--blue); text-decoration: none; }
-      .prose a:hover { opacity: 0.65; }
-      .prose hr { border: none; border-top: 0.5px solid rgba(0,0,0,0.06); margin: 26px 0; }
-      .prose ul, .prose ol { padding-left: 22px; margin: 12px 0; color: var(--text-secondary); line-height: 1.9; }
-      .prose li { margin-bottom: 4px; }
-      .prose blockquote { border-left: 3px solid var(--blue); padding: 10px 16px; margin: 20px 0; background: rgba(0,122,255,0.04); border-radius: 0 10px 10px 0; }
-      .prose blockquote p { font-size: 14px; color: var(--text-secondary); line-height: 1.8; margin-bottom: 0; }
-      .prose table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 14px; }
-      .prose th, .prose td { text-align: left; padding: 10px 14px; border-bottom: 0.5px solid rgba(0,0,0,0.06); }
-      .prose th { font-weight: 620; color: var(--text); }
-      .prose td { color: var(--text-secondary); }
-      .prose img { max-width: 100%; border-radius: 14px; border: 0.5px solid rgba(0,0,0,0.06); box-shadow: 0 2px 16px rgba(0,0,0,0.06); margin: 20px 0; }
-      .prose pre {
-        position: relative;
-        background: var(--code-bg); color: var(--code-text);
-        border-radius: 12px; padding: 16px 20px; overflow-x: auto;
-        margin: 16px 0; font-size: 14px; line-height: 1.7;
-      }
-      .copy-btn {
-        position: absolute; top: 8px; right: 8px;
-        background: rgba(255,255,255,0.08); border: none;
-        color: rgba(255,255,255,0.4); cursor: pointer;
-        font-size: 12px; padding: 4px 10px; border-radius: 6px;
-        font-family: inherit; transition: all 0.2s;
-      }
-      .copy-btn:hover { background: rgba(255,255,255,0.15); color: rgba(255,255,255,0.8); }
-      .copy-btn.copied { background: rgba(52,199,89,0.2); color: #34C759; }
-      .prose code {
-        font-family: "SF Mono", "Fira Code", "Cascadia Code", Consolas, monospace;
-        font-size: 13px;
-      }
-      .prose p code, .prose li code, .prose td code {
-        background: rgba(0,0,0,0.04); padding: 2px 6px; border-radius: 4px; font-size: 13px;
-      }
-      html[data-theme="dark"] .prose p code, html[data-theme="dark"] .prose li code, html[data-theme="dark"] .prose td code {
-        background: rgba(255,255,255,0.08);
-      }
-      .back-link { color: var(--blue); text-decoration: none; font-size: 15px; font-weight: 500; }
-      .back-link:hover { opacity: 0.65; }
-      .footer { text-align: center; padding: 32px 24px 48px; color: var(--text-tertiary); font-size: 13px; }
-      .footer-links { display: flex; justify-content: center; gap: 26px; margin-bottom: 12px; flex-wrap: wrap; }
-      .footer-links a { color: var(--blue); text-decoration: none; font-size: 14px; font-weight: 500; transition: opacity 0.15s; }
-      .footer-links a:hover { opacity: 0.65; }
-      .mobile-menu { display: none; }
-      @media (max-width: 640px) {
-        .nav { gap: 8px; margin: 8px 12px 0; align-items: stretch; }
-        .nav-brand { padding: 8px 16px; font-size: 15px; display: flex; align-items: center; }
-        .nav-right { padding: 8px 10px; gap: 4px; display: flex; align-items: center; }
-        .nav-links { display: none; }
-        .hamburger { display: block; }
-        .hero { margin-top: 48px; margin-bottom: 36px; }
-        .hero h1 { font-size: 28px; }
-        .card { padding: 18px; }
-        .prose { padding: 22px 18px; margin-top: 28px; }
-      }
-    </style>
   </head>
   <body>
-    <div class="bg-ambient bg-ambient-1"></div>
-    <div class="bg-ambient bg-ambient-2"></div>
-    <div class="bg-ambient bg-ambient-3"></div>
+    <div class="bg-ambient bg-ambient-1" aria-hidden="true"></div>
+    <div class="bg-ambient bg-ambient-2" aria-hidden="true"></div>
+    <div class="bg-ambient bg-ambient-3" aria-hidden="true"></div>
 
-    <nav class="nav">
-      <a href="/" class="nav-brand">PeterYang</a>
-      <div class="nav-right">
-        <ul class="nav-links">
-          <li><a href="/">Home</a></li>
-          <li><a href="/archive/">Archive</a></li>
-          <li><a href="/posts/about/">About</a></li>
-          <li><a href="/posts/guestbook/">Guestbook</a></li>
-        </ul>
-        <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
-          <svg class="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-          <svg class="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-        </button>
-        <button class="hamburger" id="hamburger" aria-label="Menu">☰</button>
-      </div>
-    </nav>
-
+    <Header />
     <main class="container">
       <slot />
     </main>
+    <Footer />
 
-    <footer class="footer">
-      <div class="footer-links">
-        <a href="https://github.com/yangpeter26-bot" target="_blank" rel="noopener">GitHub</a>
-        <a href="/rss.xml">RSS</a>
-        <a href="https://mail.google.com/mail/?view=cm&to=yangpeter26@gmail.com" target="_blank">Email</a>
-      </div>
-      <p>&copy; 2026 PeterYang</p>
-    </footer>
-
-    <script is:inline>
-      const saved = localStorage.getItem("theme");
-      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-      document.documentElement.dataset.theme = saved || (prefersDark ? "dark" : "light");
-      const btn = document.getElementById("theme-toggle");
-      btn.addEventListener("click", () => {
-        const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
-        document.documentElement.dataset.theme = next;
-        localStorage.setItem("theme", next);
-      });
-      const hamburger = document.getElementById("hamburger");
-      let mobileMenu = null;
-      const links = [
-        { href: "/", text: "Home" },
-        { href: "/archive/", text: "Archive" },
-        { href: "/posts/about/", text: "About" },
-        { href: "/posts/guestbook/", text: "Guestbook" },
-      ];
-      hamburger.addEventListener("click", () => {
-        if (!mobileMenu) {
-          mobileMenu = document.createElement("div");
-          mobileMenu.className = "mobile-menu open";
-          mobileMenu.style.cssText = `
-            position: fixed; top: 60px; left: 12px; right: 12px; z-index: 99;
-            padding: 12px; display: flex; flex-direction: column; gap: 4px;
-            background: rgba(232,234,237,0.4);
-            backdrop-filter: blur(24px) saturate(140%);
-            -webkit-backdrop-filter: blur(24px) saturate(140%);
-            border: 0.5px solid rgba(255,255,255,0.2);
-            border-radius: 20px;
-            box-shadow: 0 4px 24px rgba(0,0,0,0.04);
-          `;
-          if (document.documentElement.dataset.theme === "dark") {
-            mobileMenu.style.background = "rgba(26,26,46,0.4)";
-          }
-          links.forEach(l => {
-            const a = document.createElement("a");
-            a.href = l.href;
-            a.textContent = l.text;
-            a.style.cssText = `
-              color: var(--blue); text-decoration: none; font-size: 15px;
-              font-weight: 500; padding: 10px 16px; border-radius: 12px;
-              transition: background 0.2s;
-            `;
-            a.addEventListener("mouseenter", () => a.style.background = "rgba(0,122,255,0.06)");
-            a.addEventListener("mouseleave", () => a.style.background = "transparent");
-            mobileMenu.appendChild(a);
-          });
-          document.querySelector(".nav").after(mobileMenu);
-        } else {
-          mobileMenu.classList.toggle("open");
-          if (!mobileMenu.classList.contains("open")) {
-            mobileMenu.remove();
-            mobileMenu = null;
-          }
-        }
-      });
-
-      // Code copy buttons
-      document.querySelectorAll(".prose pre").forEach((pre) => {
-        const btn = document.createElement("button");
-        btn.className = "copy-btn";
-        btn.textContent = "Copy";
-        btn.addEventListener("click", () => {
-          const code = pre.querySelector("code")?.textContent || pre.textContent;
-          navigator.clipboard.writeText(code).then(() => {
-            btn.textContent = "Copied!";
-            btn.classList.add("copied");
-            setTimeout(() => { btn.textContent = "Copy"; btn.classList.remove("copied"); }, 2000);
-          });
-        });
-        pre.appendChild(btn);
-      });
+    <script>
+      import '../scripts/site';
     </script>
   </body>
 </html>

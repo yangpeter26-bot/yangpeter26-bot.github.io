@@ -1,157 +1,117 @@
 # PeterYang's Blog
 
-基于 Astro 5 构建的个人技术博客，托管于 GitHub Pages。
+Astro 5 + TypeScript 静态技术博客，使用 GitHub Pages 的 main 分支根目录发布方式。
 
-## 项目结构
+## 目录与职责
 
+```text
+src/
+  components/              页头、页脚和主题初始化
+  content/posts/           Markdown 正文，新文章的唯一来源
+  content.config.ts        文章字段与日期校验
+  layouts/Layout.astro     公共 HTML 外壳、SEO 和资源引用
+  lib/                     文章读取、排序、阅读时间
+  pages/                   首页、归档、文章路由、RSS、关于和留言
+  scripts/                 主题、菜单、代码复制等浏览器交互
+  styles/global.css        全站玻璃风格与响应式样式
+public/                    直接复制到构建产物的静态资源
+  posts/                   5 篇仅有 HTML 的历史文章，保留原网址
+  _astro/                  历史 HTML 依赖的旧样式
+docs/
+  drafts/                  未发布草稿，不参与文章集合
+  writing-style.md         原有文章风格约定
+scripts/                   本地发布同步与构建链接检查
+tests/                     阅读时间与发布同步的回归检查
+dist/                      构建输出，已忽略
+.astro/                    Astro 生成的缓存与类型，已忽略
+.deploy-manifest.json      根目录发布文件清单，应纳入版本控制
 ```
-├── src/
-│   ├── content/
-│   │   └── posts/                  # Markdown 文章（自动读取 frontmatter）
-│   │       ├── vulhub-1.md
-│   │       ├── d2l-linear-regression.md
-│   │       ├── d2l-linear-regression-concise.md
-│   │       └── metasploitable2-vsftpd.md
-│   ├── layouts/Layout.astro        # 全局布局（导航/页脚/暗色模式）
-│   └── pages/
-│       ├── index.astro             # 首页（自动生成文章卡片）
-│       ├── archive.astro           # 归档页（按年分组）
-│       ├── 404.astro               # 404 页面
-│       └── posts/
-│           ├── [slug].astro        # 文章模板（自动路由）
-│           ├── about.astro         # 关于我
-│           └── guestbook.astro     # 留言板（Giscus）
-├── public/                         # 静态资源（图片等）
-├── astro.config.mjs                # Astro 配置
-└── package.json                    # 依赖
+
+根目录的 index.html、posts/、archive/、_astro/、XML 和图片是 GitHub Pages 发布产物，由脚本同步。修改页面请编辑 src，修改图片请编辑 public，再重新构建和同步。
+
+## 本地运行与校验
+
+要求 Node.js 22.18+，推荐 Node.js 24 LTS（测试直接运行 TypeScript）。
+
+```powershell
+npm ci
+npm run dev
 ```
+
+发布前运行一次完整校验：
+
+```powershell
+npm run verify
+```
+
+它依次执行 Astro 类型检查、回归测试、一次构建和内部链接检查；包括 5 篇历史文章及 RSS。npm run preview 可预览这次生成的 dist。
 
 ## 写文章
 
-在 `src/content/posts/` 下新建 `.md` 文件，frontmatter 格式：
+在 src/content/posts/ 新建 .md，例如 new-post.md 对应 /posts/new-post/。
 
-```markdown
+```yaml
 ---
 title: "文章标题"
-date: "2026-07-07"    # 用 date 命令获取真实日期
+date: "2026-10-22"
 tags: ["标签1", "标签2"]
 excerpt: "一句话摘要"
-series: "d2l"         # 可选，系列文章用
-seriesOrder: 1        # 可选，系列中的顺序
+draft: false
+series: "d2l"         # 可选
+seriesOrder: 8        # 可选，正整数
+---
 ```
 
-每次写新文章前，先用 `date` 命令获取真实日期：
+日期使用真实的 YYYY-MM-DD，可先用 PowerShell Get-Date -Format yyyy-MM-dd 查看。设置 draft: true 的文章不生成文章页，也不出现在首页、归档和 RSS。
 
-```bash
-date                  # 例如输出 2026年07月 7日
+文章列表按日期倒序，同日按系列顺序倒序，再以文件 ID 稳定排序。系列上一篇/下一篇按 seriesOrder 正序排列，未编号条目排在后面。阅读时间按中文字符、英文和代码词元估算。
+
+文章写作约定见 [docs/writing-style.md](docs/writing-style.md)。根目录原有的欠拟合/过拟合草稿已收进 docs/drafts/，不会自动发布。
+
+## 历史文章
+
+以下 5 篇当前仅有 HTML，原样保存在 public/posts/，其依赖样式保存在 public/_astro/：
+
+- vulhub-1
+- metasploitable2-vsftpd
+- metasploitable2-telnet
+- metasploitable2-samba
+- metasploitable2-tomcat
+
+它们会随构建复制到 dist 并加入站点地图，原网址继续保留。它们暂不加入由 Markdown 生成的首页、归档和 RSS，也不跟随新布局更新。若恢复某篇 Markdown，请同时移除对应 public/posts/<slug>/，避免静态文件与生成路由重名。
+
+## 本地发布与上线
+
+GitHub Pages 保持 Deploy from a branch → main → / (root)。无需修改线上设置。
+
+```powershell
+npm run verify
+npm run publish:plan
+npm run publish:local
+git diff --stat
+git status --short
 ```
 
-首页卡片、归档页自动从 frontmatter 生成，不用手动改。
+publish:plan 只预览新增、覆盖和清理清单。publish:local 将 dist 同步到仓库根目录，只清理 .deploy-manifest.json 中已经退出本次构建的文件；源码和未受管文件不参与清理。被覆盖或清理的旧文件、旧清单和操作计划会备份到 .deploy-backups/<时间>/。清单请随发布产物一起提交，保留对旧文件的追踪。
+
+确认差异后再提交并推送：
+
+```powershell
+git add -A
+git commit -m "更新博客"
+git push
 ```
 
-## 文章风格规范
+同步脚本本身只改本地文件，不会提交或推送。推送失败时仅重试推送，无需重新构建。反馈结果请区分本地构建通过与线上部署完成，线上状态应在部署后单独确认。
 
-写文章时保持以下风格，和已有文章保持一致：
+如需撤销一次本地同步：根据备份中的 plan.json 删除本次 created 文件，将备份内旧文件放回根目录，并恢复备份中的 .deploy-manifest.json。同步前的完整优化备份另存于 .maintenance-backups/，请在检查结果后再自行清理。
 
-### 标题
-- 不用 emoji
-- 用 `## 代码框 N：描述` 作为代码段标题
-- 大章节用 `## 一、二、三` 或 `## 描述性标题`
+## 配置
 
-### 系列文章标题命名
+- astro.config.mjs：站点地址、静态输出、代码高亮与 sitemap；站点地址更改后重新构建。
+- src/components/Header.astro：桌面和移动导航共用的数据。
+- src/styles/global.css：颜色、布局和响应式样式。
+- src/pages/posts/guestbook.astro：Giscus 仓库与分类；主题自动跟随网站。
+- .nojekyll 来自 public/.nojekyll，由构建和同步保留。
 
-同系列文章标题必须统一格式，参考已有系列：
-
-```
-d2l 系列：
-  《动手学深度学习》3.2 — 线性回归的从零实现
-  《动手学深度学习》3.3 — 线性回归的简洁实现
-  格式：《系列名》章节号 — 副标题
-
-Metasploitable2 系列：
-  Metasploitable2 渗透学习（一）—— vsFTPd 2.3.4 后门漏洞
-  Metasploitable2 渗透学习（二）—— Telnet 服务分析与弱口令登录
-  格式：系列名 渗透学习（序号）—— 副标题
-```
-
-新文章加入已有系列时，标题格式必须和同系列其他文章一致。
-
-### 代码块
-- 代码块写在前面，解释写在后面
-- 代码块标注语言（` ```python `、` ```bash `、` ```yaml ` 等）
-- 行内注释用中文，简短直接
-
-### 解释风格
-- 人话翻译，不要学术腔
-- 每段解释控制在 1-3 句话
-- 不用「小贴士」「核心思想」「学习建议」等说教式段落
-- 不用 emoji 装饰标题或段落
-
-### 示例
-
-```markdown
-## 代码框 1：导入
-
-```python
-import torch
-from torch import nn
-```
-
-导入 PyTorch 核心库和神经网络模块。
-```
-
-### 反例（不要这样写）
-
-```markdown
-## 📖 1. 导入必要的库
-
-```python
-import torch
-```
-
-### 💡 小贴士
-
-`torch` 是 PyTorch 的核心库，它提供了...
-
-### 🔍 深入理解
-
-...
-```
-
-## 功能
-
-- ✅ Markdown 内容集合（自动读取 frontmatter）
-- ✅ 代码高亮（Shiki, catppuccin-mocha 主题）
-- ✅ 文章目录（TOC）
-- ✅ 阅读时间估算
-- ✅ 暗色模式切换（🌙/☀️）
-- ✅ 移动端汉堡菜单
-- ✅ 归档页（按年分组）
-- ✅ 404 页面
-- ✅ Open Graph 社交分享标签
-- ✅ Sitemap 自动生成
-- ✅ Giscus 留言板
-
-## 部署上线
-
-```bash
-npx astro build
-cp -r dist/* .
-git add -A; git commit -m "更新"; git push
-```
-
-等 30 秒刷新 `https://yangpeter26-bot.github.io`（Ctrl+Shift+R 强制刷新）。
-
-每次上传后必须反馈结果：页数、错误数、耗时。例如：
-
-```
-✅ 已上线 — 12 页 build 通过，0 错误，1.47s。
-```
-
-**重要：build + push 成功后不要重复运行 build 做"验证"！** 一次就够了，反复跑 `npx astro build` 没有任何意义，只会浪费时间。如果 push 失败（网络问题），只重试 `git push`，不要重新 build。
-
-## 注意事项
-
-- GitHub Pages 设置：Settings → Pages → Source: `Deploy from a branch` → `main` → `/ (root)`
-- 根目录必须有 `.nojekyll` 文件
-- Python f-string 里的 `{}` 在 Markdown 里直接写就行，不用转义
+dist、.astro、依赖与工具目录不提交；根目录发布产物和清单继续提交，以兼容当前托管方式。

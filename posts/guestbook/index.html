@@ -1,77 +1,31 @@
-<!DOCTYPE html><html lang="zh-CN"> <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="description" content="PeterYang's tech blog"><meta property="og:title" content="Guestbook | PeterYang"><meta property="og:description" content="PeterYang's tech blog"><meta property="og:image" content="/avatar.jpg"><meta property="og:type" content="website"><title>Guestbook | PeterYang</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/_astro/archive.Dw7fWL3R.css">
-<style>.prose[data-astro-cid-aiczh3qt]{min-height:400px}
-</style></head> <body> <div class="bg-ambient bg-ambient-1"></div> <div class="bg-ambient bg-ambient-2"></div> <div class="bg-ambient bg-ambient-3"></div> <nav class="nav"> <a href="/" class="nav-brand">PeterYang</a> <div class="nav-right"> <ul class="nav-links"> <li><a href="/">Home</a></li> <li><a href="/archive/">Archive</a></li> <li><a href="/posts/about/">About</a></li> <li><a href="/posts/guestbook/">Guestbook</a></li> </ul> <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme"> <svg class="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg> <svg class="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg> </button> <button class="hamburger" id="hamburger" aria-label="Menu">☰</button> </div> </nav> <main class="container">  <div class="prose liquid-glass" data-astro-cid-aiczh3qt> <a class="back-link" href="/" data-astro-cid-aiczh3qt>&larr; Back Home</a> <h1 data-astro-cid-aiczh3qt>Guestbook</h1> <p class="date" data-astro-cid-aiczh3qt>Leave a message! Sign in with GitHub.</p> <hr data-astro-cid-aiczh3qt> <script src="https://giscus.app/client.js" data-repo="yangpeter26-bot/yangpeter26-bot.github.io" data-repo-id="R_kgDOTCl1lQ" data-category="Guestbook" data-category-id="DIC_kwDOTCl1lc4DAmUS" data-mapping="pathname" data-strict="0" data-reactions-enabled="1" data-emit-metadata="0" data-input-position="top" data-theme="light" data-lang="zh-CN" crossorigin="anonymous" async>
-    </script> </div>  </main> <footer class="footer"> <div class="footer-links"> <a href="https://github.com/yangpeter26-bot" target="_blank" rel="noopener">GitHub</a> <a href="/rss.xml">RSS</a> <a href="https://mail.google.com/mail/?view=cm&to=yangpeter26@gmail.com" target="_blank">Email</a> </div> <p>&copy; 2026 PeterYang</p> </footer> <script>
-      const saved = localStorage.getItem("theme");
-      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-      document.documentElement.dataset.theme = saved || (prefersDark ? "dark" : "light");
-      const btn = document.getElementById("theme-toggle");
-      btn.addEventListener("click", () => {
-        const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
-        document.documentElement.dataset.theme = next;
-        localStorage.setItem("theme", next);
-      });
-      const hamburger = document.getElementById("hamburger");
-      let mobileMenu = null;
-      const links = [
-        { href: "/", text: "Home" },
-        { href: "/archive/", text: "Archive" },
-        { href: "/posts/about/", text: "About" },
-        { href: "/posts/guestbook/", text: "Guestbook" },
-      ];
-      hamburger.addEventListener("click", () => {
-        if (!mobileMenu) {
-          mobileMenu = document.createElement("div");
-          mobileMenu.className = "mobile-menu open";
-          mobileMenu.style.cssText = `
-            position: fixed; top: 60px; left: 12px; right: 12px; z-index: 99;
-            padding: 12px; display: flex; flex-direction: column; gap: 4px;
-            background: rgba(232,234,237,0.4);
-            backdrop-filter: blur(24px) saturate(140%);
-            -webkit-backdrop-filter: blur(24px) saturate(140%);
-            border: 0.5px solid rgba(255,255,255,0.2);
-            border-radius: 20px;
-            box-shadow: 0 4px 24px rgba(0,0,0,0.04);
-          `;
-          if (document.documentElement.dataset.theme === "dark") {
-            mobileMenu.style.background = "rgba(26,26,46,0.4)";
-          }
-          links.forEach(l => {
-            const a = document.createElement("a");
-            a.href = l.href;
-            a.textContent = l.text;
-            a.style.cssText = `
-              color: var(--blue); text-decoration: none; font-size: 15px;
-              font-weight: 500; padding: 10px 16px; border-radius: 12px;
-              transition: background 0.2s;
-            `;
-            a.addEventListener("mouseenter", () => a.style.background = "rgba(0,122,255,0.06)");
-            a.addEventListener("mouseleave", () => a.style.background = "transparent");
-            mobileMenu.appendChild(a);
-          });
-          document.querySelector(".nav").after(mobileMenu);
-        } else {
-          mobileMenu.classList.toggle("open");
-          if (!mobileMenu.classList.contains("open")) {
-            mobileMenu.remove();
-            mobileMenu = null;
-          }
-        }
-      });
+<!DOCTYPE html><html lang="zh-CN"> <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><!-- Run before styles and content so the saved theme is applied on first paint. --><script>
+  (() => {
+    let saved = null;
+    try {
+      saved = window.localStorage.getItem('theme');
+    } catch {
+      // Storage may be blocked; the system preference still works.
+    }
+    const theme = saved === 'dark' || saved === 'light'
+      ? saved
+      : window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    document.documentElement.dataset.theme = theme;
+    document.documentElement.classList.add('js');
 
-      // Code copy buttons
-      document.querySelectorAll(".prose pre").forEach((pre) => {
-        const btn = document.createElement("button");
-        btn.className = "copy-btn";
-        btn.textContent = "Copy";
-        btn.addEventListener("click", () => {
-          const code = pre.querySelector("code")?.textContent || pre.textContent;
-          navigator.clipboard.writeText(code).then(() => {
-            btn.textContent = "Copied!";
-            btn.classList.add("copied");
-            setTimeout(() => { btn.textContent = "Copy"; btn.classList.remove("copied"); }, 2000);
-          });
-        });
-        pre.appendChild(btn);
+    // Set the client configuration before the asynchronous Giscus script runs.
+    const updateGiscusScripts = () => {
+      document.querySelectorAll('script[src="https://giscus.app/client.js"]').forEach((script) => {
+        script.setAttribute('data-theme', document.documentElement.dataset.theme || theme);
       });
-    </script> </body> </html> 
+    };
+    const observer = new MutationObserver(updateGiscusScripts);
+    observer.observe(document.documentElement, { childList: true, subtree: true });
+    document.addEventListener('DOMContentLoaded', () => {
+      updateGiscusScripts();
+      observer.disconnect();
+    }, { once: true });
+  })();
+</script><meta name="description" content="PeterYang's tech blog"><meta property="og:title" content="Guestbook | PeterYang"><meta property="og:description" content="PeterYang's tech blog"><meta property="og:image" content="https://yangpeter26-bot.github.io/avatar.jpg"><meta property="og:url" content="https://yangpeter26-bot.github.io/posts/guestbook/"><meta property="og:type" content="website"><title>Guestbook | PeterYang</title><link rel="canonical" href="https://yangpeter26-bot.github.io/posts/guestbook/"><link rel="alternate" type="application/rss+xml" title="PeterYang RSS" href="https://yangpeter26-bot.github.io/rss.xml"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet"><style>.prose[data-astro-cid-aiczh3qt]{min-height:400px}
+</style>
+<link rel="stylesheet" href="/_astro/archive.DgNSaf_r.css"></head> <body> <div class="bg-ambient bg-ambient-1" aria-hidden="true"></div> <div class="bg-ambient bg-ambient-2" aria-hidden="true"></div> <div class="bg-ambient bg-ambient-3" aria-hidden="true"></div> <nav class="nav" aria-label="Main navigation"> <a href="/" class="nav-brand">PeterYang</a> <div class="nav-right"> <ul class="nav-links"> <li><a href="/">Home</a></li><li><a href="/archive/">Archive</a></li><li><a href="/posts/about/">About</a></li><li><a href="/posts/guestbook/" aria-current="page">Guestbook</a></li> </ul> <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Toggle theme" aria-pressed="false"> <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg> <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg> </button> <button type="button" class="hamburger" id="hamburger" aria-label="Open menu" aria-controls="mobile-menu" aria-expanded="false">☰</button> </div> <ul class="mobile-menu" id="mobile-menu" hidden> <li><a href="/">Home</a></li><li><a href="/archive/">Archive</a></li><li><a href="/posts/about/">About</a></li><li><a href="/posts/guestbook/" aria-current="page">Guestbook</a></li> </ul> </nav> <main class="container">  <div class="prose liquid-glass" data-astro-cid-aiczh3qt> <a class="back-link" href="/" data-astro-cid-aiczh3qt>&larr; Back Home</a> <h1 data-astro-cid-aiczh3qt>Guestbook</h1> <p class="date" data-astro-cid-aiczh3qt>Leave a message! Sign in with GitHub.</p> <hr data-astro-cid-aiczh3qt> <script src="https://giscus.app/client.js" data-repo="yangpeter26-bot/yangpeter26-bot.github.io" data-repo-id="R_kgDOTCl1lQ" data-category="Guestbook" data-category-id="DIC_kwDOTCl1lc4DAmUS" data-mapping="pathname" data-strict="0" data-reactions-enabled="1" data-emit-metadata="0" data-input-position="top" data-theme="preferred_color_scheme" data-lang="zh-CN" crossorigin="anonymous" async>
+    </script> </div>  </main> <footer class="footer"> <div class="footer-links"> <a href="https://github.com/yangpeter26-bot" target="_blank" rel="noopener noreferrer">GitHub</a> <a href="/rss.xml">RSS</a> <a href="https://mail.google.com/mail/?view=cm&to=yangpeter26@gmail.com" target="_blank" rel="noopener noreferrer">Email</a> </div> <p>&copy; 2026 PeterYang</p> </footer> <script type="module">const y=e=>e==="light"||e==="dark",u=window.matchMedia("(prefers-color-scheme: dark)"),d=document.querySelector("#theme-toggle"),b="https://giscus.app",p=new WeakSet,g=new WeakSet,f=new WeakMap;let o=null;try{const e=window.localStorage.getItem("theme");y(e)&&(o=e)}catch{}function m(){return document.documentElement.dataset.theme==="dark"?"dark":"light"}function l(e,n=!1){const t=m();!n&&f.get(e)===t||(e.contentWindow?.postMessage({giscus:{setConfig:{theme:t}}},b),f.set(e,t))}function w(){const e=m();document.querySelectorAll('script[src="https://giscus.app/client.js"]').forEach(n=>{n.dataset.theme=e}),document.querySelectorAll("iframe.giscus-frame").forEach(n=>{p.has(n)||(p.add(n),n.addEventListener("load",()=>l(n,!0))),l(n)})}function r(e){document.documentElement.dataset.theme=e,d?.setAttribute("aria-pressed",String(e==="dark")),d?.setAttribute("aria-label",`Switch to ${e==="dark"?"light":"dark"} theme`),w()}r(o??(u.matches?"dark":"light"));d?.addEventListener("click",()=>{o=m()==="dark"?"light":"dark";try{window.localStorage.setItem("theme",o)}catch{}r(o)});u.addEventListener("change",e=>{o===null&&r(e.matches?"dark":"light")});window.addEventListener("storage",e=>{e.key!=="theme"&&e.key!==null||(o=y(e.newValue)?e.newValue:null,r(o??(u.matches?"dark":"light")))});const k=new MutationObserver(w);k.observe(document.body,{childList:!0,subtree:!0});window.addEventListener("message",e=>{e.origin!==b||!e.data||typeof e.data!="object"||!("giscus"in e.data)||document.querySelectorAll("iframe.giscus-frame").forEach(n=>{e.source!==n.contentWindow||g.has(n)||(g.add(n),l(n,!0))})});const a=document.querySelector("#hamburger"),c=document.querySelector("#mobile-menu"),E=window.matchMedia("(max-width: 640px)");function i(e,n=!1){!a||!c||(c.hidden=!e,a.setAttribute("aria-expanded",String(e)),a.setAttribute("aria-label",e?"Close menu":"Open menu"),n&&a.focus())}a?.addEventListener("click",()=>i(a.getAttribute("aria-expanded")!=="true"));c?.addEventListener("click",e=>{e.target instanceof Element&&e.target.closest("a")&&i(!1)});document.addEventListener("keydown",e=>{e.key==="Escape"&&a?.getAttribute("aria-expanded")==="true"&&i(!1,!0)});document.addEventListener("click",e=>{e.target instanceof Node&&!c?.contains(e.target)&&!a?.contains(e.target)&&i(!1)});E.addEventListener("change",e=>{e.matches||i(!1)});document.querySelectorAll(".prose pre").forEach(e=>{const n=e.querySelector("code")?.textContent??e.textContent??"",t=document.createElement("button"),s=document.createElement("span");t.type="button",t.className="copy-btn",t.textContent="Copy",t.setAttribute("aria-label","Copy code"),s.className="sr-only",s.setAttribute("role","status");let h;t.addEventListener("click",async()=>{window.clearTimeout(h),t.disabled=!0,t.classList.remove("copied","copy-failed");try{if(!navigator.clipboard)throw new Error("Clipboard is unavailable");await navigator.clipboard.writeText(n),t.textContent="Copied!",t.classList.add("copied"),s.textContent="Code copied to clipboard."}catch{t.textContent="Copy failed",t.classList.add("copy-failed"),s.textContent="Copy failed. Select the code and copy it manually."}finally{t.disabled=!1,h=window.setTimeout(()=>{t.textContent="Copy",t.classList.remove("copied","copy-failed"),s.textContent=""},2500)}}),e.append(t,s)});</script> </body> </html> 

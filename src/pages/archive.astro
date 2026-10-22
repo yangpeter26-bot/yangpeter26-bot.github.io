@@ -1,11 +1,10 @@
 ---
-import { getCollection } from "astro:content";
 import Layout from "../layouts/Layout.astro";
+import { getPublishedPosts, type Post } from "../lib/posts";
 
-const posts = (await getCollection("posts", ({ data }) => !data.draft))
-  .sort((a, b) => b.data.date.localeCompare(a.data.date));
+const posts = await getPublishedPosts();
 
-const grouped = {};
+const grouped: Record<string, Post[]> = {};
 posts.forEach((post) => {
   const year = post.data.date.slice(0, 4);
   if (!grouped[year]) grouped[year] = [];
@@ -19,7 +18,7 @@ posts.forEach((post) => {
     <h1>Archive</h1>
     <p class="date">{posts.length} articles</p>
     <hr />
-    {Object.entries(grouped).map(([year, yearPosts]) => (
+    {Object.entries(grouped).sort(([a], [b]) => b.localeCompare(a)).map(([year, yearPosts]) => (
       <div class="year-group">
         <h2 class="year-title">{year}</h2>
         {yearPosts.map((post) => (

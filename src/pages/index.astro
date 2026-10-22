@@ -1,13 +1,8 @@
 ---
-import { getCollection } from "astro:content";
 import Layout from "../layouts/Layout.astro";
+import { getPublishedPosts } from "../lib/posts";
 
-const posts = (await getCollection("posts", ({ data }) => !data.draft))
-  .sort((a, b) => {
-    const dateDiff = b.data.date.localeCompare(a.data.date);
-    if (dateDiff !== 0) return dateDiff;
-    return (b.data.seriesOrder || 0) - (a.data.seriesOrder || 0);
-  });
+const posts = await getPublishedPosts();
 ---
 
 <Layout title="Home" description="PeterYang's blog — tech & life">
