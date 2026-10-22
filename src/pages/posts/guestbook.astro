@@ -2,14 +2,20 @@
 import Layout from '../../layouts/Layout.astro';
 ---
 
-<Layout title="Guestbook">
-  <div class="prose liquid-glass">
-    <a class="back-link" href="/">&larr; Back Home</a>
-    <h1>Guestbook</h1>
-    <p class="date">Leave a message! Sign in with GitHub.</p>
-    <hr />
-
-    <script is:inline src="https://giscus.app/client.js"
+<Layout title="留言板" description="在 yyg 的留言板交流学习心得，使用 GitHub 账号参与讨论。">
+  <header class="page-heading">
+    <p class="eyebrow">留一点声音在这里</p>
+    <h1>很高兴遇见你<span>。</span></h1>
+    <p>学习心得、问题，或只是一句问候，都欢迎。</p>
+  </header>
+  <section class="guestbook surface" aria-label="留言区">
+    <div class="guestbook-intro"><span class="message-icon" aria-hidden="true">↗</span><div><h2>在这里聊聊</h2><p>使用 GitHub 账号登录后即可留言，评论由 Giscus 提供。</p></div></div>
+    <div id="guestbook-status" class="guestbook-status" role="status" aria-live="polite">
+      <span class="loading-dot" aria-hidden="true"></span><span id="guestbook-status-text">正在连接留言服务…</span>
+      <a id="guestbook-retry" href="/posts/guestbook/" hidden>重新载入</a>
+    </div>
+    <div class="giscus"></div>
+    <script is:inline id="giscus-loader" src="https://giscus.app/client.js"
       data-repo="yangpeter26-bot/yangpeter26-bot.github.io"
       data-repo-id="R_kgDOTCl1lQ"
       data-category="Guestbook"
@@ -17,16 +23,72 @@ import Layout from '../../layouts/Layout.astro';
       data-mapping="pathname"
       data-strict="0"
       data-reactions-enabled="1"
-      data-emit-metadata="0"
+      data-emit-metadata="1"
       data-input-position="top"
       data-theme="preferred_color_scheme"
       data-lang="zh-CN"
       crossorigin="anonymous"
       async>
     </script>
-  </div>
+    <noscript><p class="noscript-message">留言需要启用 JavaScript。也可以前往 <a href="https://github.com/yangpeter26-bot/yangpeter26-bot.github.io/discussions">GitHub Discussions</a> 参与讨论。</p></noscript>
+  </section>
+  <p class="guestbook-note">也可以通过 <a href="mailto:yangpeter26@gmail.com">邮件联系我</a>。</p>
 </Layout>
 
+<script>
+  const status = document.querySelector<HTMLElement>('#guestbook-status');
+  const statusText = document.querySelector<HTMLElement>('#guestbook-status-text');
+  const retry = document.querySelector<HTMLAnchorElement>('#guestbook-retry');
+  let ready = false;
+  function showFailure(message: string) {
+    if (!status || !statusText) return;
+    status.dataset.state = 'failed';
+    statusText.textContent = message;
+    if (retry) retry.hidden = false;
+  }
+  const timeout = window.setTimeout(() => {
+    if (!ready) showFailure('连接时间较长，请检查网络后重试。');
+  }, 16000);
+  document.querySelector('#giscus-loader')?.addEventListener('error', () => {
+    window.clearTimeout(timeout);
+    showFailure('留言服务暂时连接失败，请稍后重试。');
+  });
+  window.addEventListener('message', (event: MessageEvent<unknown>) => {
+    const frame = document.querySelector<HTMLIFrameElement>('iframe.giscus-frame');
+    if (event.origin !== 'https://giscus.app' || !frame || event.source !== frame.contentWindow) return;
+    if (!event.data || typeof event.data !== 'object' || !('giscus' in event.data)) return;
+    const payload = event.data.giscus;
+    if (!payload || typeof payload !== 'object') return;
+    if ('error' in payload) {
+      window.clearTimeout(timeout);
+      showFailure('留言服务暂时连接失败，请稍后重试。');
+      return;
+    }
+    if (!('resizeHeight' in payload) && !('discussion' in payload)) return;
+    ready = true;
+    window.clearTimeout(timeout);
+    if (status) status.hidden = true;
+  });
+</script>
+
 <style>
-  .prose { min-height: 400px; }
+  .page-heading { padding: 42px 0 34px; }
+  .page-heading h1 { margin: 10px 0 16px; font-size: clamp(34px, 5vw, 50px); line-height: 1.2; letter-spacing: -.055em; }
+  .page-heading h1 span { color: var(--blue); }
+  .page-heading > p:last-child { color: var(--text-secondary); font-size: 16px; line-height: 1.8; }
+  .guestbook { padding: 32px 36px; min-height: 370px; }
+  .guestbook-intro { display: flex; align-items: center; gap: 17px; padding-bottom: 26px; margin-bottom: 26px; border-bottom: 1px solid var(--border); }
+  .message-icon { width: 45px; height: 45px; display: inline-grid; place-items: center; flex: 0 0 auto; border-radius: 14px; color: var(--blue); background: color-mix(in srgb, var(--blue) 9%, transparent); font-size: 23px; }
+  .guestbook-intro h2 { font-size: 18px; margin-bottom: 6px; letter-spacing: -.03em; }
+  .guestbook-intro p { color: var(--text-secondary); font-size: 12px; line-height: 1.8; }
+  .guestbook-status { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; color: var(--text-secondary); font-size: 13px; padding: 16px 0 24px; }
+  .loading-dot { width: 7px; height: 7px; background: var(--blue); border-radius: 50%; animation: pulse 1.6s ease-in-out infinite; }
+  .guestbook-status[data-state="failed"] .loading-dot { background: var(--text-tertiary); animation: none; }
+  .guestbook-status a, .noscript-message a { color: var(--blue); }
+  .noscript-message { color: var(--text-secondary); font-size: 14px; line-height: 1.8; }
+  .guestbook-note { margin: 18px 4px 0; font-size: 11px; color: var(--text-tertiary); line-height: 1.8; }
+  .guestbook-note a { color: var(--blue); text-decoration: none; }
+  @keyframes pulse { 50% { opacity: .3; } }
+  @media (max-width: 640px) { .page-heading { padding-top: 30px; } .guestbook { padding: 25px 20px; } .guestbook-intro { align-items: flex-start; } }
+  @media (prefers-reduced-motion: reduce) { .loading-dot { animation: none; } }
 </style>

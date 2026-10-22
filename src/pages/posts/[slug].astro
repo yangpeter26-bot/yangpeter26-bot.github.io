@@ -1,9 +1,10 @@
 ---
-import { render } from "astro:content";
-import type { GetStaticPaths } from "astro";
-import Layout from "../../layouts/Layout.astro";
-import { compareSeriesPosts, getPublishedPosts, type Post } from "../../lib/posts";
-import { getReadingTimeMinutes } from "../../lib/reading-time";
+import { render } from 'astro:content';
+import type { GetStaticPaths } from 'astro';
+import Layout from '../../layouts/Layout.astro';
+import { compareSeriesPosts, getPublishedPosts, type Post } from '../../lib/posts';
+import { getReadingTimeMinutes } from '../../lib/reading-time';
+import { getSeriesDetails } from '../../lib/series';
 
 export const getStaticPaths = (async () => {
   const posts = await getPublishedPosts();
@@ -17,130 +18,172 @@ interface Props {
 
 const { post, posts } = Astro.props;
 const { Content, headings } = await render(post);
-
 const readingTime = getReadingTimeMinutes(post.body);
-const toc = headings.filter((h) => h.depth === 2 || h.depth === 3);
-
-// Series navigation
-let prev: Post | null = null;
-let next: Post | null = null;
-if (post.data.series) {
-  const seriesPosts = posts
-    .filter((p) => p.data.series === post.data.series)
-    .sort(compareSeriesPosts);
-  const idx = seriesPosts.findIndex((p) => p.id === post.id);
-  prev = idx > 0 ? seriesPosts[idx - 1] : null;
-  next = idx < seriesPosts.length - 1 ? seriesPosts[idx + 1] : null;
-}
+const toc = headings.filter((heading) => heading.depth === 2 || heading.depth === 3);
+const seriesName = post.data.series ? getSeriesDetails(post.data.series).title : undefined;
+const seriesPosts = post.data.series
+  ? posts.filter((entry) => entry.data.series === post.data.series).sort(compareSeriesPosts)
+  : [];
+const seriesIndex = seriesPosts.findIndex((entry) => entry.id === post.id);
+const prev = seriesIndex > 0 ? seriesPosts[seriesIndex - 1] : undefined;
+const next = seriesIndex >= 0 ? seriesPosts[seriesIndex + 1] : undefined;
+const formattedDate = new Intl.DateTimeFormat('zh-CN', {
+  year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC',
+}).format(new Date(`${post.data.date}T00:00:00Z`));
 ---
 
-<Layout title={post.data.title} description={post.data.excerpt}>
-  <article class="prose liquid-glass">
-    <a class="back-link" href="/">&larr; Back</a>
-    <h1>{post.data.title}</h1>
-    <div class="meta">
-      <span class="date">{post.data.date}</span>
-      <span class="reading-time">· {readingTime} min read</span>
-      {post.data.tags.map((tag) => (
-        <span class="tag">{tag}</span>
-      ))}
-    </div>
-    <hr />
+<Layout title={post.data.title} description={post.data.excerpt} wide article={{ publishedTime: post.data.date, tags: post.data.tags }}>
+  <div class="reading-progress" aria-hidden="true"><span data-reading-progress></span></div>
 
-    {toc.length > 0 && (
-      <nav class="toc">
-        <p class="toc-title">Contents</p>
-        <ul>
-          {toc.map((h) => (
-            <li class={h.depth === 3 ? "toc-h3" : ""}>
-              <a href={`#${h.slug}`}>{h.text}</a>
-            </li>
-          ))}
-        </ul>
-      </nav>
-    )}
-
-    <Content />
-
-    {(prev || next) && (
-      <div class="series-nav">
-        <p class="series-title">📖 {post.data.series === "d2l" ? "动手学深度学习" : post.data.series} 系列</p>
-        <div class="series-links">
-          {prev ? (
-            <a class="series-prev" href={`/posts/${prev.id}/`}>
-              <span class="series-label">&larr; 上一篇</span>
-              <span class="series-name">{prev.data.title}</span>
-            </a>
-          ) : <div />}
-          {next ? (
-            <a class="series-next" href={`/posts/${next.id}/`}>
-              <span class="series-label">下一篇 &rarr;</span>
-              <span class="series-name">{next.data.title}</span>
-            </a>
-          ) : <div />}
+  <div class:list={['reading-shell', { 'reading-shell--without-toc': toc.length === 0 }]}>
+    <article class="article-panel surface" id="article-top" data-reading-article>
+      <header class="article-header">
+        <nav class="article-breadcrumb" aria-label="当前位置">
+          <a href="/">首页</a>
+          <span aria-hidden="true">/</span>
+          <a href="/archive/">文章</a>
+          {seriesName && <><span aria-hidden="true">/</span><a href={`/series/#${post.data.series}`}>{seriesName}</a></>}
+        </nav>
+        {seriesName && <p class="article-series-label">{seriesName} <span>· 第 {seriesIndex + 1} / {seriesPosts.length} 篇</span></p>}
+        <h1 class="article-title">{post.data.title}</h1>
+        <p class="article-summary">{post.data.excerpt}</p>
+        <div class="article-meta">
+          <time datetime={post.data.date}>{formattedDate}</time>
+          <span class="meta-separator" aria-hidden="true"></span>
+          <span>约 {readingTime} 分钟读完</span>
         </div>
+        {post.data.tags.length > 0 && <ul class="article-tags" aria-label="文章标签">
+          {post.data.tags.map((tag) => <li><a href={`/tags/${encodeURIComponent(tag)}/`}>{tag}</a></li>)}
+        </ul>}
+      </header>
+
+      {toc.length > 0 && <details class="mobile-toc" data-mobile-toc>
+        <summary><span>文章目录</span><span class="toc-count">{toc.length} 个小节</span></summary>
+        <nav aria-label="文章目录">
+          <ol class="toc-list">
+            {toc.map((heading) => <li class:list={{ 'toc-subheading': heading.depth === 3 }}>
+              <a href={`#${heading.slug}`} data-toc-link>{heading.text}</a>
+            </li>)}
+          </ol>
+        </nav>
+      </details>}
+
+      <div class="reading-content prose" id="article-content" data-reading-content>
+        <Content />
       </div>
-    )}
-  </article>
+
+      {seriesName && <nav class="series-navigation" aria-label="系列文章导航">
+        <div class="series-navigation-heading">
+          <div><span class="section-kicker">继续阅读</span><h2>{seriesName}</h2></div>
+          <a class="series-all" href={`/series/#${post.data.series}`}>完整目录 <span aria-hidden="true">↗</span></a>
+        </div>
+        {(prev || next) && <div class="series-links">
+          {prev ? <a class="series-link" href={`/posts/${prev.id}/`}>
+            <span class="series-direction">← 上一篇</span><span class="series-name">{prev.data.title}</span>
+          </a> : <div class="series-boundary"><span class="series-direction">从这里开始</span><span>这是系列的第一篇</span></div>}
+          {next ? <a class="series-link series-link--next" href={`/posts/${next.id}/`}>
+            <span class="series-direction">下一篇 →</span><span class="series-name">{next.data.title}</span>
+          </a> : <div class="series-boundary series-link--next"><span class="series-direction">已读到最新</span><span>更多笔记，正在路上</span></div>}
+        </div>}
+      </nav>}
+
+      <footer class="article-footer"><a href="/archive/">← 返回全部文章</a><a href="#article-top">回到顶部 ↑</a></footer>
+    </article>
+
+    {toc.length > 0 && <aside class="reading-sidebar" aria-label="阅读辅助">
+      <div class="toc-panel glass">
+        <div class="toc-heading"><h2>本文目录</h2><span data-reading-percent>0%</span></div>
+        <nav aria-label="文章目录">
+          <ol class="toc-list">
+            {toc.map((heading) => <li class:list={{ 'toc-subheading': heading.depth === 3 }}>
+              <a href={`#${heading.slug}`} data-toc-link>{heading.text}</a>
+            </li>)}
+          </ol>
+        </nav>
+        <a class="toc-back-top" href="#article-top">回到顶部 <span aria-hidden="true">↑</span></a>
+      </div>
+    </aside>}
+  </div>
+
+  <script>
+    import '../../scripts/reading';
+  </script>
 </Layout>
 
 <style>
-  .meta {
-    display: flex; align-items: center; gap: 8px;
-    flex-wrap: wrap; margin-bottom: 20px;
-    font-size: 14px; color: var(--text-tertiary);
+  .reading-progress { position: fixed; top: 0; left: 0; right: 0; height: 3px; z-index: 120; pointer-events: none; }
+  .reading-progress span { display: block; width: 100%; height: 100%; transform: scaleX(0); transform-origin: left; background: var(--blue); }
+  .reading-shell { display: grid; grid-template-columns: minmax(0, 1fr) 228px; gap: 28px; align-items: start; margin: 48px 0 72px; }
+  .reading-shell--without-toc { display: block; max-width: 820px; margin-inline: auto; }
+  .article-panel { min-width: 0; padding: 40px; border-radius: 28px; scroll-margin-top: 112px; }
+  .article-breadcrumb { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; font-size: 12px; color: var(--text-tertiary); margin-bottom: 32px; }
+  .article-breadcrumb a { color: var(--text-secondary); text-decoration: none; }
+  .article-breadcrumb a:hover { color: var(--blue); }
+  .article-series-label { margin: 0 0 14px; color: var(--blue); font-size: 12px; font-weight: 600; letter-spacing: .025em; }
+  .article-series-label span { color: var(--text-tertiary); font-weight: 400; margin-left: 5px; }
+  .article-title { font-size: clamp(27px, 3.2vw, 38px); line-height: 1.4; font-weight: 700; letter-spacing: -.04em; text-wrap: balance; margin: 0 0 20px; overflow-wrap: anywhere; }
+  .article-summary { color: var(--text-secondary); font-size: 15px; line-height: 1.85; margin: 0 0 24px; }
+  .article-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; font-size: 12px; color: var(--text-tertiary); }
+  .meta-separator { width: 3px; height: 3px; border-radius: 50%; background: currentColor; }
+  .article-tags { display: flex; flex-wrap: wrap; gap: 7px; margin: 18px 0 0; padding: 0; list-style: none; }
+  .article-tags a { display: block; border-radius: 7px; padding: 5px 9px; background: color-mix(in srgb, var(--blue) 7%, transparent); color: var(--blue); text-decoration: none; font-size: 11px; font-weight: 500; transition: background .18s ease; }
+  .article-tags a:hover { background: color-mix(in srgb, var(--blue) 13%, transparent); }
+  .article-header { margin-bottom: 36px; padding-bottom: 32px; border-bottom: 1px solid var(--border); }
+  .reading-content.prose { padding: 0; margin: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
+  .reading-content :global(h2[id]), .reading-content :global(h3[id]) { scroll-margin-top: 120px; }
+  .reading-sidebar { min-width: 0; position: sticky; top: 108px; }
+  .toc-panel { padding: 20px 14px 14px; border-radius: 20px; }
+  .toc-heading { display: flex; justify-content: space-between; gap: 12px; align-items: center; padding: 0 9px 15px; }
+  .toc-heading h2 { font-size: 12px; font-weight: 650; margin: 0; color: var(--text); }
+  .toc-heading > span { color: var(--text-tertiary); font-size: 11px; font-variant-numeric: tabular-nums; }
+  .toc-panel nav { max-height: calc(100dvh - 255px); overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
+  .toc-list { list-style: none; padding: 0; margin: 0; }
+  .toc-list li { padding: 0; margin: 0 0 2px; }
+  .toc-list a { display: block; padding: 7px 9px; border-radius: 8px; text-decoration: none; color: var(--text-secondary); font-size: 12px; line-height: 1.65; overflow-wrap: anywhere; transition: background .15s ease, color .15s ease; }
+  .toc-list a:hover { color: var(--text); background: color-mix(in srgb, var(--text) 4%, transparent); }
+  .toc-list a[data-active] { color: var(--blue); background: color-mix(in srgb, var(--blue) 9%, transparent); font-weight: 600; }
+  .toc-subheading a { padding-left: 20px; font-size: 11px; }
+  .toc-back-top { display: flex; justify-content: space-between; margin: 14px 9px 0; padding-top: 14px; border-top: 1px solid var(--border); text-decoration: none; color: var(--text-tertiary); font-size: 11px; }
+  .mobile-toc { display: none; }
+  .series-navigation { margin-top: 48px; padding-top: 28px; border-top: 1px solid var(--border); }
+  .series-navigation-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
+  .section-kicker { color: var(--text-tertiary); font-size: 10px; letter-spacing: .06em; }
+  .series-navigation-heading h2 { margin: 5px 0 0; font-size: 16px; line-height: 1.5; letter-spacing: -.02em; }
+  .series-all { flex-shrink: 0; font-size: 12px; color: var(--blue); text-decoration: none; }
+  .series-links { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .series-link, .series-boundary { display: flex; flex-direction: column; gap: 10px; min-width: 0; padding: 18px; border-radius: 14px; background: var(--bg); font-size: 13px; line-height: 1.65; }
+  .series-link { text-decoration: none; color: var(--text); border: 1px solid transparent; transition: border-color .18s ease; }
+  .series-link:hover { border-color: color-mix(in srgb, var(--blue) 30%, transparent); }
+  .series-direction { color: var(--text-tertiary); font-size: 11px; }
+  .series-name { overflow-wrap: anywhere; }
+  .series-link--next { text-align: right; }
+  .series-boundary { color: var(--text-tertiary); background: transparent; }
+  .article-footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 18px; margin-top: 36px; padding-top: 24px; border-top: 1px solid var(--border); }
+  .article-footer a { font-size: 12px; color: var(--text-secondary); text-decoration: none; }
+  .article-footer a:hover { color: var(--blue); }
+  @media (max-width: 999px) {
+    .reading-shell { display: block; max-width: 820px; margin: 32px auto 56px; }
+    .reading-sidebar { display: none; }
+    .mobile-toc { display: block; margin: 0 0 32px; padding: 15px 17px; border: 1px solid var(--border); border-radius: 14px; background: var(--bg); }
+    .mobile-toc summary { display: flex; align-items: center; gap: 12px; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--text); list-style: none; }
+    .mobile-toc summary::-webkit-details-marker { display: none; }
+    .mobile-toc summary::after { content: '+'; color: var(--text-tertiary); margin-left: auto; font-weight: 400; font-size: 18px; }
+    .mobile-toc[open] summary::after { content: '−'; }
+    .toc-count { font-size: 11px; font-weight: 400; color: var(--text-tertiary); }
+    .mobile-toc nav { margin-top: 16px; max-height: 50vh; overflow-y: auto; }
+    .mobile-toc .toc-list a { padding-block: 9px; }
   }
-  .tag {
-    font-size: 11px; padding: 2px 9px; border-radius: 9999px;
-    background: rgba(0,122,255,0.1); color: var(--blue); font-weight: 540;
-  }
-  .toc {
-    background: rgba(0,0,0,0.02); border-radius: 12px;
-    padding: 16px 20px; margin: 20px 0 28px;
-  }
-  :global(html[data-theme="dark"]) .toc { background: rgba(255,255,255,0.03); }
-  .toc-title { font-size: 14px; font-weight: 620; margin-bottom: 8px; color: var(--text); }
-  .toc ul { list-style: none; padding: 0; margin: 0; }
-  .toc li { margin: 4px 0; }
-  .toc a { font-size: 14px; color: var(--blue); text-decoration: none; }
-  .toc a:hover { opacity: 0.65; }
-  .toc-h3 { padding-left: 16px; }
-
-  /* Series navigation */
-  .series-nav {
-    margin-top: 40px; padding-top: 24px;
-    border-top: 0.5px solid rgba(0,0,0,0.06);
-  }
-  :global(html[data-theme="dark"]) .series-nav {
-    border-top-color: rgba(255,255,255,0.06);
-  }
-  .series-title {
-    font-size: 14px; font-weight: 620; color: var(--text);
-    margin-bottom: 12px;
-  }
-  .series-links {
-    display: flex; gap: 12px;
-  }
-  .series-prev, .series-next {
-    flex: 1; display: flex; flex-direction: column; gap: 4px;
-    padding: 14px 16px; border-radius: 12px;
-    background: rgba(0,0,0,0.02); text-decoration: none;
-    transition: background 0.2s;
-  }
-  :global(html[data-theme="dark"]) .series-prev,
-  :global(html[data-theme="dark"]) .series-next {
-    background: rgba(255,255,255,0.03);
-  }
-  .series-prev:hover, .series-next:hover { background: rgba(0,122,255,0.06); }
-  .series-label { font-size: 12px; color: var(--text-tertiary); }
-  .series-name {
-    font-size: 14px; font-weight: 540; color: var(--blue);
-    display: -webkit-box; -webkit-line-clamp: 1;
-    -webkit-box-orient: vertical; overflow: hidden;
-  }
-  .series-next { text-align: right; }
-
-  @media (max-width: 640px) {
-    .series-links { flex-direction: column; }
+  @media (max-width: 600px) {
+    .reading-shell { margin-top: 24px; }
+    .article-panel { padding: 26px 20px; border-radius: 22px; }
+    .article-breadcrumb { margin-bottom: 26px; font-size: 11px; }
+    .article-title { font-size: 26px; line-height: 1.5; letter-spacing: -.035em; margin-bottom: 16px; }
+    .article-summary { font-size: 14px; line-height: 1.85; }
+    .article-header { margin-bottom: 26px; padding-bottom: 26px; }
+    .article-meta { font-size: 11px; }
+    .series-links { grid-template-columns: 1fr; }
+    .series-link--next { text-align: left; }
+    .series-navigation-heading { align-items: end; }
+    .series-boundary { padding: 10px 0; }
   }
 </style>

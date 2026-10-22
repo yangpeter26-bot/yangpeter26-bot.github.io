@@ -1,0 +1,52 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getPublishedPosts } from '../../lib/posts';
+
+export async function getStaticPaths() {
+  const posts = await getPublishedPosts();
+  const tags = [...new Set(posts.flatMap((post) => post.data.tags))];
+  return tags.map((tag) => ({ params: { tag }, props: { tag, posts: posts.filter((post) => post.data.tags.includes(tag)) } }));
+}
+const { tag, posts } = Astro.props;
+---
+
+<Layout title={`${tag} · 标签`} description={`yyg 关于 ${tag} 的学习记录。`}>
+  <header class="page-heading">
+    <a class="back-link" href="/archive/">← 全部文章</a>
+    <p class="eyebrow">按兴趣，继续探索</p>
+    <h1><span>#</span> {tag}</h1>
+    <p>这个标签下共有 {posts.length} 篇笔记。</p>
+  </header>
+  <div class="tag-posts surface">
+    {posts.map((post) => (
+      <article class="tag-post">
+        <div class="post-meta"><time datetime={post.data.date}>{post.data.date.replaceAll('-', '.')}</time><span>{post.data.tags.filter((item) => item !== tag).slice(0, 2).join(' / ')}</span></div>
+        <h2><a href={`/posts/${post.id}/`}>{post.data.title}<span aria-hidden="true"> ↗</span></a></h2>
+        <p>{post.data.excerpt}</p>
+        <div class="post-tags">{post.data.tags.map((item) => <a href={`/tags/${encodeURIComponent(item)}/`} aria-current={item === tag ? 'page' : undefined}>{item}</a>)}</div>
+      </article>
+    ))}
+  </div>
+</Layout>
+
+<style>
+  .page-heading { padding: 26px 0 30px; }
+  .back-link { color: var(--text-secondary); font-size: 13px; text-decoration: none; display: inline-block; margin-bottom: 30px; }
+  .back-link:hover { color: var(--blue); }
+  .page-heading h1 { margin: 10px 0 16px; font-size: clamp(34px, 5vw, 48px); line-height: 1.25; letter-spacing: -.05em; overflow-wrap: anywhere; }
+  .page-heading h1 > span { color: var(--blue); }
+  .page-heading > p:last-child { color: var(--text-secondary); font-size: 15px; }
+  .tag-posts { padding: 7px 34px; }
+  .tag-post { padding: 28px 0; }
+  .tag-post + .tag-post { border-top: 1px solid var(--border); }
+  .post-meta { display: flex; flex-wrap: wrap; gap: 18px; font-size: 12px; color: var(--text-tertiary); font-variant-numeric: tabular-nums; }
+  h2 { margin: 12px 0; font-size: 21px; font-weight: 600; line-height: 1.6; letter-spacing: -.025em; }
+  h2 a { color: var(--text); text-decoration: none; }
+  h2 a:hover, h2 a:hover span { color: var(--blue); }
+  h2 span { color: var(--text-tertiary); font-size: 17px; }
+  .tag-post > p { font-size: 14px; line-height: 1.9; color: var(--text-secondary); }
+  .post-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+  .post-tags a { font-size: 11px; text-decoration: none; padding: 4px 9px; border: 1px solid var(--border); border-radius: 999px; color: var(--text-secondary); }
+  .post-tags a[aria-current="page"] { color: var(--blue); background: color-mix(in srgb, var(--blue) 7%, transparent); border-color: color-mix(in srgb, var(--blue) 18%, transparent); }
+  @media (max-width: 640px) { .tag-posts { padding: 4px 21px; } h2 { font-size: 18px; } }
+</style>

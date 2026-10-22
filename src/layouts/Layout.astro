@@ -1,18 +1,33 @@
 ---
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import Search from '../components/Search.astro';
 import ThemeInit from '../components/ThemeInit.astro';
+import { site } from '../config/site';
 import '../styles/global.css';
+import 'katex/dist/katex.min.css';
 
 export interface Props {
   title: string;
   description?: string;
+  wide?: boolean;
+  article?: { publishedTime: string; tags?: string[] };
 }
 
-const { title, description = "PeterYang's tech blog" } = Astro.props;
-const siteUrl = Astro.site ?? Astro.url;
+const { title, description = site.description, wide = false, article } = Astro.props;
+const siteUrl = Astro.site ?? new URL(site.url);
 const canonicalUrl = new URL(Astro.url.pathname, siteUrl);
-const ogImage = new URL('/avatar.jpg', siteUrl);
+const ogImage = new URL('/avatar-yyg.jpg', siteUrl);
+const pageTitle = title === site.name ? site.title : `${title} · ${site.name}`;
+const structuredData = {
+  '@context': 'https://schema.org',
+  '@type': article ? 'BlogPosting' : 'WebPage',
+  ...(article ? { headline: title, datePublished: article.publishedTime, keywords: article.tags?.join(', '), author: { '@type': 'Person', name: site.name, url: new URL('/posts/about/', siteUrl).href } } : { name: pageTitle }),
+  description,
+  url: canonicalUrl.href,
+  image: ogImage.href,
+  inLanguage: 'zh-CN',
+};
 ---
 <!doctype html>
 <html lang="zh-CN">
@@ -21,31 +36,41 @@ const ogImage = new URL('/avatar.jpg', siteUrl);
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <ThemeInit />
     <meta name="description" content={description} />
-    <meta property="og:title" content={`${title} | PeterYang`} />
+    <meta name="author" content={site.name} />
+    <meta name="theme-color" content="#f5f7fa" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#10161d" media="(prefers-color-scheme: dark)" />
+    <meta property="og:site_name" content={site.name} />
+    <meta property="og:title" content={pageTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:image" content={ogImage.href} />
+    <meta property="og:image:alt" content={`${site.name} 的头像`} />
     <meta property="og:url" content={canonicalUrl.href} />
-    <meta property="og:type" content="website" />
-    <title>{title} | PeterYang</title>
+    <meta property="og:type" content={article ? 'article' : 'website'} />
+    <meta property="og:locale" content="zh_CN" />
+    {article && <meta property="article:published_time" content={article.publishedTime} />}
+    <meta name="twitter:card" content="summary" />
+    <title>{pageTitle}</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="canonical" href={canonicalUrl.href} />
-    <link rel="alternate" type="application/rss+xml" title="PeterYang RSS" href={new URL('/rss.xml', siteUrl).href} />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="alternate" type="application/rss+xml" title={`${site.name} RSS`} href={new URL('/rss.xml', siteUrl).href} />
+    <script is:inline type="application/ld+json" set:html={JSON.stringify(structuredData).replace(/</g, '\\u003c')} />
   </head>
   <body>
-    <div class="bg-ambient bg-ambient-1" aria-hidden="true"></div>
-    <div class="bg-ambient bg-ambient-2" aria-hidden="true"></div>
-    <div class="bg-ambient bg-ambient-3" aria-hidden="true"></div>
-
+    <a class="skip-link" href="#main-content">跳到正文</a>
     <Header />
-    <main class="container">
+    <main id="main-content" class:list={['container', 'page-main', { 'page-main--wide': wide }]} tabindex="-1">
       <slot />
     </main>
     <Footer />
-
+    <Search />
     <script>
       import '../scripts/site';
     </script>
   </body>
 </html>
+<style>
+  .page-main:not(.page-main--wide) { max-width: 850px; }
+  .skip-link { position: fixed; left: 18px; top: -100px; z-index: 1000; background: var(--surface); border: 1px solid var(--border); border-radius: 999px; padding: 12px 18px; color: var(--blue); text-decoration: none; }
+  .skip-link:focus { top: 18px; }
+  .page-main:focus { outline: none; }
+</style>

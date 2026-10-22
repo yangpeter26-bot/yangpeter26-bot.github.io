@@ -1,0 +1,13 @@
+---
+import type { Post } from '../lib/posts';
+import { getTopic } from '../lib/topics';
+interface Props { post: Post }
+const { post } = Astro.props;
+const topic = getTopic(post);
+---
+<article class={`post-card surface tone-${topic.tone}`}>
+  <div class="post-meta"><span class="category-label"><span></span>{topic.label}</span><time datetime={post.data.date}>{post.data.date.replaceAll('-', '.')}</time></div>
+  <h3><a href={`/posts/${post.id}/`}>{post.data.title}</a></h3>
+  <p class="post-excerpt">{post.data.excerpt}</p>
+  <div class="post-card-bottom"><div class="post-tags">{post.data.tags.slice(0, 2).map((tag) => <a href={`/tags/${encodeURIComponent(tag)}/`}>{tag}</a>)}</div><a class="card-read" href={`/posts/${post.id}/`} aria-label={`阅读${post.data.title}`}>阅读 <span aria-hidden="true">↗</span></a></div>
+</article>

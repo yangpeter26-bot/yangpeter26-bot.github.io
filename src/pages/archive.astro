@@ -1,47 +1,66 @@
 ---
-import Layout from "../layouts/Layout.astro";
-import { getPublishedPosts, type Post } from "../lib/posts";
-
+import Layout from '../layouts/Layout.astro';
+import { getPublishedPosts, type Post } from '../lib/posts';
 const posts = await getPublishedPosts();
-
-const grouped: Record<string, Post[]> = {};
-posts.forEach((post) => {
+const grouped = new Map<string, Post[]>();
+for (const post of posts) {
   const year = post.data.date.slice(0, 4);
-  if (!grouped[year]) grouped[year] = [];
-  grouped[year].push(post);
-});
+  grouped.set(year, [...(grouped.get(year) ?? []), post]);
+}
+const tags = [...new Set(posts.flatMap((post) => post.data.tags))].sort((a, b) => a.localeCompare(b));
 ---
 
-<Layout title="Archive">
-  <div class="prose liquid-glass">
-    <a class="back-link" href="/">&larr; Back Home</a>
-    <h1>Archive</h1>
-    <p class="date">{posts.length} articles</p>
-    <hr />
-    {Object.entries(grouped).sort(([a], [b]) => b.localeCompare(a)).map(([year, yearPosts]) => (
-      <div class="year-group">
-        <h2 class="year-title">{year}</h2>
-        {yearPosts.map((post) => (
-          <a class="archive-item" href={`/posts/${post.id}/`}>
-            <span class="archive-date">{post.data.date}</span>
-            <span class="archive-title">{post.data.title}</span>
-          </a>
-        ))}
-      </div>
+<Layout title="文章归档" description="yyg 的全部学习笔记，按时间与标签查找。">
+  <header class="page-heading">
+    <p class="eyebrow">写下的每一步</p>
+    <h1>文章归档<span>。</span></h1>
+    <p>慢慢积累，也随时回来。这里收录了 {posts.length} 篇学习笔记。</p>
+  </header>
+  <nav class="tag-filter" aria-label="按标签浏览">
+    <a class="all-tags" href="/archive/" aria-current="page">全部文章 <span>{posts.length}</span></a>
+    {tags.map((tag) => <a href={`/tags/${encodeURIComponent(tag)}/`}>{tag}</a>)}
+  </nav>
+  <div class="archive-body surface">
+    {[...grouped].sort(([a], [b]) => b.localeCompare(a)).map(([year, yearPosts]) => (
+      <section class="year-group" aria-labelledby={`year-${year}`}>
+        <div class="year-heading"><h2 id={`year-${year}`}>{year}</h2><span>{yearPosts.length} 篇</span></div>
+        <ol class="archive-list">
+          {yearPosts.map((post) => (
+            <li><a class="archive-item" href={`/posts/${post.id}/`}>
+              <time datetime={post.data.date}>{post.data.date.slice(5).replace('-', '.')}</time>
+              <div><h3>{post.data.title}</h3><p>{post.data.excerpt}</p></div>
+              <span class="arrow" aria-hidden="true">↗</span>
+            </a></li>
+          ))}
+        </ol>
+      </section>
     ))}
   </div>
 </Layout>
 
 <style>
-  .year-group { margin: 24px 0; }
-  .year-title { font-size: 20px; font-weight: 640; margin-bottom: 12px; color: var(--text); }
-  .archive-item {
-    display: flex; align-items: baseline; gap: 16px;
-    padding: 8px 0; text-decoration: none; color: inherit;
-    border-bottom: 0.5px solid rgba(0,0,0,0.04);
-    transition: opacity 0.15s;
-  }
-  .archive-item:hover { opacity: 0.65; }
-  .archive-date { font-size: 13px; color: var(--text-tertiary); white-space: nowrap; min-width: 80px; }
-  .archive-title { font-size: 15px; color: var(--text); }
+  .page-heading { padding: 42px 0 30px; }
+  .page-heading h1 { margin: 10px 0 16px; font-size: clamp(36px, 5vw, 52px); line-height: 1.15; letter-spacing: -.06em; }
+  .page-heading h1 span { color: var(--blue); }
+  .page-heading > p:last-child { color: var(--text-secondary); font-size: 16px; line-height: 1.8; }
+  .tag-filter { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 30px; }
+  .tag-filter a { padding: 8px 13px; border-radius: 999px; border: 1px solid var(--border); color: var(--text-secondary); text-decoration: none; font-size: 12px; transition: color .2s, background .2s; }
+  .tag-filter a:hover { color: var(--blue); }
+  .tag-filter .all-tags { background: var(--text); color: var(--bg); border-color: transparent; }
+  .all-tags span { margin-left: 5px; opacity: .7; }
+  .archive-body { padding: 30px 36px; }
+  .year-group + .year-group { margin-top: 42px; }
+  .year-heading { display: flex; align-items: baseline; gap: 12px; margin-bottom: 6px; }
+  .year-heading h2 { font-size: 25px; font-weight: 650; letter-spacing: -.04em; }
+  .year-heading > span { color: var(--text-tertiary); font-size: 12px; }
+  .archive-list { list-style: none; margin: 0; padding: 0; }
+  .archive-list li + li { border-top: 1px solid var(--border); }
+  .archive-item { display: grid; grid-template-columns: 55px 1fr 20px; align-items: baseline; gap: 18px; padding: 22px 0; color: inherit; text-decoration: none; }
+  .archive-item time { color: var(--text-tertiary); font-size: 13px; font-variant-numeric: tabular-nums; }
+  .archive-item h3 { font-size: 16px; line-height: 1.65; font-weight: 550; transition: color .2s; }
+  .archive-item p { margin-top: 7px; font-size: 13px; line-height: 1.8; color: var(--text-secondary); }
+  .arrow { color: var(--text-tertiary); transition: color .2s, transform .2s; }
+  .archive-item:hover h3, .archive-item:hover .arrow { color: var(--blue); }
+  .archive-item:hover .arrow { transform: translate(2px, -2px); }
+  @media (max-width: 640px) { .page-heading { padding-top: 30px; } .archive-body { padding: 24px 20px; } .archive-item { gap: 12px; grid-template-columns: 42px 1fr; } .archive-item .arrow { display: none; } .archive-item p { display: none; } .archive-item h3 { font-size: 14px; } }
 </style>

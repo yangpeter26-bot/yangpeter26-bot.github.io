@@ -1,0 +1,58 @@
+<dialog class="search-dialog" id="search-dialog" aria-labelledby="search-heading">
+  <div class="search-panel">
+    <div class="search-topline"><h2 id="search-heading">找一点想读的</h2><button type="button" class="search-close" id="search-close" aria-label="关闭搜索"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div>
+    <label class="search-input-wrap" for="site-search">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 4.5 4.5"/></svg>
+      <input id="site-search" type="search" aria-label="搜索文章关键词" placeholder="搜索标题、摘要、标签或系列…" autocomplete="off" spellcheck="false" aria-controls="search-results" aria-describedby="search-status" />
+      <kbd aria-hidden="true">esc</kbd>
+    </label>
+    <div class="search-status-row"><p id="search-status" role="status" aria-live="polite">输入关键词，寻找一篇文章。</p><button type="button" id="search-retry" hidden>重新加载</button></div>
+    <ul class="search-results" id="search-results" aria-label="文章搜索结果"></ul>
+    <div class="search-empty" id="search-empty" hidden><span aria-hidden="true">⌕</span><p>还没有找到相关内容</p><small>试试短一点的关键词，比如「学习」「CNN」。</small></div>
+    <div class="search-bottomline"><span>在这个小站里，发现一点新东西。</span><span class="keyboard-hint"><kbd>⌘</kbd> / <kbd>Ctrl</kbd> <kbd>K</kbd></span></div>
+  </div>
+</dialog>
+
+<style>
+  :global(html.search-open) { overflow: hidden; }
+  .search-dialog { width: min(640px, calc(100% - 32px)); max-height: min(730px, calc(100dvh - 64px)); margin: max(40px, 11vh) auto auto; border: 1px solid rgb(255 255 255 / .9); padding: 0; border-radius: 28px; color: var(--text); background: rgb(249 251 253 / .94); box-shadow: 0 30px 100px #152b4530, inset 0 1px 0 #fff; overflow: hidden; backdrop-filter: blur(28px) saturate(150%); -webkit-backdrop-filter: blur(28px) saturate(150%); }
+  .search-dialog::backdrop { background: rgb(32 46 61 / .22); backdrop-filter: blur(7px); -webkit-backdrop-filter: blur(7px); }
+  .search-panel { display: flex; flex-direction: column; max-height: inherit; padding: 22px 24px 0; }
+  .search-topline { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; }
+  .search-topline h2 { font-size: 18px; letter-spacing: -.03em; font-weight: 650; margin: 0; }
+  .search-close { width: 44px; height: 44px; display: grid; place-items: center; margin: -8px -10px -8px 0; color: var(--text-tertiary); background: transparent; border: 0; border-radius: 50%; cursor: pointer; }
+  .search-close:hover { color: var(--text); background: rgb(113 151 185 / .1); }
+  .search-close svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.6; }
+  .search-input-wrap { display: flex; align-items: center; gap: 10px; min-height: 54px; border: 1px solid var(--border); border-radius: 16px; padding: 0 14px; background: rgb(255 255 255 / .72); }
+  .search-input-wrap:focus-within { border-color: var(--blue); box-shadow: 0 0 0 3px rgb(91 147 191 / .1); }
+  .search-input-wrap > svg { width: 20px; height: 20px; fill: none; stroke: var(--blue); stroke-width: 1.6; flex-shrink: 0; }
+  .search-input-wrap input { appearance: none; min-width: 0; flex: 1; border: 0; padding: 12px 0; background: transparent; font: inherit; font-size: 15px; color: var(--text); outline: none; }
+  .search-input-wrap input::placeholder { color: var(--text-tertiary); }
+  kbd { font-family: inherit; font-size: 10px; color: var(--text-tertiary); padding: 2px 5px; border: 1px solid var(--border); border-radius: 5px; }
+  .search-status-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin: 15px 2px 9px; }
+  .search-status-row p { margin: 0; font-size: 12px; color: var(--text-tertiary); }
+  .search-status-row button { min-height: 40px; border: 0; background: transparent; color: var(--blue); font: inherit; font-size: 13px; cursor: pointer; }
+  .search-results { list-style: none; padding: 0 5px 0 0; margin: 0 -5px 0 0; overflow-y: auto; min-height: 0; overscroll-behavior: contain; }
+  .search-results :global(.search-result) { display: flex; flex-direction: column; gap: 5px; padding: 16px 13px; border-radius: 14px; margin-bottom: 3px; text-decoration: none; color: var(--text); transition: background .15s; }
+  .search-results :global(.search-result:hover), .search-results :global(.search-result:focus-visible) { background: rgb(127 169 205 / .12); }
+  .search-results :global(.search-result-label) { font-size: 11px; color: var(--blue); }
+  .search-results :global(.search-result-title) { font-size: 15px; font-weight: 600; }
+  .search-results :global(.search-result-excerpt) { font-size: 12px; line-height: 1.7; color: var(--text-secondary); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .search-empty { padding: 25px 0 40px; text-align: center; color: var(--text-secondary); }
+  .search-empty > span { display: block; font-size: 45px; color: var(--text-tertiary); }
+  .search-empty p { margin: 5px 0 8px; font-size: 14px; }
+  .search-empty small { font-size: 12px; color: var(--text-tertiary); }
+  .search-bottomline { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 12px; padding: 15px 2px; border-top: 1px solid var(--border); font-size: 10px; color: var(--text-tertiary); }
+  .keyboard-hint { white-space: nowrap; }
+  :global(html[data-theme="dark"]) .search-dialog { background: rgb(24 34 45 / .96); border-color: rgb(255 255 255 / .14); box-shadow: 0 30px 100px #0006, inset 0 1px 0 #ffffff14; }
+  :global(html[data-theme="dark"]) .search-input-wrap { background: rgb(255 255 255 / .04); }
+  @media (max-width: 680px) {
+    .search-dialog { margin-top: 24px; max-height: calc(100dvh - 48px); border-radius: 24px; }
+    .search-panel { padding: 20px 16px 0; }
+    .search-topline h2 { font-size: 17px; }
+    .search-input-wrap { padding: 0 11px; gap: 8px; }
+    .search-input-wrap input { font-size: 16px; }
+    .search-input-wrap > kbd, .keyboard-hint { display: none; }
+  }
+  @supports not (backdrop-filter: blur(1px)) { .search-dialog { background: #f8fafc; } :global(html[data-theme="dark"]) .search-dialog { background: #18222d; } }
+</style>

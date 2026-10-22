@@ -1,37 +1,70 @@
 ---
 import Layout from "../layouts/Layout.astro";
+import PostCard from "../components/PostCard.astro";
 import { getPublishedPosts } from "../lib/posts";
+import { getTopic } from "../lib/topics";
 
 const posts = await getPublishedPosts();
+const [latest, ...remaining] = posts;
+const seriesCount = new Set(posts.map((post) => post.data.series).filter(Boolean)).size;
+const categories = [
+  { label: '深度学习', tone: 'violet', description: '从原理到实现', count: posts.filter((post) => getTopic(post).tone === 'violet').length },
+  { label: '安全与探索', tone: 'blue', description: '在实践里理解', count: posts.filter((post) => getTopic(post).tone === 'blue').length },
+  { label: '工具与实践', tone: 'mint', description: '记录好用的工具', count: posts.filter((post) => getTopic(post).tone === 'mint').length },
+];
 ---
 
-<Layout title="Home" description="PeterYang's blog — tech & life">
-  <section class="hero">
-    <a class="avatar" href="/posts/about/">
-      <div class="avatar-inner">
-        <img src="/avatar.jpg" alt="PeterYang" />
+<Layout title="首页" description="yyg 的个人博客，记录安全实践、深度学习与日常工具的探索。" wide>
+  <section class="home-hero" aria-labelledby="intro-title">
+    <div class="hero-copy">
+      <p class="hero-eyebrow"><span class="status-dot"></span> 学习 · 记录 · 分享</p>
+      <h1 id="intro-title">你好，我是 <span>yyg<span class="hero-period">.</span></span></h1>
+      <p class="hero-lead">把学到的，变成自己的。</p>
+      <p class="hero-description">这里记录安全实践、深度学习与日常工具的探索。<br class="desktop-break" />从一个问题开始，把过程和思考留在这里。</p>
+      <div class="hero-actions">
+        <a class="button button-primary" href="#latest">开始阅读 <span aria-hidden="true">↗</span></a>
+        <a class="button button-quiet" href="/posts/about/">关于我 <span aria-hidden="true">→</span></a>
       </div>
+      <div class="hero-counts"><span><strong>{posts.length}</strong> 篇笔记</span><span class="count-separator"></span><span><strong>{seriesCount}</strong> 个学习系列</span></div>
+    </div>
+    <a class="portrait-composition" href="/posts/about/" aria-label="认识 yyg">
+      <div class="portrait-halo"></div>
+      <div class="portrait-shadow"></div>
+      <div class="portrait-frame glass"><img src="/avatar-yyg.jpg" alt="yyg 的头像" width="240" height="240" fetchpriority="high" /></div>
+      <span class="portrait-label glass"><span class="portrait-label-dot"></span> notes &amp; curiosity</span>
+      <span class="portrait-spark spark-one" aria-hidden="true">✦</span>
+      <span class="portrait-spark spark-two" aria-hidden="true">✦</span>
     </a>
-    <h1>PeterYang</h1>
-    <p class="tagline">Cybersecurity Engineer · Lifelong Learner</p>
-    <p class="bio">
-      Forever learning, forever curious. Notes on tech, projects, and source code deep-dives.
-    </p>
   </section>
 
-  {posts.map((post) => (
-    <a class="card liquid-glass" href={`/posts/${post.id}/`}>
-      <div class="card-meta">
-        <span class="card-date">{post.data.date}</span>
-        {post.data.tags.map((tag, i) => (
-          <span class={`card-tag ${i === 0 ? "accent" : ""}`}>{tag}</span>
-        ))}
-      </div>
-      <h2 class="card-title">{post.data.title}</h2>
-      <p class="card-excerpt">{post.data.excerpt}</p>
-      <div class="card-footer">
-        <span>Read &rarr;</span>
-      </div>
-    </a>
-  ))}
+  <section class="topics-strip" aria-label="笔记方向">
+    {categories.map((category) => (
+      <a class={`topic-item surface tone-${category.tone}`} href={`/topics/${category.tone}/`}>
+        <span class="topic-icon" aria-hidden="true">{category.tone === 'violet' ? '∑' : category.tone === 'blue' ? '⌘' : '↗'}</span>
+        <span class="topic-copy"><strong>{category.label}</strong><span>{category.description}</span></span>
+        <span class="topic-count">{category.count}<span aria-hidden="true"> ↗</span></span>
+      </a>
+    ))}
+  </section>
+
+  <section class="latest-section" id="latest" aria-labelledby="latest-title">
+    <div class="section-heading"><div><p class="eyebrow">RECENT NOTES</p><h2 id="latest-title">最近更新</h2></div><a class="text-link" href="/archive/">全部文章 <span aria-hidden="true">↗</span></a></div>
+    {latest && (
+      <article class={`featured-post surface tone-${getTopic(latest).tone}`}>
+        <div class="featured-copy">
+          <div class="post-meta"><span class="new-badge">最新文章</span><time datetime={latest.data.date}>{latest.data.date.replaceAll('-', '.')}</time></div>
+          <h3><a href={`/posts/${latest.id}/`}>{latest.data.title}</a></h3>
+          <p>{latest.data.excerpt}</p>
+          <div class="featured-bottom"><div class="post-tags">{latest.data.tags.slice(0, 3).map((tag) => <a href={`/tags/${encodeURIComponent(tag)}/`}>{tag}</a>)}</div><a class="round-link" href={`/posts/${latest.id}/`} aria-label={`阅读${latest.data.title}`}><span aria-hidden="true">↗</span></a></div>
+        </div>
+        <a class="featured-art" href={`/posts/${latest.id}/`} aria-label={`阅读最新文章：${latest.data.title}`} tabindex="-1" aria-hidden="true"><div class="art-grid"></div><div class="art-orbit orbit-one"></div><div class="art-orbit orbit-two"></div><div class="art-app glass"><span>{getTopic(latest).tone === 'violet' ? '∑' : '⌘'}</span></div><span class="art-caption">{getTopic(latest).label}<span>KEEP EXPLORING</span></span></a>
+      </article>
+    )}
+    <div class="posts-grid">
+      {remaining.map((post) => <PostCard post={post} />)}
+    </div>
+    {posts.length === 0 && <p class="empty-state surface">第一篇笔记正在路上。</p>}
+  </section>
+
+  <section class="series-invitation glass"><div><span class="series-invitation-icon" aria-hidden="true">▤</span><div><p class="eyebrow">STEP BY STEP</p><h2>把零散的知识，连成一条线。</h2><p>按系列阅读，一步一步理解。</p></div></div><a class="button button-light" href="/series/">浏览学习系列 <span aria-hidden="true">↗</span></a></section>
 </Layout>

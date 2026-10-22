@@ -31,9 +31,9 @@ export const GET: APIRoute = async ({ site }) => {
   return new Response(`<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>PeterYang's blog</title>
+    <title>yyg 的笔记</title>
     <link>${escapeXml(siteUrl.href)}</link>
-    <description>Notes on tech, projects, and source code deep-dives.</description>
+    <description>记录技术探索、学习笔记与项目实践。</description>
     <language>zh-CN</language>
     <atom:link href="${escapeXml(feedUrl)}" rel="self" type="application/rss+xml" />
     ${items}

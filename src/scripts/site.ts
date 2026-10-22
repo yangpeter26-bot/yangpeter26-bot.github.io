@@ -44,7 +44,10 @@ function syncGiscus(): void {
 function applyTheme(theme: Theme): void {
   document.documentElement.dataset.theme = theme;
   themeButton?.setAttribute('aria-pressed', String(theme === 'dark'));
-  themeButton?.setAttribute('aria-label', `Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`);
+  themeButton?.setAttribute('aria-label', theme === 'dark' ? '切换浅色主题' : '切换深色主题');
+  document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]').forEach((meta) => {
+    meta.content = theme === 'dark' ? '#10161d' : '#f5f7fa';
+  });
   syncGiscus();
 }
 
@@ -84,13 +87,13 @@ window.addEventListener('message', (event: MessageEvent<unknown>) => {
 
 const menuButton = document.querySelector<HTMLButtonElement>('#hamburger');
 const mobileMenu = document.querySelector<HTMLUListElement>('#mobile-menu');
-const mobileViewport = window.matchMedia('(max-width: 640px)');
+const mobileViewport = window.matchMedia('(max-width: 680px)');
 
 function setMenuOpen(open: boolean, restoreFocus = false): void {
   if (!menuButton || !mobileMenu) return;
   mobileMenu.hidden = !open;
   menuButton.setAttribute('aria-expanded', String(open));
-  menuButton.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+  menuButton.setAttribute('aria-label', open ? '收起导航' : '展开导航');
   if (restoreFocus) menuButton.focus();
 }
 
@@ -114,8 +117,8 @@ document.querySelectorAll<HTMLPreElement>('.prose pre').forEach((pre) => {
   const status = document.createElement('span');
   button.type = 'button';
   button.className = 'copy-btn';
-  button.textContent = 'Copy';
-  button.setAttribute('aria-label', 'Copy code');
+  button.textContent = '复制';
+  button.setAttribute('aria-label', '复制代码');
   status.className = 'sr-only';
   status.setAttribute('role', 'status');
   let resetTimer: number | undefined;
@@ -127,17 +130,17 @@ document.querySelectorAll<HTMLPreElement>('.prose pre').forEach((pre) => {
     try {
       if (!navigator.clipboard) throw new Error('Clipboard is unavailable');
       await navigator.clipboard.writeText(code);
-      button.textContent = 'Copied!';
+      button.textContent = '已复制';
       button.classList.add('copied');
-      status.textContent = 'Code copied to clipboard.';
+      status.textContent = '代码已复制到剪贴板。';
     } catch {
-      button.textContent = 'Copy failed';
+      button.textContent = '请手动复制';
       button.classList.add('copy-failed');
-      status.textContent = 'Copy failed. Select the code and copy it manually.';
+      status.textContent = '复制未成功，请选中代码手动复制。';
     } finally {
       button.disabled = false;
       resetTimer = window.setTimeout(() => {
-        button.textContent = 'Copy';
+        button.textContent = '复制';
         button.classList.remove('copied', 'copy-failed');
         status.textContent = '';
       }, 2500);
@@ -145,6 +148,146 @@ document.querySelectorAll<HTMLPreElement>('.prose pre').forEach((pre) => {
   });
 
   pre.append(button, status);
+});
+
+interface SearchPost {
+  title: string;
+  excerpt: string;
+  tags: string[];
+  series: string;
+  date: string;
+  url: string;
+}
+
+const searchDialog = document.querySelector<HTMLDialogElement>('#search-dialog');
+const searchInput = document.querySelector<HTMLInputElement>('#site-search');
+const searchResults = document.querySelector<HTMLUListElement>('#search-results');
+const searchStatus = document.querySelector<HTMLParagraphElement>('#search-status');
+const searchEmpty = document.querySelector<HTMLDivElement>('#search-empty');
+const searchRetry = document.querySelector<HTMLButtonElement>('#search-retry');
+let searchIndex: SearchPost[] | null = null;
+let pendingIndex: Promise<SearchPost[]> | null = null;
+let searchOpener: HTMLElement | null = null;
+
+const normalizeSearch = (value: string) => value.normalize('NFKC').toLocaleLowerCase('zh-CN');
+
+async function loadSearchIndex(): Promise<SearchPost[]> {
+  if (searchIndex) return searchIndex;
+  if (pendingIndex) return pendingIndex;
+  pendingIndex = fetch('/search-index.json')
+    .then(async (response) => {
+      if (!response.ok) throw new Error(`Search index: ${response.status}`);
+      searchIndex = await response.json() as SearchPost[];
+      return searchIndex;
+    })
+    .finally(() => { pendingIndex = null; });
+  return pendingIndex;
+}
+
+function renderSearch(): void {
+  if (!searchInput || !searchResults || !searchStatus || !searchEmpty || !searchIndex) return;
+  const terms = normalizeSearch(searchInput.value.trim()).split(/\s+/).filter(Boolean);
+  const ranked = searchIndex.map((post) => {
+    const title = normalizeSearch(post.title);
+    const tags = normalizeSearch(post.tags.join(' '));
+    const series = normalizeSearch(post.series);
+    const excerpt = normalizeSearch(post.excerpt);
+    let score = 0;
+    for (const term of terms) {
+      if (![title, tags, series, excerpt].some((field) => field.includes(term))) return { post, score: -1 };
+      score += (title.includes(term) ? 20 : 0) + (tags.includes(term) ? 10 : 0) + (series.includes(term) ? 7 : 0) + (excerpt.includes(term) ? 4 : 0);
+    }
+    return { post, score };
+  }).filter(({ score }) => score >= 0).sort((a, b) => b.score - a.score);
+  const displayed = ranked.slice(0, terms.length ? 30 : 8);
+  const fragment = document.createDocumentFragment();
+  for (const { post } of displayed) {
+    const item = document.createElement('li');
+    const link = document.createElement('a');
+    link.className = 'search-result';
+    link.href = post.url;
+    const label = document.createElement('span');
+    label.className = 'search-result-label';
+    label.textContent = `${post.date} · ${post.tags.slice(0, 2).join(' / ') || '文章'}`;
+    const title = document.createElement('strong');
+    title.className = 'search-result-title';
+    title.textContent = post.title;
+    const excerpt = document.createElement('span');
+    excerpt.className = 'search-result-excerpt';
+    excerpt.textContent = post.excerpt;
+    link.append(label, title, excerpt);
+    item.append(link);
+    fragment.append(item);
+  }
+  searchResults.replaceChildren(fragment);
+  searchResults.scrollTop = 0;
+  searchEmpty.hidden = displayed.length > 0;
+  searchStatus.textContent = terms.length
+    ? `找到 ${ranked.length} 篇文章${ranked.length > 30 ? '，显示前 30 篇' : ''}`
+    : `最近更新 · 共 ${searchIndex.length} 篇文章`;
+}
+
+async function prepareSearch(): Promise<void> {
+  if (!searchStatus) return;
+  searchRetry && (searchRetry.hidden = true);
+  if (!searchIndex) searchStatus.textContent = '正在整理文章…';
+  try {
+    await loadSearchIndex();
+    renderSearch();
+  } catch {
+    searchStatus.textContent = '文章索引加载未成功，请重试。';
+    searchRetry && (searchRetry.hidden = false);
+  }
+}
+
+function openSearch(opener?: HTMLElement): void {
+  if (!searchDialog || !searchInput || searchDialog.open) return;
+  searchOpener = opener ?? (document.activeElement instanceof HTMLElement ? document.activeElement : null);
+  setMenuOpen(false);
+  searchDialog.showModal();
+  document.documentElement.classList.add('search-open');
+  searchInput.focus();
+  searchInput.select();
+  void prepareSearch();
+}
+
+document.querySelectorAll<HTMLElement>('[data-search-open]').forEach((button) => {
+  button.addEventListener('click', () => openSearch(button));
+});
+searchInput?.addEventListener('input', () => { if (searchIndex) renderSearch(); });
+searchRetry?.addEventListener('click', () => { void prepareSearch(); });
+document.querySelector('#search-close')?.addEventListener('click', () => searchDialog?.close());
+searchDialog?.addEventListener('click', (event) => {
+  if (event.target !== searchDialog) return;
+  const bounds = searchDialog.getBoundingClientRect();
+  if (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom) searchDialog.close();
+});
+searchDialog?.addEventListener('close', () => {
+  document.documentElement.classList.remove('search-open');
+  searchOpener?.focus();
+});
+searchDialog?.addEventListener('keydown', (event) => {
+  if (event.isComposing || event.key === 'Process') return;
+  if (!searchInput || !searchResults) return;
+  const links = [...searchResults.querySelectorAll<HTMLAnchorElement>('a')];
+  if (event.key === 'ArrowDown' && document.activeElement === searchInput && links.length) {
+    event.preventDefault();
+    links[0].focus();
+  } else if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+    const current = links.findIndex((link) => link === document.activeElement);
+    if (current < 0) return;
+    event.preventDefault();
+    if (event.key === 'ArrowUp' && current === 0) searchInput.focus();
+    else links[Math.min(links.length - 1, Math.max(0, current + (event.key === 'ArrowDown' ? 1 : -1)))].focus();
+  }
+});
+document.addEventListener('keydown', (event) => {
+  if (event.isComposing || event.key === 'Process') return;
+  if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+    event.preventDefault();
+    if (searchDialog?.open) searchDialog.close();
+    else openSearch();
+  }
 });
 
 export {};

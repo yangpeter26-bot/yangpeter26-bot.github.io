@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>PeterYang's blog</title>
+    <title>yyg 的笔记</title>
     <link>https://yangpeter26-bot.github.io/</link>
-    <description>Notes on tech, projects, and source code deep-dives.</description>
+    <description>记录技术探索、学习笔记与项目实践。</description>
     <language>zh-CN</language>
     <atom:link href="https://yangpeter26-bot.github.io/rss.xml" rel="self" type="application/rss+xml" />
     <item>
@@ -55,12 +55,28 @@
       <category>Deep Learning</category><category>d2l</category><category>机器学习</category>
     </item>
 <item>
+      <title>Metasploitable2 渗透学习（四）—— Tomcat 弱口令与 WAR 部署攻击</title>
+      <link>https://yangpeter26-bot.github.io/posts/metasploitable2-tomcat/</link>
+      <guid isPermaLink="true">https://yangpeter26-bot.github.io/posts/metasploitable2-tomcat/</guid>
+      <description>Tomcat Manager 弱口令登录 + 恶意 WAR 包上传获取 Shell：第一次全程手工复现，不用 Metasploit 完成完整攻击链。</description>
+      <pubDate>Fri, 10 Jul 2026 00:00:00 GMT</pubDate>
+      <category>Security</category><category>Metasploitable2</category>
+    </item>
+<item>
       <title>《动手学深度学习》3.4 — Softmax 回归与分类问题</title>
       <link>https://yangpeter26-bot.github.io/posts/d2l-softmax/</link>
       <guid isPermaLink="true">https://yangpeter26-bot.github.io/posts/d2l-softmax/</guid>
       <description>Softmax 回归完整详解：从线性回归到分类问题，Softmax 函数手算演示，交叉熵损失，Fashion-MNIST 数据集，从零实现与 PyTorch 简洁实现。</description>
       <pubDate>Thu, 09 Jul 2026 00:00:00 GMT</pubDate>
       <category>Deep Learning</category><category>d2l</category>
+    </item>
+<item>
+      <title>Metasploitable2 渗透学习（三）—— Samba 服务枚举、漏洞分析与第一次获得 Root Shell</title>
+      <link>https://yangpeter26-bot.github.io/posts/metasploitable2-samba/</link>
+      <guid isPermaLink="true">https://yangpeter26-bot.github.io/posts/metasploitable2-samba/</guid>
+      <description>Samba 3.0.20 Username Map Script 命令注入漏洞：从端口扫描、服务枚举、漏洞筛选到获得 Root Shell 的完整渗透流程。</description>
+      <pubDate>Tue, 07 Jul 2026 00:00:00 GMT</pubDate>
+      <category>Security</category><category>Metasploitable2</category>
     </item>
 <item>
       <title>《动手学深度学习》3.3 — 线性回归的简洁实现</title>
@@ -71,12 +87,36 @@
       <category>Deep Learning</category><category>d2l</category>
     </item>
 <item>
+      <title>Metasploitable2 渗透学习（二）—— Telnet 服务分析与弱口令登录</title>
+      <link>https://yangpeter26-bot.github.io/posts/metasploitable2-telnet/</link>
+      <guid isPermaLink="true">https://yangpeter26-bot.github.io/posts/metasploitable2-telnet/</guid>
+      <description>Metasploitable2 靶机 Telnet 服务分析：端口发现、明文传输原理、默认账号登录与 Shell 信息收集。</description>
+      <pubDate>Tue, 07 Jul 2026 00:00:00 GMT</pubDate>
+      <category>Security</category><category>Metasploitable2</category>
+    </item>
+<item>
+      <title>Metasploitable2 渗透学习（一）—— vsFTPd 2.3.4 后门漏洞</title>
+      <link>https://yangpeter26-bot.github.io/posts/metasploitable2-vsftpd/</link>
+      <guid isPermaLink="true">https://yangpeter26-bot.github.io/posts/metasploitable2-vsftpd/</guid>
+      <description>Metasploitable2 靶机 vsFTPd 2.3.4 后门漏洞复现：信息收集、漏洞分析、Exploit 阅读与手工验证的完整流程记录。</description>
+      <pubDate>Mon, 06 Jul 2026 00:00:00 GMT</pubDate>
+      <category>Security</category><category>Metasploitable2</category>
+    </item>
+<item>
       <title>《动手学深度学习》3.2 — 线性回归的从零实现</title>
       <link>https://yangpeter26-bot.github.io/posts/d2l-linear-regression/</link>
       <guid isPermaLink="true">https://yangpeter26-bot.github.io/posts/d2l-linear-regression/</guid>
       <description>d2l 3.2 节从头实现线性回归：造数据、取批次、定义模型、损失函数、SGD、训练循环。逐行人话翻译。</description>
       <pubDate>Tue, 23 Jun 2026 00:00:00 GMT</pubDate>
       <category>Deep Learning</category><category>d2l</category>
+    </item>
+<item>
+      <title>Vulhub 漏洞复现学习笔记（一）：Redis CVE-2022-0543</title>
+      <link>https://yangpeter26-bot.github.io/posts/vulhub-1/</link>
+      <guid isPermaLink="true">https://yangpeter26-bot.github.io/posts/vulhub-1/</guid>
+      <description>Vulhub 是一个基于 Docker-Compose 的漏洞环境集合。这是系列第一篇，记录环境搭建和漏洞复现过程。</description>
+      <pubDate>Tue, 23 Jun 2026 00:00:00 GMT</pubDate>
+      <category>Security</category><category>Vulhub</category>
     </item>
   </channel>
 </rss>

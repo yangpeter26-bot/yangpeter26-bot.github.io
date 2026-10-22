@@ -2,20 +2,61 @@
 import Layout from '../../layouts/Layout.astro';
 ---
 
-<Layout title="About Me">
-  <div class="prose liquid-glass">
-    <a class="back-link" href="/">&larr; Back Home</a>
-    <h1>About Me</h1>
-    <p class="date">Forever a work in progress.</p>
-    <hr />
-    <p>Hi, I'm <strong>PeterYang</strong>.</p>
-    <p>
-      At this moment, I have nothing to say.
-    </p>
-    <p>
-      It's not that there's nothing to share — sometimes a blank page is beautiful in its own way. This blog is a canvas waiting to be filled. Maybe tech, maybe rants, maybe nothing at all. Either way, you're here now. Stick around.
-    </p>
-    <hr />
-    <p><a class="back-link" href="/">&larr; Back Home</a></p>
-  </div>
+<Layout title="关于 yyg" description="yyg，记录安全、深度学习和工具使用的学习笔记。">
+  <header class="page-heading">
+    <p class="eyebrow">屏幕另一端</p>
+    <h1>你好，我是 yyg<span>。</span></h1>
+    <p>保持好奇，把学到的东西认真记下来。</p>
+  </header>
+  <section class="about-card surface" aria-label="关于我">
+    <div class="portrait-wrap"><img class="portrait" src="/avatar-yyg.jpg" alt="yyg 的头像" width="224" height="224" /><span class="portrait-caption">一点一滴，慢慢积累。</span></div>
+    <div class="about-copy">
+      <p class="eyebrow">学习 · 记录 · 分享</p>
+      <h2>让想法有迹可循。</h2>
+      <p>这里是我的个人博客，记录安全、深度学习和工具使用的学习笔记。</p>
+      <p>从动手复现到梳理原理，从一段代码到一个新工具，我把学习过程中的理解和问题留在这里。内容会随着学习不断补充。</p>
+      <a class="about-action" href="/archive/">翻翻我的笔记 <span aria-hidden="true">↗</span></a>
+    </div>
+  </section>
+  <section class="interests" aria-labelledby="interests-title">
+    <div class="section-heading"><h2 id="interests-title">正在探索</h2><span>从现有笔记出发</span></div>
+    <div class="interest-grid">
+      <a class="interest surface" href="/series/#metasploitable2"><span class="interest-icon" aria-hidden="true">⌘</span><h3>安全与原理</h3><p>服务分析、漏洞复现，以及过程中的每一个为什么。</p><span class="interest-link">阅读安全笔记 ↗</span></a>
+      <a class="interest surface" href="/series/#d2l"><span class="interest-icon" aria-hidden="true">◈</span><h3>深度学习</h3><p>跟着《动手学深度学习》，连接概念与代码。</p><span class="interest-link">阅读学习系列 ↗</span></a>
+      <a class="interest surface" href="/tags/Tools/"><span class="interest-icon" aria-hidden="true">◎</span><h3>工具与实践</h3><p>记录新工具的使用方法，也记录自己的尝试。</p><span class="interest-link">阅读工具笔记 ↗</span></a>
+    </div>
+  </section>
+  <div class="say-hello"><p>有想交流的想法？<br /><span>在留言板留下一句话吧。</span></p><a class="glass hello-button" href="/posts/guestbook/">去留言 <span aria-hidden="true">↗</span></a></div>
 </Layout>
+
+<style>
+  .page-heading { padding: 42px 0 34px; }
+  .page-heading h1 { margin: 10px 0 16px; font-size: clamp(34px, 5vw, 50px); line-height: 1.2; letter-spacing: -.055em; }
+  .page-heading h1 span { color: var(--blue); }
+  .page-heading > p:last-child { color: var(--text-secondary); font-size: 16px; line-height: 1.8; }
+  .about-card { padding: 42px; display: grid; grid-template-columns: 180px 1fr; gap: 45px; align-items: center; }
+  .portrait-wrap { display: flex; align-items: center; flex-direction: column; gap: 18px; }
+  .portrait { width: 160px; height: 160px; object-fit: cover; border-radius: 36px; border: 4px solid var(--surface); box-shadow: 0 12px 35px rgba(24, 56, 90, .16); }
+  .portrait-caption { color: var(--text-tertiary); font-size: 11px; }
+  .about-copy h2 { font-size: 28px; letter-spacing: -.04em; margin: 12px 0 18px; }
+  .about-copy > p:not(.eyebrow) { color: var(--text-secondary); font-size: 14px; line-height: 1.95; margin-bottom: 12px; }
+  .about-action { display: inline-flex; gap: 24px; margin-top: 15px; color: var(--blue); text-decoration: none; font-size: 13px; font-weight: 550; }
+  .interests { margin-top: 40px; }
+  .section-heading { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; margin-bottom: 18px; }
+  .section-heading h2 { font-size: 20px; letter-spacing: -.03em; }
+  .section-heading > span { color: var(--text-tertiary); font-size: 11px; }
+  .interest-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .interest { padding: 25px; color: var(--text); text-decoration: none; transition: transform .2s; }
+  .interest:hover { transform: translateY(-3px); }
+  .interest-icon { display: inline-grid; place-items: center; width: 36px; height: 36px; border-radius: 11px; color: var(--blue); background: color-mix(in srgb, var(--blue) 9%, transparent); font-size: 21px; }
+  .interest h3 { margin: 19px 0 10px; font-size: 16px; font-weight: 600; }
+  .interest p { color: var(--text-secondary); font-size: 12px; line-height: 1.9; }
+  .interest-link { display: inline-block; margin-top: 20px; color: var(--blue); font-size: 11px; }
+  .say-hello { display: flex; justify-content: space-between; align-items: center; gap: 20px; padding: 34px 0 8px; }
+  .say-hello p { color: var(--text); font-size: 15px; line-height: 1.8; }
+  .say-hello p span { color: var(--text-tertiary); font-size: 13px; }
+  .hello-button { display: inline-flex; align-items: center; gap: 28px; padding: 12px 20px; border-radius: 999px; font-size: 13px; color: var(--text); text-decoration: none; }
+  @media (max-width: 760px) { .about-card { padding: 30px; grid-template-columns: 130px 1fr; gap: 25px; } .portrait { width: 125px; height: 125px; border-radius: 30px; } .interest-grid { gap: 12px; } .interest { padding: 20px; } }
+  @media (max-width: 540px) { .page-heading { padding-top: 30px; } .about-card { grid-template-columns: 1fr; padding: 28px 24px; gap: 28px; } .portrait { width: 138px; height: 138px; } .about-copy h2 { font-size: 25px; } .interest-grid { grid-template-columns: 1fr; } .interest { padding: 22px; } .interest h3 { margin-top: 14px; } .section-heading > span { display: none; } }
+  @media (prefers-reduced-motion: reduce) { .interest { transition: none; } .interest:hover { transform: none; } }
+</style>

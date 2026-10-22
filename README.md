@@ -1,4 +1,4 @@
-# PeterYang's Blog
+# yyg 的笔记
 
 Astro 5 + TypeScript 静态技术博客，使用 GitHub Pages 的 main 分支根目录发布方式。
 
@@ -15,8 +15,8 @@ src/
   scripts/                 主题、菜单、代码复制等浏览器交互
   styles/global.css        全站玻璃风格与响应式样式
 public/                    直接复制到构建产物的静态资源
-  posts/                   5 篇仅有 HTML 的历史文章，保留原网址
-  _astro/                  历史 HTML 依赖的旧样式
+  avatar-yyg.jpg           用户提供的 yyg 头像
+  favicon.svg              网站图标
 docs/
   drafts/                  未发布草稿，不参与文章集合
   writing-style.md         原有文章风格约定
@@ -70,15 +70,13 @@ seriesOrder: 8        # 可选，正整数
 
 ## 历史文章
 
-以下 5 篇当前仅有 HTML，原样保存在 public/posts/，其依赖样式保存在 public/_astro/：
+5 篇历史文章已从 Git 历史恢复到 src/content/posts/，原网址和正文保留，现在与其他文章一起生成首页、归档、RSS、搜索索引和系列目录。原有 public/posts/ 与旧样式不再需要。
 
-- vulhub-1
-- metasploitable2-vsftpd
-- metasploitable2-telnet
-- metasploitable2-samba
-- metasploitable2-tomcat
+## 设计与阅读
 
-它们会随构建复制到 dist 并加入站点地图，原网址继续保留。它们暂不加入由 Markdown 生成的首页、归档和 RSS，也不跟随新布局更新。若恢复某篇 Markdown，请同时移除对应 public/posts/<slug>/，避免静态文件与生成路由重名。
+显示名为 yyg，头像使用用户提供的原图。浅色界面以冷白与雾蓝为主，玻璃材质集中在导航和辅助控件；正文使用稳定的阅读背景。新增搜索、主题入口、标签、系列、阅读进度、章节目录和数学公式渲染。
+
+网站使用统一的 Markdown 内容集合。身份信息在 src/config/site.ts 中维护；首页、文章、标签、系列和搜索索引会随构建一起更新。
 
 ## 本地发布与上线
 
