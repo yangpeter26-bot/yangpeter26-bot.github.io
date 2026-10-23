@@ -4,6 +4,7 @@ const seriesDetails: Record<string, { title: string; description: string; icon: 
   d2l: { title: '动手学深度学习', description: '从线性回归到卷积网络，记录概念、代码和理解过程。', icon: '◈' },
   metasploitable2: { title: 'Metasploitable2 学习记录', description: '按服务逐步学习信息收集、原理分析和本地漏洞复现。', icon: '⌘' },
   vulhub: { title: 'Vulhub 漏洞复现笔记', description: '从环境搭建开始，记录漏洞原理与复现中的问题。', icon: '◎' },
+  'ctf-web-basics': { title: 'CTF Web 基础三题', description: '三道基础题串起注入、命令执行和过滤绕过的通用思路。', icon: '⌗' },
 };
 
 export function getSeriesDetails(id: string): { title: string; description: string; icon: string } {

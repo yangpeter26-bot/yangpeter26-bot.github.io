@@ -7,6 +7,30 @@
     <language>zh-CN</language>
     <atom:link href="https://yangpeter26-bot.github.io/rss.xml" rel="self" type="application/rss+xml" />
     <item>
+      <title>CTF Web 基础三题（三）—— PHP 无字母数字 RCE</title>
+      <link>https://yangpeter26-bot.github.io/posts/ctf-web-basics-3-php-noalnum/</link>
+      <guid isPermaLink="true">https://yangpeter26-bot.github.io/posts/ctf-web-basics-3-php-noalnum/</guid>
+      <description>字母、数字、_、$、@ 全被禁，反引号里的内容又是字面量。最后用 ?&gt; 退出 PHP，再靠 &lt;?= 和 glob 把命令拼出来。</description>
+      <pubDate>Fri, 23 Oct 2026 00:00:00 GMT</pubDate>
+      <category>Security</category><category>CTF</category><category>Web</category>
+    </item>
+<item>
+      <title>CTF Web 基础三题（二）—— Ruby open 管道命令执行</title>
+      <link>https://yangpeter26-bot.github.io/posts/ctf-web-basics-2-ruby-open/</link>
+      <guid isPermaLink="true">https://yangpeter26-bot.github.io/posts/ctf-web-basics-2-ruby-open/</guid>
+      <description>Ruby 的 open() 遇到 | 开头的字符串会执行命令；过滤挡了 / 和 ..，却没挡 | 和 &gt;。再用 ${PWD%usr*} 造出斜杠，两步读回 flag。</description>
+      <pubDate>Fri, 23 Oct 2026 00:00:00 GMT</pubDate>
+      <category>Security</category><category>CTF</category><category>Web</category>
+    </item>
+<item>
+      <title>CTF Web 基础三题（一）—— SQL 盲注：从「万能密码」到把密码问出来</title>
+      <link>https://yangpeter26-bot.github.io/posts/ctf-web-basics-1-sqli/</link>
+      <guid isPermaLink="true">https://yangpeter26-bot.github.io/posts/ctf-web-basics-1-sqli/</guid>
+      <description>登录框只回「成功」或「失败」，空格和常见关键字全被过滤。用 7 位二进制把密码一位一位问出来，32 个字符共 224 次请求。</description>
+      <pubDate>Fri, 23 Oct 2026 00:00:00 GMT</pubDate>
+      <category>Security</category><category>CTF</category><category>Web</category>
+    </item>
+<item>
       <title>《动手学深度学习》6.1 — 卷积神经网络（CNN）</title>
       <link>https://yangpeter26-bot.github.io/posts/d2l-cnn/</link>
       <guid isPermaLink="true">https://yangpeter26-bot.github.io/posts/d2l-cnn/</guid>

