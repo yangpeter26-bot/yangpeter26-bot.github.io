@@ -2,6 +2,8 @@
 
 Astro 5 + TypeScript 静态技术博客，使用 GitHub Pages 的 main 分支根目录发布方式。
 
+发布操作与故障处理见 [docs/PUBLISHING.md](docs/PUBLISHING.md)；后续 agent 的维护入口见 [AGENTS.md](AGENTS.md)。
+
 ## 目录与职责
 
 ```text
