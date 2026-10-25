@@ -7,6 +7,30 @@
     <language>zh-CN</language>
     <atom:link href="https://yangpeter26-bot.github.io/rss.xml" rel="self" type="application/rss+xml" />
     <item>
+      <title>CTF Web 进阶三题（三）—— ez_readfile：phar.gz 绕 waf + cp 参数注入</title>
+      <link>https://yangpeter26-bot.github.io/posts/ctf-web-advanced-3-ez-readfile/</link>
+      <guid isPermaLink="true">https://yangpeter26-bot.github.io/posts/ctf-web-advanced-3-ez-readfile/</guid>
+      <description>unserialize 入口只有 52 字符，waf 又封了 phar 关键字。把 phar 压成 gzip 绕过，再用 cp 的 -L 参数注入把 root 的 flag 复制出来。</description>
+      <pubDate>Sun, 25 Oct 2026 00:00:00 GMT</pubDate>
+      <category>Security</category><category>CTF</category><category>Web</category>
+    </item>
+<item>
+      <title>CTF Web 进阶三题（二）—— EasyCleanup：session.upload_progress 打文件包含</title>
+      <link>https://yangpeter26-bot.github.io/posts/ctf-web-advanced-2-easycleanup/</link>
+      <guid isPermaLink="true">https://yangpeter26-bot.github.io/posts/ctf-web-advanced-2-easycleanup/</guid>
+      <description>file 参数只有 15 个字符，flag 路径却有 34 个。用 session.upload_progress 让 PHP 自己写出 /tmp/sess_abcde，再用 include 把它变成命令执行。</description>
+      <pubDate>Sun, 25 Oct 2026 00:00:00 GMT</pubDate>
+      <category>Security</category><category>CTF</category><category>Web</category>
+    </item>
+<item>
+      <title>CTF Web 进阶三题（一）—— Yii2 反序列化：红帽杯 2021 framework</title>
+      <link>https://yangpeter26-bot.github.io/posts/ctf-web-advanced-1-yii2/</link>
+      <guid isPermaLink="true">https://yangpeter26-bot.github.io/posts/ctf-web-advanced-1-yii2/</guid>
+      <description>Yii 2.0.32 的 about 入口直接 unserialize，用 phpggc 的 Yii2/RCE2 链拿到 eval；再靠 session 激活时机和 mod_cgi 绕过 disable_functions 读 /flag。</description>
+      <pubDate>Sun, 25 Oct 2026 00:00:00 GMT</pubDate>
+      <category>Security</category><category>CTF</category><category>Web</category>
+    </item>
+<item>
       <title>CTF Web 基础三题（三）—— PHP 无字母数字 RCE</title>
       <link>https://yangpeter26-bot.github.io/posts/ctf-web-basics-3-php-noalnum/</link>
       <guid isPermaLink="true">https://yangpeter26-bot.github.io/posts/ctf-web-basics-3-php-noalnum/</guid>

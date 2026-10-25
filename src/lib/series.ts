@@ -5,6 +5,7 @@ const seriesDetails: Record<string, { title: string; description: string; icon: 
   metasploitable2: { title: 'Metasploitable2 学习记录', description: '按服务逐步学习信息收集、原理分析和本地漏洞复现。', icon: '⌘' },
   vulhub: { title: 'Vulhub 漏洞复现笔记', description: '从环境搭建开始，记录漏洞原理与复现中的问题。', icon: '◎' },
   'ctf-web-basics': { title: 'CTF Web 基础三题', description: '三道基础题串起注入、命令执行和过滤绕过的通用思路。', icon: '⌗' },
+  'ctf-web-advanced': { title: 'CTF Web 进阶三题', description: '从框架反序列化到文件包含，再到 phar 绕过与 cp 参数注入，三道需要绕一圈的题。', icon: '⌖' },
 };
 
 export function getSeriesDetails(id: string): { title: string; description: string; icon: string } {
