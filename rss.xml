@@ -31,6 +31,14 @@
       <category>Security</category><category>CTF</category><category>Web</category>
     </item>
 <item>
+      <title>从昆明回来</title>
+      <link>https://yangpeter26-bot.github.io/posts/returning-from-kunming/</link>
+      <guid isPermaLink="true">https://yangpeter26-bot.github.io/posts/returning-from-kunming/</guid>
+      <description>写下这段时间的喜欢，也记下从昆明回来后的心情。</description>
+      <pubDate>Sun, 25 Oct 2026 00:00:00 GMT</pubDate>
+      <category>随笔</category><category>生活</category>
+    </item>
+<item>
       <title>CTF Web 基础三题（三）—— PHP 无字母数字 RCE</title>
       <link>https://yangpeter26-bot.github.io/posts/ctf-web-basics-3-php-noalnum/</link>
       <guid isPermaLink="true">https://yangpeter26-bot.github.io/posts/ctf-web-basics-3-php-noalnum/</guid>

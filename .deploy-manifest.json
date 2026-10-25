@@ -95,6 +95,7 @@
     "posts/metasploitable2-telnet/index.html",
     "posts/metasploitable2-tomcat/index.html",
     "posts/metasploitable2-vsftpd/index.html",
+    "posts/returning-from-kunming/index.html",
     "posts/vulhub-1/index.html",
     "rss.xml",
     "search-index.json",
@@ -117,7 +118,9 @@
     "tags/机器学习/index.html",
     "tags/权重衰减/index.html",
     "tags/正则化/index.html",
+    "tags/生活/index.html",
     "tags/逆向/index.html",
+    "tags/随笔/index.html",
     "topics/blue/index.html",
     "topics/mint/index.html",
     "topics/violet/index.html"
