@@ -14,7 +14,7 @@ src/
   layouts/Layout.astro     公共 HTML 外壳、SEO 和资源引用
   lib/                     文章读取、排序、阅读时间
   pages/                   首页、归档、文章路由、RSS、关于和留言
-  scripts/                 主题、菜单、代码复制等浏览器交互
+  scripts/                 主题、导航、搜索和代码复制等浏览器交互
   styles/global.css        全站玻璃风格与响应式样式
 public/                    直接复制到构建产物的静态资源
   avatar-yyg.jpg           用户提供的 yyg 头像
@@ -22,6 +22,8 @@ public/                    直接复制到构建产物的静态资源
 docs/
   drafts/                  未发布草稿，不参与文章集合
   writing-style.md         原有文章风格约定
+  PUBLISHING.md            发布、验证与回滚流程
+  LIQUID-GLASS-PREVIEW.md   液态玻璃设计与兼容性验证记录
 scripts/                   本地发布同步与构建链接检查
 tests/                     阅读时间与发布同步的回归检查
 dist/                      构建输出，已忽略
@@ -76,7 +78,7 @@ seriesOrder: 8        # 可选，正整数
 
 ## 设计与阅读
 
-显示名为 yyg，头像使用用户提供的原图。浅色界面以冷白与雾蓝为主，玻璃材质集中在导航和辅助控件；正文使用稳定的阅读背景。新增搜索、主题入口、标签、系列、阅读进度、章节目录和数学公式渲染。
+显示名为 yyg，头像使用用户提供的原图。浅色界面以冷白与雾蓝为主，玻璃材质集中在导航和辅助控件；正文使用稳定的阅读背景。桌面采用滑动选中胶囊与局部折射增强，手机采用底部悬浮导航。搜索支持透色面板、开合动画、键盘导航与短视口适配；保留主题、标签、系列、阅读进度、章节目录和数学公式渲染。设计与兼容性检查见 [docs/LIQUID-GLASS-PREVIEW.md](docs/LIQUID-GLASS-PREVIEW.md)。
 
 网站使用统一的 Markdown 内容集合。身份信息在 src/config/site.ts 中维护；首页、文章、标签、系列和搜索索引会随构建一起更新。
 

@@ -30,10 +30,8 @@ const categories = [
     <a class="portrait-composition" href="/posts/about/" aria-label="认识 yyg">
       <div class="portrait-halo"></div>
       <div class="portrait-shadow"></div>
-      <div class="portrait-frame glass"><img src="/avatar-yyg.jpg" alt="yyg 的头像" width="240" height="240" fetchpriority="high" /></div>
-      <span class="portrait-label glass"><span class="portrait-label-dot"></span> notes &amp; curiosity</span>
-      <span class="portrait-spark spark-one" aria-hidden="true">✦</span>
-      <span class="portrait-spark spark-two" aria-hidden="true">✦</span>
+      <div class="portrait-frame glass" data-liquid-glass><img src="/avatar-yyg.jpg" alt="yyg 的头像" width="240" height="240" fetchpriority="high" /></div>
+      <span class="portrait-label glass" data-liquid-glass><span class="portrait-label-dot"></span> 保持好奇，慢慢积累。</span>
     </a>
   </section>
 
@@ -57,7 +55,14 @@ const categories = [
           <p>{latest.data.excerpt}</p>
           <div class="featured-bottom"><div class="post-tags">{latest.data.tags.slice(0, 3).map((tag) => <a href={`/tags/${encodeURIComponent(tag)}/`}>{tag}</a>)}</div><a class="round-link" href={`/posts/${latest.id}/`} aria-label={`阅读${latest.data.title}`}><span aria-hidden="true">↗</span></a></div>
         </div>
-        <a class="featured-art" href={`/posts/${latest.id}/`} aria-label={`阅读最新文章：${latest.data.title}`} tabindex="-1" aria-hidden="true"><div class="art-grid"></div><div class="art-orbit orbit-one"></div><div class="art-orbit orbit-two"></div><div class="art-app glass"><span>{getTopic(latest).tone === 'violet' ? '∑' : '⌘'}</span></div><span class="art-caption">{getTopic(latest).label}<span>KEEP EXPLORING</span></span></a>
+        <a class="featured-art" href={`/posts/${latest.id}/`} tabindex="-1" aria-hidden="true">
+          <div class="note-art">
+            <span class="note-art-label">{getTopic(latest).label}</span>
+            <span class="note-art-symbol">{getTopic(latest).tone === 'violet' ? '∑' : getTopic(latest).tone === 'blue' ? '⌘' : '↗'}</span>
+            <span class="note-art-lines"><i></i><i></i><i></i></span>
+            <span class="note-art-footer">YYG / NOTES</span>
+          </div>
+        </a>
       </article>
     )}
     <div class="posts-grid">
@@ -66,5 +71,5 @@ const categories = [
     {posts.length === 0 && <p class="empty-state surface">第一篇笔记正在路上。</p>}
   </section>
 
-  <section class="series-invitation glass"><div><span class="series-invitation-icon" aria-hidden="true">▤</span><div><p class="eyebrow">STEP BY STEP</p><h2>把零散的知识，连成一条线。</h2><p>按系列阅读，一步一步理解。</p></div></div><a class="button button-light" href="/series/">浏览学习系列 <span aria-hidden="true">↗</span></a></section>
+  <section class="series-invitation surface"><div><span class="series-invitation-icon" aria-hidden="true">▤</span><div><p class="eyebrow">STEP BY STEP</p><h2>把零散的知识，连成一条线。</h2><p>按系列阅读，一步一步理解。</p></div></div><a class="button button-light" href="/series/">浏览学习系列 <span aria-hidden="true">↗</span></a></section>
 </Layout>

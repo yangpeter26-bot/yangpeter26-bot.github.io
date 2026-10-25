@@ -46,7 +46,7 @@ function applyTheme(theme: Theme): void {
   themeButton?.setAttribute('aria-pressed', String(theme === 'dark'));
   themeButton?.setAttribute('aria-label', theme === 'dark' ? '切换浅色主题' : '切换深色主题');
   document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]').forEach((meta) => {
-    meta.content = theme === 'dark' ? '#10161d' : '#f5f7fa';
+    meta.content = theme === 'dark' ? '#0c141e' : '#f3f6fa';
   });
   syncGiscus();
 }
@@ -83,32 +83,6 @@ window.addEventListener('message', (event: MessageEvent<unknown>) => {
     readyFrames.add(frame);
     syncFrame(frame, true);
   });
-});
-
-const menuButton = document.querySelector<HTMLButtonElement>('#hamburger');
-const mobileMenu = document.querySelector<HTMLUListElement>('#mobile-menu');
-const mobileViewport = window.matchMedia('(max-width: 680px)');
-
-function setMenuOpen(open: boolean, restoreFocus = false): void {
-  if (!menuButton || !mobileMenu) return;
-  mobileMenu.hidden = !open;
-  menuButton.setAttribute('aria-expanded', String(open));
-  menuButton.setAttribute('aria-label', open ? '收起导航' : '展开导航');
-  if (restoreFocus) menuButton.focus();
-}
-
-menuButton?.addEventListener('click', () => setMenuOpen(menuButton.getAttribute('aria-expanded') !== 'true'));
-mobileMenu?.addEventListener('click', (event) => {
-  if (event.target instanceof Element && event.target.closest('a')) setMenuOpen(false);
-});
-document.addEventListener('keydown', (event) => {
-  if (event.key === 'Escape' && menuButton?.getAttribute('aria-expanded') === 'true') setMenuOpen(false, true);
-});
-document.addEventListener('click', (event) => {
-  if (event.target instanceof Node && !mobileMenu?.contains(event.target) && !menuButton?.contains(event.target)) setMenuOpen(false);
-});
-mobileViewport.addEventListener('change', (event) => {
-  if (!event.matches) setMenuOpen(false);
 });
 
 document.querySelectorAll<HTMLPreElement>('.prose pre').forEach((pre) => {
@@ -168,6 +142,28 @@ const searchRetry = document.querySelector<HTMLButtonElement>('#search-retry');
 let searchIndex: SearchPost[] | null = null;
 let pendingIndex: Promise<SearchPost[]> | null = null;
 let searchOpener: HTMLElement | null = null;
+let closingSearch = false;
+let searchComposing = false;
+let searchCloseTimer: number | undefined;
+const reduceSearchMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+function closeSearch(): void {
+  if (!searchDialog?.open || closingSearch) return;
+  if (reduceSearchMotion.matches) { searchDialog.close(); return; }
+  closingSearch = true;
+  searchDialog.classList.add('is-closing');
+  searchCloseTimer = window.setTimeout(() => searchDialog.close(), 180);
+}
+
+// Keep the search input/results inside the visible area when a phone keyboard
+// changes the visual viewport. This is layout support, not a focus/scroll trap.
+function updateSearchViewport(): void {
+  searchDialog?.style.setProperty('--search-viewport-height', `${window.visualViewport?.height ?? window.innerHeight}px`);
+}
+window.visualViewport?.addEventListener('resize', updateSearchViewport, { passive: true });
+window.addEventListener('resize', updateSearchViewport, { passive: true });
+updateSearchViewport();
+
 
 const normalizeSearch = (value: string) => value.normalize('NFKC').toLocaleLowerCase('zh-CN');
 
@@ -243,8 +239,17 @@ async function prepareSearch(): Promise<void> {
 function openSearch(opener?: HTMLElement): void {
   if (!searchDialog || !searchInput || searchDialog.open) return;
   searchOpener = opener ?? (document.activeElement instanceof HTMLElement ? document.activeElement : null);
-  setMenuOpen(false);
+  window.clearTimeout(searchCloseTimer);
+  closingSearch = false;
+  searchDialog.classList.remove('is-closing');
   searchDialog.showModal();
+  const bounds = searchDialog.getBoundingClientRect();
+  const trigger = searchOpener?.getBoundingClientRect();
+  if (trigger && bounds.width) {
+    const origin = Math.max(12, Math.min(88, (trigger.left + trigger.width / 2 - bounds.left) / bounds.width * 100));
+    searchDialog.style.setProperty('--search-origin-x', `${origin}%`);
+  }
+  updateSearchViewport();
   document.documentElement.classList.add('search-open');
   searchInput.focus();
   searchInput.select();
@@ -256,13 +261,20 @@ document.querySelectorAll<HTMLElement>('[data-search-open]').forEach((button) =>
 });
 searchInput?.addEventListener('input', () => { if (searchIndex) renderSearch(); });
 searchRetry?.addEventListener('click', () => { void prepareSearch(); });
-document.querySelector('#search-close')?.addEventListener('click', () => searchDialog?.close());
+document.querySelector('#search-close')?.addEventListener('click', closeSearch);
+searchInput?.addEventListener('compositionstart', () => { searchComposing = true; });
+searchInput?.addEventListener('compositionend', () => { searchComposing = false; });
+searchDialog?.addEventListener('cancel', (event) => { event.preventDefault(); if (!searchComposing) closeSearch(); });
 searchDialog?.addEventListener('click', (event) => {
   if (event.target !== searchDialog) return;
   const bounds = searchDialog.getBoundingClientRect();
-  if (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom) searchDialog.close();
+  if (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom) closeSearch();
 });
 searchDialog?.addEventListener('close', () => {
+  searchComposing = false;
+  window.clearTimeout(searchCloseTimer);
+  closingSearch = false;
+  searchDialog.classList.remove('is-closing');
   document.documentElement.classList.remove('search-open');
   searchOpener?.focus();
 });
@@ -285,7 +297,7 @@ document.addEventListener('keydown', (event) => {
   if (event.isComposing || event.key === 'Process') return;
   if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
     event.preventDefault();
-    if (searchDialog?.open) searchDialog.close();
+    if (searchDialog?.open) closeSearch();
     else openSearch();
   }
 });

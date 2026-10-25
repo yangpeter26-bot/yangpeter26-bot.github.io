@@ -33,12 +33,12 @@ const structuredData = {
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <ThemeInit />
     <meta name="description" content={description} />
     <meta name="author" content={site.name} />
-    <meta name="theme-color" content="#f5f7fa" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#10161d" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#f3f6fa" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0c141e" media="(prefers-color-scheme: dark)" />
     <meta property="og:site_name" content={site.name} />
     <meta property="og:title" content={pageTitle} />
     <meta property="og:description" content={description} />
@@ -65,6 +65,8 @@ const structuredData = {
     <Search />
     <script>
       import '../scripts/site';
+      import '../scripts/navigation';
+      import '../scripts/liquid-glass';
     </script>
   </body>
 </html>
