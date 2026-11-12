@@ -17,8 +17,7 @@ src/
   scripts/                 主题、导航、搜索和代码复制等浏览器交互
   styles/global.css        全站玻璃风格与响应式样式
 public/                    直接复制到构建产物的静态资源
-  avatar-yyg.jpg           用户提供的 yyg 头像
-  favicon.svg              网站图标
+  avatar-yyg.jpg           yyg 头像与浏览器标签页图标
 docs/
   drafts/                  未发布草稿，不参与文章集合
   writing-style.md         原有文章风格约定

@@ -50,7 +50,7 @@ const structuredData = {
     {article && <meta property="article:published_time" content={article.publishedTime} />}
     <meta name="twitter:card" content="summary" />
     <title>{pageTitle}</title>
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/jpeg" href={ogImage.pathname} />
     <link rel="canonical" href={canonicalUrl.href} />
     <link rel="alternate" type="application/rss+xml" title={`${site.name} RSS`} href={new URL('/rss.xml', siteUrl).href} />
     <script is:inline type="application/ld+json" set:html={JSON.stringify(structuredData).replace(/</g, '\\u003c')} />
