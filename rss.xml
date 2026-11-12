@@ -7,6 +7,14 @@
     <language>zh-CN</language>
     <atom:link href="https://yangpeter26-bot.github.io/rss.xml" rel="self" type="application/rss+xml" />
     <item>
+      <title>研究生第一次组会准备：读 Task Shield</title>
+      <link>https://yangpeter26-bot.github.io/posts/task-shield-first-group-meeting/</link>
+      <guid isPermaLink="true">https://yangpeter26-bot.github.io/posts/task-shield-first-group-meeting/</guid>
+      <description>准备第一次组会时，我从一个查日历的小例子出发，理解模型、工具与程序怎样配合，以及 Task Shield 怎样检查 Agent 有没有偏离用户的任务。</description>
+      <pubDate>Thu, 12 Nov 2026 00:00:00 GMT</pubDate>
+      <category>组会</category><category>Agent 安全</category><category>Security</category>
+    </item>
+<item>
       <title>CTF Web 进阶三题（三）—— ez_readfile：phar.gz 绕 waf + cp 参数注入</title>
       <link>https://yangpeter26-bot.github.io/posts/ctf-web-advanced-3-ez-readfile/</link>
       <guid isPermaLink="true">https://yangpeter26-bot.github.io/posts/ctf-web-advanced-3-ez-readfile/</guid>
